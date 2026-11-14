@@ -265,7 +265,7 @@ async function importEstoque({ buffer, fileName, user, period: periodIn }) {
     for (const [currencyType, which, currency] of variants) {
       const rows = estoque.rowsFor(comp.rows, which);
       items.push({
-        module: 'estoque', period, company, currencyType, rows,
+        module: 'estoque', period, company, currencyType, rows: rows.map(estoque.enxugar),
         summary: agg.computeSummary(rows, def, period),
         meta: { fileName, uploadedBy, batch, source: 'estoque', currency, warnings: 0 },
       });
@@ -525,6 +525,10 @@ async function loadRawRows(slug, scope) {
     // Módulos gravados enxutos (FAGLL03): recompõe descrições, nomes e classificações a partir dos Parâmetros
     if (def.importer?.guardar) {
       await Promise.all(meta.map((d, i) => genericImport.rederive(def, parts[i], d.period)));
+    }
+    // Estoque gravado enxuto: classe, próprio × terceiros e status de giro refeitos na leitura
+    if (def.source === 'estoque') {
+      await Promise.all(meta.map((d, i) => estoque.reidratar(parts[i], agg.periodEnd(d.period), statusGiro)));
     }
     return parts.flat();
   });

@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 30,
+    data: '2026-11-14',
+    titulo: 'Banco de dados mais leve',
+    itens: ['Estoque guardado de forma mais enxuta no banco, sem mudar nenhum valor das telas.'],
+  },
+  {
     build: 29,
     data: '2026-11-14',
     titulo: 'Pedidos de compra e atribuições',
