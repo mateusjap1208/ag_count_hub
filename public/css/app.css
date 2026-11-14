@@ -788,3 +788,18 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .compare-opt { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
 .compare-opt .hint { margin-left: auto; }
 .compare-actions { display: flex; gap: 8px; margin-top: 4px; }
+
+/* Vídeo de fundo no lado esquerdo do login (YouTube), cobrindo a área toda como "cover" */
+.login-video { position: absolute; inset: 0; z-index: 0; overflow: hidden; container-type: size; pointer-events: none; background: var(--consag-navy); }
+.login-video iframe {
+  position: absolute; top: 50%; left: 50%; border: 0; transform: translate(-50%, -50%);
+  width: max(100cqw, 177.78cqh); height: max(100cqh, 56.25cqw);
+}
+/* Película escura por cima do vídeo para o texto continuar legível */
+.login-hero::before {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(6, 23, 43, .78) 0%, rgba(6, 23, 43, .55) 45%, rgba(6, 23, 43, .85) 100%);
+}
+.login-hero::after { z-index: 1; }
+.login-hero > :not(.login-video) { position: relative; z-index: 2; }
+@media (prefers-reduced-motion: reduce) { .login-video { display: none; } }
