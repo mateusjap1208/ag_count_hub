@@ -310,13 +310,16 @@ async function importGeneric(slug, { buffer, fileName, user, period: periodIn })
   };
 }
 
+/** Ordena [moeda, qtd]: BRL primeiro, depois as moedas com mais empresas */
+const brlFirst = (a, b) => (b[0] === 'BRL') - (a[0] === 'BRL') || b[1] - a[1];
+
 /** Moedas disponíveis de um módulo com moeda por linha, na competência (BRL, EUR, COP…) */
 async function moduleCurrencies(slug, period) {
   if (!period) return [];
   return cache.summaries.wrap(`mod-cur|${slug}|${period}`, async () => {
     const m = new Map();
     for (const d of await datasets.list({ module: slug, period })) m.set(d.currencyType, (m.get(d.currencyType) || 0) + 1);
-    return [...m].filter(([c]) => c).sort((a, b) => b[1] - a[1]).map(([cur, n]) => ({ code: cur, empresas: n, symbol: currencySymbol(cur), flag: currencyFlag(cur) }));
+    return [...m].filter(([c]) => c).sort(brlFirst).map(([cur, n]) => ({ code: cur, empresas: n, symbol: currencySymbol(cur), flag: currencyFlag(cur) }));
   });
 }
 
@@ -326,7 +329,7 @@ async function leaseCurrencies(period) {
   return cache.summaries.wrap(`lease-cur|${period}`, async () => {
     const m = new Map();
     for (const d of await datasets.list({ module: 'arrendamento', period })) m.set(d.currencyType, (m.get(d.currencyType) || 0) + 1);
-    return [...m].sort((a, b) => b[1] - a[1]).map(([cur, n]) => ({ code: cur, empresas: n, symbol: currencySymbol(cur), flag: currencyFlag(cur) }));
+    return [...m].sort(brlFirst).map(([cur, n]) => ({ code: cur, empresas: n, symbol: currencySymbol(cur), flag: currencyFlag(cur) }));
   });
 }
 
@@ -405,7 +408,10 @@ async function currencyOptions(period) {
     if (grupo.length) opts.push(opt('grupo', 'grupo', grupo[0].currency || 'USD', grupo.length));
     const byCur = new Map();
     list.filter((d) => d.currencyType === 'empresa').forEach((d) => byCur.set(d.currency, (byCur.get(d.currency) || 0) + 1));
-    [...byCur].sort((a, b) => b[1] - a[1]).forEach(([cur, n]) => opts.push(opt(`empresa:${cur}`, 'empresa', cur, n)));
+    [...byCur].sort(brlFirst).forEach(([cur, n]) => opts.push(opt(`empresa:${cur}`, 'empresa', cur, n)));
+    // BRL é a primeira moeda da lista (e a padrão das telas)
+    const brl = opts.findIndex((o) => o.currency === 'BRL' && o.type === 'empresa');
+    if (brl > 0) opts.unshift(...opts.splice(brl, 1));
     return opts;
   });
 }

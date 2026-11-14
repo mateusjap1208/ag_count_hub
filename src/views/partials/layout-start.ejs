@@ -107,7 +107,10 @@
         <div>
           <label for="f-moeda">Moeda</label>
           <select class="select" name="moeda" id="f-moeda" data-autosubmit data-enhance="currency" title="Moeda dos relatórios gerados pelo FGI0 (BP, DRE e Capital Empregado)">
-            <% [['grupo', 'Moeda do grupo'], ['empresa', 'Moeda da empresa']].forEach(([type, groupLabel]) => {
+            <% /* grupos na ordem das opções: BRL (moeda da empresa) vem primeiro */
+               const grupos = [['grupo', 'Moeda do grupo'], ['empresa', 'Moeda da empresa']];
+               if (currencyOptions[0]?.type === 'empresa') grupos.reverse();
+               grupos.forEach(([type, groupLabel]) => {
                  const opts = currencyOptions.filter(o => o.type === type);
                  if (!opts.length) return; %>
               <optgroup label="<%= groupLabel %>">
