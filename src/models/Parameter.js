@@ -55,13 +55,25 @@ function invalidate(ids) {
  * Importa um arquivo. Um mesmo arquivo pode alimentar mais de uma tabela
  * (ex.: BPC BP_DRE.xlsx → bpc-dre e bpc-bp): passe vários ids.
  */
+/**
+ * Rotina de gravação dos parâmetros: tabela só com textos (a maioria: plano de contas, LFA1, KNA1, EKKO…)
+ * é gravada compacta, em texto. Tabelas com números ficam no formato normal.
+ */
+function colunasCompactas(def, rows) {
+  if (def.compactar) return def.compactar;
+  if (def.type !== 'table' || !rows.length) return undefined;
+  const cols = def.columns.map((c) => c.key);
+  const soTexto = rows.every((r) => Object.keys(r).every((k) => cols.includes(k)) && cols.every((c) => r[c] == null || typeof r[c] === 'string'));
+  return soTexto ? cols : undefined;
+}
+
 async function importFile(ids, { buffer, fileName, user }) {
   const sheets = await readSheets(buffer, fileName);
   const results = [];
   for (const id of ids) {
     const def = getDef(id);
     const { rows, skipped, sheet } = parseParameter(sheets, def);
-    const record = await params.save(id, rows, { fileName, sheet, skipped, uploadedBy: user?.name || user?.email || 'sistema' });
+    const record = await params.save(id, rows, { fileName, sheet, skipped, uploadedBy: user?.name || user?.email || 'sistema', compactar: colunasCompactas(def, rows) });
     results.push({ def, record });
   }
   invalidate(ids);
@@ -243,5 +255,5 @@ async function getRows(id, { page = 1, size = 25, q = '', sort, dir = 'asc', fil
 
 module.exports = {
   definitions, getDef, list, importFile, targetsFor, getRows, checks, CHECKS,
-  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds,
+  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas,
 };

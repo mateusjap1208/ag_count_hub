@@ -148,7 +148,7 @@ module.exports = function createJsonRepositories(dataDir) {
     /** Metadados das tabelas de parâmetros carregadas */
     async list() { return readJson(paramsIndex, []); },
     async getRows(id) { return readJson(paramFile(id), null); },
-    async save(id, rows, meta) {
+    async save(id, rows, { compactar, ...meta } = {}) { // compactar: só usado no MongoDB
       await writeJson(paramFile(id), rows);
       return withLock(async () => {
         const idx = await readJson(paramsIndex, []);

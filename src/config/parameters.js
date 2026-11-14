@@ -110,6 +110,7 @@ module.exports = [
     group: 'Cadastros',
     filePattern: /kna1|cliente/i,
     type: 'table',
+    compactar: ['codigo', 'nome'],
     key: 'codigo',
     columns: [
       { key: 'codigo', label: 'Cliente', required: true, aliases: ['cliente', 'kunnr', 'codigo'] },
@@ -124,6 +125,7 @@ module.exports = [
     group: 'Cadastros',
     filePattern: /ekko|pedidos?.de.compra/i,
     type: 'table',
+    compactar: ['pedido', 'fornecedor'],
     key: 'pedido',
     columns: [
       // Só pedido → fornecedor (a tabela é grande; empresa e data do EKKO não são usadas)
@@ -138,6 +140,7 @@ module.exports = [
     group: 'Cadastros',
     filePattern: /lfa1|fornecedor/i,
     type: 'table',
+    compactar: ['codigo', 'nome'],
     key: 'codigo',
     columns: [
       { key: 'codigo', label: 'Fornecedor', required: true, aliases: ['fornecedor', 'lifnr', 'codigo'] },

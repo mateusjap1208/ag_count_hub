@@ -14,7 +14,8 @@
     "user:create": "node scripts/create-user.js",
     "params:import": "node scripts/import-params.js",
     "mongo:migrate": "node scripts/migrate-to-mongo.js",
-    "mongo:check": "node scripts/migrate-to-mongo.js --check"
+    "mongo:check": "node scripts/migrate-to-mongo.js --check",
+    "db:otimizar": "node scripts/otimizar-banco.js"
   },
   "engines": {
     "node": ">=20.12"
