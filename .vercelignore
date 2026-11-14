@@ -1,0 +1,6 @@
+# Não enviar para a Vercel: dados locais, exemplos e configurações de desenvolvimento
+data/
+samples/
+.env
+.claude/
+*.log
