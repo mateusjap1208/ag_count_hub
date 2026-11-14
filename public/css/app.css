@@ -992,3 +992,12 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .tl-tabela tr.tl-atual td { background: var(--blue-soft); font-weight: 700; color: var(--heading); }
 .login-intro .tag { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--consag-cyan); font-weight: 700; margin-bottom: 12px; }
 .login-hero { justify-content: flex-end; }
+
+/* Faixa de avisos como card flutuante, com o mesmo respiro e cantos do menu lateral */
+.ticker {
+  bottom: 12px; margin: 0 12px 12px 12px; height: 40px;
+  border-top: 0; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(6, 23, 43, .18), 0 0 0 1px rgba(48, 116, 246, .35);
+}
+.ticker-label { border-radius: 18px 0 0 18px; }
+:root[data-theme="dark"] .ticker { box-shadow: 0 10px 30px rgba(0, 0, 0, .4), 0 0 0 1px #1B2E4A; }

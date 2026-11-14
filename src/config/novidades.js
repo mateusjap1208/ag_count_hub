@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 22,
+    data: '2026-11-14',
+    titulo: 'Faixa de avisos repaginada',
+    itens: ['A faixa de avisos do rodapé virou um card com cantos arredondados, alinhado com o menu.'],
+  },
+  {
     build: 21,
     data: '2026-11-14',
     titulo: 'Adiantamentos, estoque próprio e gráficos novos',
