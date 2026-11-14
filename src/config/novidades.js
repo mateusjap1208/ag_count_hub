@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 33,
+    data: '2026-11-14',
+    titulo: 'Ajustes visuais',
+    itens: ['Login com a marca "AG" em destaque; versão centralizada no rodapé do menu.'],
+  },
+  {
     build: 32,
     data: '2026-11-14',
     titulo: 'Tela Sobre',
