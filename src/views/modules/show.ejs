@@ -57,8 +57,11 @@
   <% const cur = currency || 'BRL'; %>
   <%- include('../partials/kpis', { kpis: view.kpis, currency: cur }) %>
 
+  <%# Todos os quadros e gráficos da tela num grupo só: o usuário pode reordenar qualquer um %>
+  <div class="grid grid-2 mt blocos" data-ordenavel="blocos" aria-label="Quadros e gráficos">
+
   <% if (view.pedidosRecepcao) { const pr = view.pedidosRecepcao; %>
-    <div class="card mt pedidos-recepcao">
+    <div class="card pedidos-recepcao bloco-largo" data-ordem-chave="pedidos-recepcao">
       <div class="card-head">
         <h2>Conta <%= pr.conta %> · Recepção & Conferência por pedido de compra</h2>
         <span class="hint">FAGLL03 de fornecedores + EKKO · valores em <%= cur %></span>
@@ -93,7 +96,7 @@
   <% } %>
 
   <% if (view.contaArrendamento) { const ca = view.contaArrendamento; %>
-    <div class="card mt">
+    <div class="card bloco-largo" data-ordem-chave="conta-arrendamento">
       <div class="card-head">
         <h2>Conta <%= ca.conta %> · Medições × parcelas de arrendamento</h2>
         <span class="hint">FAGLL03 de fornecedores · valores em <%= ca.moeda %></span>
@@ -130,7 +133,7 @@
        const variacao = (l) => (l.values[0] == null || l.values[1] == null) ? null : l.values[0] - l.values[1];
        const pct = (l) => { const d = variacao(l); return d == null || !l.values[1] ? '—' : ((d / Math.abs(l.values[1])) * 100).toFixed(1).replace('.', ',') + '%'; };
        const comp = locals.comparacao || { disponiveis: [], escolhidas: [], max: 3 }; %>
-    <div class="card mt">
+    <div class="card bloco-largo" data-ordem-chave="demonstracao">
       <div class="card-head">
         <h2><%= view.def.title %><%= comparando ? ' comparativo' : '' %></h2>
         <div class="table-tools">
@@ -207,9 +210,8 @@
   <% } %>
 
   <% const charts = view.charts; %>
-  <div class="grid <%= charts.length === 1 && !view.statement ? '' : 'grid-2' %> mt" data-ordenavel="graficos" aria-label="Gráficos">
     <% if (view.statement) { %>
-      <div class="card" data-ordem-chave="demonstracao">
+      <div class="card" data-ordem-chave="quadro">
         <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : view.def.slug === 'imobilizado' ? 'Movimentação do ano' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
         <div class="table-wrap">
           <table class="statement">
@@ -230,15 +232,14 @@
       </div>
     <% } %>
     <% charts.forEach((c, i) => { %>
-      <div class="card <%= (charts.length === 3 && i === 0 && !view.statement) || (view.statement && charts.length === 3 && i === 2) ? 'span-2' : '' %>" data-ordem-chave="<%= c.id %>">
+      <div class="card <%= (charts.length === 1 && !view.statement) || (charts.length === 3 && i === 0 && !view.statement) || (view.statement && charts.length === 3 && i === 2) ? 'span-2' : '' %>" data-ordem-chave="<%= c.id %>">
         <div class="card-head"><h2><%= c.label %></h2></div>
         <div class="chart-box <%= c.type === 'hbar' ? 'tall' : '' %>"><canvas id="chart-<%= c.id %>" aria-label="<%= c.label %>"></canvas></div>
       </div>
     <% }) %>
-  </div>
 
   <% if (view.contratosSeguro) { const cs = view.contratosSeguro; %>
-    <div class="card mt timeline-seguro" id="timeline-seguro" data-moeda="<%= cur %>">
+    <div class="card timeline-seguro bloco-largo" data-ordem-chave="linha-do-tempo" id="timeline-seguro" data-moeda="<%= cur %>">
       <div class="card-head">
         <h2>Linha do tempo por contrato</h2>
         <span class="hint">Evolução mensal da apropriação do prêmio</span>
@@ -265,7 +266,7 @@
     </div>
   <% } %>
 
-  <div class="card mt" id="data-table" data-endpoint="/api/modulos/<%= slug %>/linhas" data-currency="<%= cur %>" data-columns="<%= JSON.stringify(columns) %>">
+  <div class="card bloco-largo" data-ordem-chave="detalhamento" id="data-table" data-endpoint="/api/modulos/<%= slug %>/linhas" data-currency="<%= cur %>" data-columns="<%= JSON.stringify(columns) %>">
     <div class="card-head">
       <h2>Detalhamento <span class="hint">(<%= fmt.number(view.count) %> linhas<%= showCurrency ? ' · ' + cur : '' %>)</span></h2>
       <div class="table-tools">
@@ -305,6 +306,7 @@
       </div>
     </nav>
   </div>
+  </div><%# fim dos quadros reordenáveis %>
 <% } %>
 
 <%- include('../partials/layout-end') %>

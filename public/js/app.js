@@ -106,7 +106,7 @@
       alca.className = 'ordem-alca';
       alca.title = 'Arraste para mudar a ordem (ou use as setas do teclado)';
       alca.setAttribute('aria-label', `Mover "${(item.querySelector('h2, .label')?.textContent || chaveDe(item)).trim()}" (setas para mudar a posição)`);
-      alca.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+      alca.innerHTML = '<svg viewBox="0 0 24 12" width="20" height="10" aria-hidden="true"><circle cx="6" cy="3" r="1.6"/><circle cx="12" cy="3" r="1.6"/><circle cx="18" cy="3" r="1.6"/><circle cx="6" cy="9" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="18" cy="9" r="1.6"/></svg>';
       alca.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
       alca.addEventListener('pointerdown', () => { item.draggable = true; });
       alca.addEventListener('keydown', (e) => {

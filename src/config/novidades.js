@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 37,
+    data: '2026-11-14',
+    titulo: 'Todos os quadros reorganizáveis',
+    itens: ['Além de cards e gráficos, os quadros (conta 2115100020, demonstrações, linha do tempo, detalhamento) também podem mudar de lugar pela alça no topo de cada um.'],
+  },
+  {
     build: 36,
     data: '2026-11-14',
     titulo: 'Organize as suas telas',
