@@ -133,12 +133,11 @@ function fagll03(tipo) {
         const cl = g(s, 'classe');
         return [
           { label: 'Clientes faturados', value: aberto, format: 'currency', hint: 'Contas a receber' },
-          { label: 'Vencido', value: vencido, format: 'currency', tone: vencido > 0 ? 'neg' : undefined },
           { label: '% vencido', value: ratio(vencido, aberto), format: 'percent' },
-          { label: 'Ativo de contrato (CPC 47)', value: sumKeys(cl, (k) => k.includes('ativos de contratos')), format: 'currency', hint: 'Serviços a faturar' },
+          { label: 'SAR · Ativo de contrato (CPC 47)', value: sumKeys(cl, (k) => k.includes('ativos de contratos')), format: 'currency', hint: 'Serviços a faturar' },
           { label: 'PPI de clientes', value: sumKeys(cl, (k) => k.includes('ppi')), format: 'currency' },
           { label: 'Adiantamentos de clientes', value: Math.abs(sumKeys(cl, (k) => k.includes('adiantamento'))), format: 'currency' },
-          { label: 'Passivo de contrato (CPC 47)', value: Math.abs(sumKeys(cl, (k) => k.includes('ainda nao prestados'))), format: 'currency', hint: 'Faturado antecipado' },
+          { label: 'SAD · Passivo de contrato (CPC 47)', value: Math.abs(sumKeys(cl, (k) => k.includes('ainda nao prestados'))), format: 'currency', hint: 'Faturado antecipado' },
           { label: 'Clientes', value: parceiros, format: 'number' },
         ];
       }

@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 20,
+    data: '2026-11-14',
+    titulo: 'Cards de Clientes',
+    itens: ['Saiu o card "Vencido"; ativo e passivo de contrato (CPC 47) passaram a se chamar SAR e SAD.'],
+  },
+  {
     build: 19,
     data: '2026-11-14',
     titulo: 'Avisos no rodapé e conta 2115100020 no Arrendamento',
