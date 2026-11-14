@@ -135,44 +135,117 @@ function buildStatement(moduleDef, summary) {
  * Demonstração em árvore (BP e Capital Empregado): seção → grupo → item.
  * As chaves do breakdown são "seção|grupo|item".
  */
-function buildTree(moduleDef, summary) {
+/**
+ * Demonstração em árvore (BP / Capital Empregado): seção → grupo → linha → conta contábil.
+ * summaries: [atual, comparativo1, ...] — uma coluna de valores por competência (demonstração comparativa).
+ * Cada linha traz `values` (um valor por competência, null quando a competência não tem dados) e `value` (= atual).
+ * As contas contábeis vêm do breakdown `tree.detail` (chave "seção|grupo|linha|conta - descrição").
+ */
+function buildTree(moduleDef, summaries) {
   const t = moduleDef.tree;
   if (!t) return null;
-  const map = summary.breakdowns[t.breakdown] || {};
-  const tree = new Map(); // seção → grupo → [item, valor]
-  for (const [key, v] of Object.entries(map)) {
-    const [sec, grp, item] = key.split('|');
-    if (!tree.has(sec)) tree.set(sec, new Map());
-    const gm = tree.get(sec);
-    if (!gm.has(grp)) gm.set(grp, []);
-    gm.get(grp).push([item, v]);
-  }
+  const list = (Array.isArray(summaries) ? summaries : [summaries]);
+  const n = list.length;
+  const tree = new Map(); // seção → grupo → linha → { v: [..], contas: Map(conta → [..]) }
+  const slot = () => Array(n).fill(null);
+  const add = (arr, i, v) => { arr[i] = (arr[i] || 0) + v; };
+  list.forEach((summary, i) => {
+    if (!summary) return;
+    for (const [key, v] of Object.entries(summary.breakdowns[t.breakdown] || {})) {
+      const [sec, grp, item] = key.split('|');
+      const gm = tree.get(sec) || tree.set(sec, new Map()).get(sec);
+      const im = gm.get(grp) || gm.set(grp, new Map()).get(grp);
+      const it = im.get(item) || im.set(item, { v: slot(), contas: new Map() }).get(item);
+      add(it.v, i, v);
+    }
+    if (t.detail) {
+      for (const [key, v] of Object.entries(summary.breakdowns[t.detail] || {})) {
+        const [sec, grp, item, ...rest] = key.split('|');
+        const conta = rest.join('|');
+        const it = tree.get(sec)?.get(grp)?.get(item);
+        if (!it || !conta || conta === item) continue; // linha que já é a própria conta (ex.: "a classificar")
+        const c = it.contas.get(conta) || it.contas.set(conta, slot()).get(conta);
+        add(c, i, v);
+      }
+    }
+  });
+  const has = list.map(Boolean);
+  const zero = (arr) => arr.every((x) => Math.abs(x || 0) < 0.005);
+  const fin = (arr) => arr.map((x, i) => (has[i] ? round2(x || 0) : null));
+  const sum = (arrs) => { const o = Array(n).fill(0); arrs.forEach((a) => a.forEach((x, i) => { o[i] += x || 0; })); return o; };
+  const byAbs = (a, b) => Math.abs(b[1][0] || 0) - Math.abs(a[1][0] || 0);
+  const line = (o, values) => { const vals = fin(values); return { ...o, values: vals, value: vals[0] }; };
+
   const order = moduleDef.groupOrder || [];
   const gIdx = (x) => { const i = order.indexOf(x); return i < 0 ? 999 : i; };
   const lines = [];
-  let grand = 0;
+  const grandParts = [];
   for (const s of t.sections) {
     const gm = tree.get(s.key);
     if (!gm) continue;
-    let secTotal = 0;
     lines.push({ label: s.label, kind: 'section' });
     const groups = [...gm.keys()];
     if (order.length) groups.sort((a, b) => gIdx(a) - gIdx(b));
+    const secParts = [];
     for (const grp of groups) {
-      const items = gm.get(grp);
-      if (t.itemSort === 'abs') items.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-      const gTotal = items.reduce((a, [, v]) => a + v, 0);
-      secTotal += gTotal;
-      lines.push({ label: grp, value: round2(gTotal), kind: 'group' });
-      for (const [item, v] of items) if (Math.abs(v) >= 0.005) lines.push({ label: item, value: round2(v), kind: 'item' });
+      const items = [...gm.get(grp)].map(([item, o]) => [item, o.v, o.contas]);
+      if (t.itemSort === 'abs') items.sort(byAbs);
+      const gTotal = sum(items.map((x) => x[1]));
+      secParts.push(gTotal);
+      lines.push(line({ label: grp, kind: 'group' }, gTotal));
+      for (const [item, v, contas] of items) {
+        if (zero(v)) continue;
+        const det = [...contas].filter(([, cv]) => !zero(cv)).sort(byAbs);
+        lines.push(line({ label: item, kind: 'item', contas: det.length }, v));
+        for (const [conta, cv] of det) lines.push(line({ label: conta, kind: 'conta' }, cv));
+      }
     }
-    grand += secTotal;
-    lines.push({ label: s.total, value: round2(secTotal), kind: 'total' });
+    const secTotal = sum(secParts);
+    grandParts.push(secTotal);
+    lines.push(line({ label: s.total, kind: 'total' }, secTotal));
   }
-  if (t.grandTotal) lines.push({ label: t.grandTotal, value: round2(grand), kind: 'total', highlight: true });
+  if (t.grandTotal) lines.push(line({ label: t.grandTotal, kind: 'total', highlight: true }, sum(grandParts)));
+  return lines;
+}
+
+/**
+ * Demonstração em cascata (DRE) no formato de árvore: cada linha abre as suas contas contábeis
+ * e há uma coluna por competência (comparativo). Usa moduleDef.statement + breakdown `statementDetail`
+ * (chave "grupo|conta - descrição"). Subtotais acumulam as linhas anteriores.
+ */
+function buildStatementTree(moduleDef, summaries) {
+  if (!moduleDef.statement || !moduleDef.statementDetail) return null;
+  const list = Array.isArray(summaries) ? summaries : [summaries];
+  const n = list.length;
+  const has = list.map(Boolean);
+  const fin = (arr) => arr.map((x, i) => (has[i] ? round2(x || 0) : null));
+  const line = (o, values) => { const vals = fin(values); return { ...o, values: vals, value: vals[0] }; };
+  const running = Array(n).fill(0);
+  const lines = [];
+  for (const st of moduleDef.statement) {
+    if (st.subtotal) { lines.push(line({ label: st.label, kind: 'total', highlight: !!st.highlight }, running)); continue; }
+    const v = Array(n).fill(0);
+    const contas = new Map();
+    list.forEach((s, i) => {
+      if (!s) return;
+      for (const gname of st.groups) v[i] += s.breakdowns.grupo?.[gname] || 0;
+      for (const [key, val] of Object.entries(s.breakdowns[moduleDef.statementDetail] || {})) {
+        const sep = key.indexOf('|');
+        if (!st.groups.includes(key.slice(0, sep))) continue;
+        const conta = key.slice(sep + 1);
+        const c = contas.get(conta) || contas.set(conta, Array(n).fill(0)).get(conta);
+        c[i] += val;
+      }
+    });
+    v.forEach((x, i) => { running[i] += x; });
+    if (st.optional && v.every((x) => Math.abs(x) < 0.005)) continue;
+    const det = [...contas].filter(([, cv]) => cv.some((x) => Math.abs(x) >= 0.005)).sort((a, b) => Math.abs(b[1][0]) - Math.abs(a[1][0]));
+    lines.push(line({ label: st.label, kind: 'item', contas: det.length }, v));
+    for (const [conta, cv] of det) lines.push(line({ label: conta, kind: 'conta' }, cv));
+  }
   return lines;
 }
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
-module.exports = { computeSummary, mergeSummaries, breakdownSeries, buildStatement, buildTree, periodEnd };
+module.exports = { computeSummary, mergeSummaries, breakdownSeries, buildStatement, buildTree, buildStatementTree, periodEnd };

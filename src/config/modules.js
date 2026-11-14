@@ -64,10 +64,13 @@ const modules = [
     breakdowns: [
       { id: 'grupo', label: 'Saldo por grupo', field: 'grupo', value: 'saldo', chart: 'bar' },
       { id: 'arvore', field: 'arvore', value: 'saldo', chart: null },
+      // Contas contábeis de cada linha do BP (abre ao clicar na linha)
+      { id: 'contas', spread: (r) => (r.conta ? [[`${r.arvore}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.saldo || 0]] : []), chart: null },
       { id: 'centros', field: 'centroLucro', value: 'saldo', chart: null }, // relação empresa × centro de lucro (filtros)
     ],
     tree: {
       breakdown: 'arvore',
+      detail: 'contas',
       itemSort: 'abs',
       sections: [
         { key: 'Ativo', label: 'Ativo', total: 'Total do ativo' },
@@ -119,7 +122,10 @@ const modules = [
       { id: 'grupo', label: 'Resultado por grupo', field: 'grupo', value: 'valor', chart: 'bar' },
       { id: 'subgrupo', label: 'Principais subgrupos (N3)', field: 'subgrupo', value: 'valor', chart: 'hbar', top: 10 },
       { id: 'centro', label: 'Resultado por centro de lucro (maiores)', field: 'centroLucro', value: 'valor', chart: 'hbar', top: 10 },
+      // Contas contábeis de cada linha da DRE (abre ao clicar na linha)
+      { id: 'contas', spread: (r) => (r.conta ? [[`${r.grupo}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.valor || 0]] : []), chart: null },
     ],
+    statementDetail: 'contas',
     statement: [
       { label: 'Receita bruta', groups: ['Receita Bruta'] },
       { label: '(-) Deduções da receita', groups: ['Deduções da Receita'] },

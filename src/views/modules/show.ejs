@@ -57,22 +57,71 @@
   <% const cur = currency || 'BRL'; %>
   <%- include('../partials/kpis', { kpis: view.kpis, currency: cur }) %>
 
-  <% if (view.tree) { %>
+  <% if (view.tree) {
+       const periodos = view.periodos || [filter.periodo];
+       const comparando = periodos.length > 1;
+       // Data de encerramento de cada competência (padrão das demonstrações: 31/10/2026, 31/12/2025…)
+       const dataFim = (p) => { const [y, m] = p.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10).split('-').reverse().join('/'); };
+       const cel = (v) => v == null ? '—' : fmt.currency(v, cur);
+       const variacao = (l) => (l.values[0] == null || l.values[1] == null) ? null : l.values[0] - l.values[1];
+       const pct = (l) => { const d = variacao(l); return d == null || !l.values[1] ? '—' : ((d / Math.abs(l.values[1])) * 100).toFixed(1).replace('.', ',') + '%'; };
+       const comp = locals.comparacao || { disponiveis: [], escolhidas: [], max: 3 }; %>
     <div class="card mt">
       <div class="card-head">
-        <h2><%= view.def.title %></h2>
+        <h2><%= view.def.title %><%= comparando ? ' comparativo' : '' %></h2>
         <div class="table-tools">
           <span class="hint">Valores em <%= cur %></span>
-          <button class="btn btn-ghost" type="button" data-tree-toggle>Recolher tudo</button>
+          <details class="compare-picker">
+            <summary class="btn btn-ghost"><%- include('../partials/icon', { name: 'layers' }) %>Comparar<% if (comp.escolhidas.length) { %><span class="filters-badge"><%= comp.escolhidas.length %></span><% } %></summary>
+            <form method="get" class="compare-panel">
+              <p class="compare-title">Comparar <%= fmt.periodFull(filter.periodo) %> com:</p>
+              <input type="hidden" name="comparar" value="">
+              <% if (!comp.disponiveis.length) { %>
+                <p class="hint">Nenhuma outra competência carregada. Suba o FGI0 de outros meses para montar o comparativo.</p>
+              <% } else { comp.disponiveis.forEach(p => { %>
+                <label class="compare-opt"><input type="checkbox" name="comparar" value="<%= p %>" <%= comp.escolhidas.includes(p) ? 'checked' : '' %>> <%= fmt.periodFull(p) %> <span class="hint"><%= dataFim(p) %></span></label>
+              <% }) %>
+                <p class="hint">Até <%= comp.max %> competências. A mais recente aparece primeiro.</p>
+                <div class="compare-actions">
+                  <button class="btn btn-primary" type="submit">Aplicar</button>
+                  <% if (comp.escolhidas.length) { %><a class="btn btn-ghost" href="?comparar=">Limpar</a><% } %>
+                </div>
+              <% } %>
+            </form>
+          </details>
+          <% if (view.tree.some(l => l.kind === 'group')) { %><button class="btn btn-ghost" type="button" data-tree-toggle>Recolher tudo</button><% } %>
         </div>
       </div>
       <div class="table-wrap">
-        <table class="statement tree" id="tree-table">
+        <table class="statement tree <%= comparando ? 'compare' : '' %>" id="tree-table">
+          <% if (comparando) { %>
+          <thead>
+            <tr>
+              <th></th>
+              <% periodos.forEach((p, i) => { %><th class="num"><%= dataFim(p) %><% if (i === 0) { %><span class="th-sub">atual</span><% } %></th><% }) %>
+              <th class="num">Variação<span class="th-sub">vs <%= dataFim(periodos[1]) %></span></th>
+              <th class="num">%</th>
+            </tr>
+          </thead>
+          <% } %>
           <tbody>
-            <% let gi = 0; view.tree.forEach(l => { if (l.kind === 'group') gi++; %>
-              <tr class="t-<%= l.kind %> <%= l.highlight ? 'highlight' : '' %>" <%- l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="true"` : l.kind === 'item' ? `data-parent="${gi}"` : '' %>>
-                <td><% if (l.kind === 'group') { %><span class="caret">▾</span><% } %><%= l.label %></td>
-                <td class="num <%= l.value < 0 ? 'neg' : '' %>"><%= l.kind === 'section' ? '' : fmt.currency(l.value, cur) %></td>
+            <% let gi = 0, ii = 0; view.tree.forEach(l => {
+                 if (l.kind === 'group') gi++;
+                 if (l.kind === 'item') ii++;
+                 const attrs = l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="true"`
+                   : l.kind === 'item' ? `data-parent="${gi}"` + (l.contas ? ` data-item="${ii}" tabindex="0" role="button" aria-expanded="false" title="Ver as contas contábeis"` : '')
+                   : l.kind === 'conta' ? `data-parent="${gi}" data-conta-of="${ii}"` : ''; %>
+              <tr class="t-<%= l.kind %> <%= l.kind === 'conta' ? 'hidden' : '' %> <%= l.kind === 'item' && l.contas ? 'has-contas collapsed' : '' %> <%= l.highlight ? 'highlight' : '' %>" <%- attrs %>>
+                <td><% if (l.kind === 'group' || (l.kind === 'item' && l.contas)) { %><span class="caret">▾</span><% } %><%= l.label %><% if (l.kind === 'item' && l.contas) { %><span class="contas-count"><%= l.contas %> conta<%= l.contas > 1 ? 's' : '' %></span><% } %></td>
+                <% if (l.kind === 'section') { %>
+                  <td colspan="<%= comparando ? periodos.length + 2 : 1 %>"></td>
+                <% } else { %>
+                  <% (comparando ? l.values : [l.value]).forEach(v => { %><td class="num <%= v < 0 ? 'neg' : '' %>"><%= cel(v) %></td><% }) %>
+                  <% if (comparando) { const d = variacao(l); %>
+                    <td class="num var <%= d == null ? '' : d < 0 ? 'neg' : 'pos' %>"><%= d == null ? '—' : fmt.currency(d, cur) %></td>
+                    <td class="num var"><%= pct(l) %></td>
+                  <% } %>
+                <% } %>
               </tr>
             <% }) %>
           </tbody>

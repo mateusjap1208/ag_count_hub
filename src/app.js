@@ -13,6 +13,9 @@ app.set('view engine', 'ejs');
 const versao = require('../version.json');
 app.locals.appVersion = `v${versao.version}.${versao.build}`;
 app.locals.redesSociais = require('./config/social');
+// Vídeo de fundo da tela de login (YouTube): mudo, em loop, sem controles, começando aos 34s
+const VIDEO_LOGIN = '-JeCqQeFdkk';
+app.locals.videoLogin = `https://www.youtube-nocookie.com/embed/${VIDEO_LOGIN}?autoplay=1&mute=1&loop=1&playlist=${VIDEO_LOGIN}&start=34&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&playsinline=1&rel=0`;
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -25,6 +28,8 @@ app.use(helmet({
       'style-src': ["'self'"],
       'img-src': ["'self'", 'data:'],
       'font-src': ["'self'"],
+      // Vídeo de fundo do login (YouTube, modo de privacidade aprimorada)
+      'frame-src': ['https://www.youtube-nocookie.com'],
     },
   },
 }));

@@ -319,16 +319,28 @@
   /* ---------- Demonstração em árvore: recolher/expandir grupos ---------- */
   const treeTable = $('#tree-table');
   if (treeTable) {
+    // Linha (ex.: "Contas a receber de clientes") → contas contábeis; abre/fecha ao clicar
+    const itemAberto = (id) => treeTable.querySelector(`tr[data-item="${id}"]`)?.classList.contains('collapsed') === false;
+    const setItem = (row, open) => {
+      row.classList.toggle('collapsed', !open);
+      row.setAttribute('aria-expanded', String(open));
+      $$(`tr[data-conta-of="${row.dataset.item}"]`, treeTable).forEach((r) => r.classList.toggle('hidden', !open));
+    };
+    // Grupo (ex.: "Ativo Circulante") → linhas; as contas só reaparecem se a linha delas estiver aberta
     const setGroup = (row, open) => {
       row.classList.toggle('collapsed', !open);
       row.setAttribute('aria-expanded', String(open));
-      $$(`tr[data-parent="${row.dataset.group}"]`, treeTable).forEach((r) => r.classList.toggle('hidden', !open));
+      $$(`tr[data-parent="${row.dataset.group}"]`, treeTable).forEach((r) => {
+        const conta = r.dataset.contaOf;
+        r.classList.toggle('hidden', !open || (conta != null && !itemAberto(conta)));
+      });
     };
-    $$('tr[data-group]', treeTable).forEach((row) => {
-      const toggleRow = () => setGroup(row, row.classList.contains('collapsed'));
-      row.addEventListener('click', toggleRow);
-      row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleRow(); } });
-    });
+    const clicavel = (row, fn) => {
+      row.addEventListener('click', fn);
+      row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+    };
+    $$('tr[data-group]', treeTable).forEach((row) => clicavel(row, () => setGroup(row, row.classList.contains('collapsed'))));
+    $$('tr[data-item]', treeTable).forEach((row) => clicavel(row, () => setItem(row, row.classList.contains('collapsed'))));
     const btn = $('[data-tree-toggle]');
     if (btn) {
       btn.addEventListener('click', () => {
