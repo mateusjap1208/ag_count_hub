@@ -6,6 +6,18 @@
  */
 module.exports = [
   {
+    build: 34,
+    data: '2026-11-14',
+    titulo: 'Carregamento mais claro',
+    itens: ['Ao trocar de tela ou de filtro, aparece o desenho da página com um brilho em movimento enquanto os dados carregam.'],
+  },
+  {
+    build: 33,
+    data: '2026-11-14',
+    titulo: 'Ajustes visuais',
+    itens: ['Login com a marca "AG" em destaque; versão centralizada no rodapé do menu.'],
+  },
+  {
     build: 32,
     data: '2026-11-14',
     titulo: 'Tela Sobre',
