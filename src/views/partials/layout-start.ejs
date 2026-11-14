@@ -27,6 +27,7 @@
         <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
       <% } %>
       <div class="nav-label">Sistema</div>
+      <%- navItem('/novidades', 'sparkle', 'Novidades', currentPath === '/novidades') %>
       <%- navItem('/sobre', 'info', 'Sobre', currentPath === '/sobre') %>
     </nav>
     <div class="sidebar-foot">
@@ -59,6 +60,10 @@
         <% } %>
       </div>
       <div class="spacer"></div>
+      <a class="notif-bell <%= (locals.novidades && locals.novidades.pendente) ? 'has-new' : '' %>" href="/novidades" title="<%= (locals.novidades && locals.novidades.pendente) ? 'Nova atualização: ' + locals.novidades.atual : 'Novidades do sistema' %>" aria-label="Novidades<%= (locals.novidades && locals.novidades.pendente) ? ' (nova atualização)' : '' %>">
+        <%- include('icon', { name: 'bell' }) %>
+        <% if ((locals.novidades && locals.novidades.pendente)) { %><span class="notif-dot" aria-hidden="true"></span><% } %>
+      </a>
       <% if (typeof hideFilters === 'undefined' || !hideFilters) {
            // Filtros de obra/empresa em uso (mostrados no selo do botão)
            const filtrosAtivos = [filter.estrutura, filter.sigla, filter.empresa && filter.empresa !== 'all', filter.centro].filter(Boolean).length; %>

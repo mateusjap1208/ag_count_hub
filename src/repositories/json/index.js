@@ -59,6 +59,13 @@ module.exports = function createJsonRepositories(dataDir) {
         if (u) { u.lastLoginAt = new Date().toISOString(); await writeJson(usersFile, all); }
       });
     },
+    async setBuildVisto(id, build) {
+      return withLock(async () => {
+        const all = await users.list();
+        const u = all.find((x) => x.id === id);
+        if (u) { u.buildVisto = build; await writeJson(usersFile, all); }
+      });
+    },
   };
 
   const companies = {

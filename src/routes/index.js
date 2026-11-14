@@ -2,9 +2,12 @@ const express = require('express');
 const multer = require('multer');
 const rateLimit = require('express-rate-limit');
 const config = require('../config');
-const { requireAuth, requireAdmin, redirectIfAuthenticated } = require('../middlewares/auth');
+const { requireAuth, requireAdmin, redirectIfAuthenticated, invalidateUser } = require('../middlewares/auth');
 const { csrfToken, verifyCsrf } = require('../middlewares/csrf');
 const { viewLocals } = require('../middlewares/locals');
+const novidadesSvc = require('../services/novidades');
+const versaoAtual = require('../config/versao');
+const User = require('../models/User');
 const auth = require('../controllers/authController');
 const dashboard = require('../controllers/dashboardController');
 const modules = require('../controllers/moduleController');
@@ -61,6 +64,19 @@ router.get('/api/parametros/:id/linhas', requireAdmin, parameters.rows);
 
 router.use(viewLocals);
 router.get('/', dashboard.index);
+// Novidades: histórico das versões e "Entendi" do aviso de atualização
+router.get('/novidades', (req, res) => res.render('novidades/index', {
+  title: 'Novidades', subtitle: 'O que mudou em cada versão', hideFilters: true, historico: novidadesSvc.historico(),
+}));
+router.post('/novidades/visto', verifyCsrf, async (req, res, next) => {
+  try {
+    await User.markSeen(req.user.id, versaoAtual.build);
+    invalidateUser(req.user.id);
+    if (req.get('accept')?.includes('application/json')) return res.json({ ok: true });
+    const volta = String(req.body?.voltar || '/');
+    return res.redirect(volta.startsWith('/') && !volta.startsWith('//') ? volta : '/');
+  } catch (e) { return next(e); }
+});
 router.get('/sobre', (req, res) => res.render('about/index', {
   title: 'Sobre', subtitle: 'Informações do sistema', hideFilters: true,
   devs: ['Marcelo Santos', 'Mateus Aguiar Paula'],

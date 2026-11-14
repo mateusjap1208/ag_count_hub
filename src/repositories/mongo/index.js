@@ -82,6 +82,9 @@ module.exports = function createMongoRepositories(uri, dbName) {
     async touchLogin(id) {
       await (await col('users')).updateOne({ id }, { $set: { lastLoginAt: new Date().toISOString() } });
     },
+    async setBuildVisto(id, build) {
+      await (await col('users')).updateOne({ id }, { $set: { buildVisto: build } });
+    },
     async update(id, patch) {
       const set = { ...patch, updatedAt: new Date().toISOString() };
       if (patch.email) set.emailLower = patch.email.toLowerCase();

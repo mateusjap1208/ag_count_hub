@@ -26,6 +26,7 @@ const publicUser = (u) => ({
   createdAt: u.createdAt,
   updatedAt: u.updatedAt,
   lastLoginAt: u.lastLoginAt,
+  buildVisto: u.buildVisto, // último build cujo aviso de atualização o usuário já fechou
 });
 
 /** Conjunto de centros permitidos (null = sem restrição) e chave de cache da permissão */
@@ -119,7 +120,10 @@ async function remove(id, { actor } = {}) {
   await users.remove(id);
 }
 
+/** Marca o aviso de atualização como visto até o build informado */
+async function markSeen(id, build) { await users.setBuildVisto(id, build); }
+
 async function list() { return (await users.list()).map(publicUser); }
 async function get(id) { const u = await users.findById(id); return u ? publicUser(u) : null; }
 
-module.exports = { authenticate, create, update, remove, list, get, permission, publicUser, ROLES, UserError, findByEmail: users.findByEmail };
+module.exports = { markSeen, authenticate, create, update, remove, list, get, permission, publicUser, ROLES, UserError, findByEmail: users.findByEmail };
