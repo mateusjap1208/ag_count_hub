@@ -1,6 +1,7 @@
 const Report = require('../models/Report');
 const segurosTimeline = require('../services/segurosTimeline');
 const pedidosRecepcao = require('../services/pedidosRecepcao');
+const imobilizadoMapeamento = require('../services/imobilizadoMapeamento');
 const { sessionScope } = require('../middlewares/locals');
 
 /**
@@ -65,6 +66,7 @@ exports.show = async (req, res, next) => {
     const view = await Report.getModuleView(req.params.slug, scope, { comparar });
     if (def.slug === 'arrendamento' && !view.empty) view.contaArrendamento = await detalheContaArrendamento(scope).catch(() => null);
     if (def.slug === 'fornecedores' && !view.empty) view.pedidosRecepcao = await pedidosRecepcao.porPedido(await Report.getAllRows(def.slug, scope)).catch(() => null);
+    if (def.slug === 'imobilizado' && !view.empty) view.imobMapeamento = await imobilizadoMapeamento.classificar(await Report.getAllRows(def.slug, scope)).catch(() => null);
     if (def.slug === 'seguros-garantias' && !view.empty) view.contratosSeguro = segurosTimeline.contratos(await Report.getAllRows(def.slug, scope));
     const columns = [
       ...(scope.company === Report.ALL ? [{ key: 'empresa', label: 'Empresa', type: 'string' }] : []),

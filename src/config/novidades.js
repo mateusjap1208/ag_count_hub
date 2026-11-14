@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 40,
+    data: '2026-11-14',
+    titulo: 'Imobilizado pelo Mapeamento de Contas',
+    itens: ['Novo quadro no Imobilizado: bens classificados pelo grupo do Capital Empregado e pela Descrição Conta Contábil do mapeamento.'],
+  },
+  {
     build: 39,
     data: '2026-11-14',
     titulo: 'Alça em todos os cards',

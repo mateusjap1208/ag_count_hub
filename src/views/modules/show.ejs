@@ -95,6 +95,29 @@
     </div>
   <% } %>
 
+  <% if (view.imobMapeamento) { const im = view.imobMapeamento; %>
+    <div class="card bloco-largo imob-mapa" data-ordem-chave="classificacao-mapeamento">
+      <div class="card-head">
+        <h2>Classificação pelo Mapeamento de Contas</h2>
+        <span class="hint">Grupo do Capital Empregado › Descrição Conta Contábil · valores em <%= cur %></span>
+      </div>
+      <div class="table-wrap">
+        <table class="statement">
+          <thead><tr><th>Classificação</th><th class="num">Bens</th><th class="num">Custo (CAP)</th><th class="num">Depreciação acumulada</th><th class="num">Valor contábil</th><th class="num">% do valor contábil</th></tr></thead>
+          <tbody>
+            <% im.grupos.forEach(g => { %>
+              <tr class="subtotal"><td><%= g.grupo %></td><td class="num"><%= fmt.number(g.total.bens) %></td><td class="num"><%= fmt.currency(g.total.custo, cur) %></td><td class="num <%= g.total.dep < 0 ? 'neg' : '' %>"><%= fmt.currency(g.total.dep, cur) %></td><td class="num"><%= fmt.currency(g.total.vc, cur) %></td><td class="num"><%= im.total.vc ? (g.total.vc / im.total.vc * 100).toFixed(1).replace('.', ',') + '%' : '—' %></td></tr>
+              <% g.contas.forEach(c => { %>
+                <tr class="imob-conta"><td><%= c.conta %></td><td class="num"><%= fmt.number(c.bens) %></td><td class="num"><%= fmt.currency(c.custo, cur) %></td><td class="num <%= c.dep < 0 ? 'neg' : '' %>"><%= fmt.currency(c.dep, cur) %></td><td class="num"><%= fmt.currency(c.vc, cur) %></td><td class="num"><%= im.total.vc ? (c.vc / im.total.vc * 100).toFixed(1).replace('.', ',') + '%' : '—' %></td></tr>
+              <% }) %>
+            <% }) %>
+            <tr class="highlight"><td>Total do imobilizado</td><td class="num"><%= fmt.number(im.total.bens) %></td><td class="num"><%= fmt.currency(im.total.custo, cur) %></td><td class="num"><%= fmt.currency(im.total.dep, cur) %></td><td class="num"><%= fmt.currency(im.total.vc, cur) %></td><td class="num">100,0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+
   <% if (view.contaArrendamento) { const ca = view.contaArrendamento; %>
     <div class="card bloco-largo" data-ordem-chave="conta-arrendamento">
       <div class="card-head">

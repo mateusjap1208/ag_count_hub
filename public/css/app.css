@@ -1210,3 +1210,9 @@ body.carregando-pagina .content > :not(.skeleton-page) { display: none !importan
 .blocos-dash > .col-2 { grid-column: span 2; } .blocos-dash > .col-3 { grid-column: span 3; }
 .blocos-dash > .col-4 { grid-column: span 4; } .blocos-dash > .col-6 { grid-column: 1 / -1; }
 @media (max-width: 1100px) { .blocos-dash > .col-2, .blocos-dash > .col-3, .blocos-dash > .col-4 { grid-column: 1 / -1; } }
+
+/* Imobilizado: classificação pelo Mapeamento de Contas */
+.imob-mapa .statement thead th { text-align: right; white-space: nowrap; }
+.imob-mapa .statement thead th:first-child { text-align: left; }
+.imob-mapa tr.imob-conta td:first-child { padding-left: 32px; color: var(--text-2); }
+.imob-mapa td.num { white-space: nowrap; }
