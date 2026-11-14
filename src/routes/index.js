@@ -8,6 +8,7 @@ const { viewLocals } = require('../middlewares/locals');
 const novidadesSvc = require('../services/novidades');
 const versaoAtual = require('../config/versao');
 const User = require('../models/User');
+const mensagensCtl = require('../controllers/mensagemController');
 const auth = require('../controllers/authController');
 const dashboard = require('../controllers/dashboardController');
 const modules = require('../controllers/moduleController');
@@ -77,6 +78,11 @@ router.post('/novidades/visto', verifyCsrf, async (req, res, next) => {
     return res.redirect(volta.startsWith('/') && !volta.startsWith('//') ? volta : '/');
   } catch (e) { return next(e); }
 });
+// Mensagens do rodapé (somente administradores)
+router.get('/mensagens', requireAdmin, mensagensCtl.index);
+router.post('/mensagens', requireAdmin, verifyCsrf, mensagensCtl.save);
+router.post('/mensagens/:id', requireAdmin, verifyCsrf, mensagensCtl.save);
+router.post('/mensagens/:id/excluir', requireAdmin, verifyCsrf, mensagensCtl.remove);
 router.get('/sobre', (req, res) => res.render('about/index', {
   title: 'Sobre', subtitle: 'Informações do sistema', hideFilters: true,
   devs: ['Marcelo Santos', 'Mateus Aguiar Paula'],

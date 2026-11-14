@@ -7,6 +7,37 @@ const { sessionScope } = require('../middlewares/locals');
  */
 const MAX_COMPARAR = 3;
 
+/**
+ * Arrendamento: conta 2115100020 (Fornec. Receção & Conferência Arrendamento), do FAGLL03 de fornecedores.
+ * Nela estão as medições lançadas pela obra × a inclusão da parcela de arrendamento paga.
+ * Detalhe por Atribuição, só com as atribuições cujo saldo não zera.
+ */
+const CONTA_ARRENDAMENTO = '2115100020';
+async function detalheContaArrendamento(scope) {
+  const { scope: s } = await withModuleCurrency('fornecedores', scope);
+  const rows = (await Report.getAllRows('fornecedores', s)).filter((r) => String(r.conta) === CONTA_ARRENDAMENTO);
+  if (!rows.length) return { conta: CONTA_ARRENDAMENTO, vazio: true, moeda: s.moedaContrato };
+  const temAtribuicao = rows.some((r) => r.atribuicao);
+  const por = new Map();
+  for (const r of rows) {
+    const k = r.atribuicao || '(sem atribuição)';
+    const o = por.get(k) || por.set(k, { atribuicao: k, montante: 0, lancamentos: 0 }).get(k);
+    o.montante += r.valor || 0;
+    o.lancamentos += 1;
+  }
+  const todas = [...por.values()];
+  const abertas = todas.filter((o) => Math.abs(o.montante) >= 0.005).sort((a, b) => Math.abs(b.montante) - Math.abs(a.montante));
+  return {
+    conta: CONTA_ARRENDAMENTO,
+    moeda: s.moedaContrato,
+    temAtribuicao,
+    saldo: rows.reduce((a, r) => a + (r.valor || 0), 0),
+    lancamentos: rows.length,
+    abertas,
+    zeradas: todas.length - abertas.length,
+  };
+}
+
 async function withModuleCurrency(slug, scope) {
   const def = Report.getModule(slug);
   if (!Report.rowCurrency(def)) return { scope, rowCurrencies: [] };
@@ -30,6 +61,7 @@ exports.show = async (req, res, next) => {
     }
     const comparar = (req.session.comparar[def.slug] || []).filter((p) => p !== scope.period);
     const view = await Report.getModuleView(req.params.slug, scope, { comparar });
+    if (def.slug === 'arrendamento' && !view.empty) view.contaArrendamento = await detalheContaArrendamento(scope).catch(() => null);
     const columns = [
       ...(scope.company === Report.ALL ? [{ key: 'empresa', label: 'Empresa', type: 'string' }] : []),
       ...view.def.columns.map(({ key, label, type, format }) => ({ key, label, type, format })),

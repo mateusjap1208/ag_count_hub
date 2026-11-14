@@ -6,6 +6,36 @@
  */
 module.exports = [
   {
+    build: 20,
+    data: '2026-11-14',
+    titulo: 'Cards de Clientes',
+    itens: ['Saiu o card "Vencido"; ativo e passivo de contrato (CPC 47) passaram a se chamar SAR e SAD.'],
+  },
+  {
+    build: 19,
+    data: '2026-11-14',
+    titulo: 'Avisos no rodapé e conta 2115100020 no Arrendamento',
+    itens: [
+      'Faixa de avisos passando no rodapé de todas as telas (ex.: fechamento em andamento), cadastrada pelos administradores em "Mensagens".',
+      'Arrendamento: quadro da conta 2115100020 (medições × parcelas pagas) por Atribuição, só com as atribuições que não zeram.',
+    ],
+  },
+  {
+    build: 18,
+    data: '2026-11-14',
+    titulo: 'Olho que mostra as contas',
+    itens: [
+      'No BP, na DRE e no Capital Empregado, passe o mouse no olho ao lado do valor para ver as contas contábeis que o formam.',
+      'Os cards de indicadores ficaram sem a faixa colorida e "levantam" ao passar o mouse.',
+    ],
+  },
+  {
+    build: 17,
+    data: '2026-11-14',
+    titulo: 'Nova tela de login',
+    itens: ['A apresentação do sistema passou para o lado do formulário de entrada, e o vídeo de fundo ficou sem legendas.'],
+  },
+  {
     build: 16,
     data: '2026-11-14',
     titulo: 'Avisos de atualização',

@@ -209,8 +209,15 @@ module.exports = function createMongoRepositories(uri, dbName) {
     async remove(centroLucro) { await (await col('obras')).deleteOne({ centroLucro: String(centroLucro).toUpperCase() }); },
   };
 
+  // Mensagens do rodapé: { id, texto, tipo, inicio, fim, ativa, createdAt, updatedAt, updatedBy }
+  const mensagens = {
+    async list() { return (await col('mensagens')).find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).toArray(); },
+    async save(m) { await (await col('mensagens')).updateOne({ id: m.id }, { $set: m }, { upsert: true }); return m; },
+    async remove(id) { await (await col('mensagens')).deleteOne({ id }); },
+  };
+
   return {
-    users, companies, datasets, params, obras,
+    users, companies, datasets, params, obras, mensagens,
     /** Uso interno: store de sessão, health check e scripts */
     client, db, dbName,
     async ping() { await (await db()).command({ ping: 1 }); return true; },

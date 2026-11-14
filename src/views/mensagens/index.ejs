@@ -1,0 +1,67 @@
+<%- include('../partials/layout-start') %>
+
+<% if (flash) { %><div class="alert alert-ok"><%= flash %></div><% } %>
+<% if (error) { %><div class="alert alert-err"><%= error %></div><% } %>
+
+<div class="grid grid-2">
+  <form class="card" method="post" action="/mensagens<%= editing ? '/' + editing.id : '' %>" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="card-head"><h2><%= editing ? 'Editar mensagem' : 'Nova mensagem' %></h2></div>
+    <div class="form-grid">
+      <div class="field full <%= errors.texto ? 'has-error' : '' %>">
+        <label for="m-texto">Mensagem *</label>
+        <input class="input" id="m-texto" name="texto" value="<%= form.texto || '' %>" maxlength="200" required autocomplete="off" placeholder="Ex.: Fechamento contábil de outubro em andamento" <%= editing ? '' : 'autofocus' %>>
+        <% if (errors.texto) { %><div class="field-error"><%= errors.texto %></div><% } else { %><div class="help">Até 200 caracteres. Aparece passando no rodapé de todas as telas.</div><% } %>
+      </div>
+      <div class="field full">
+        <label for="m-tipo">Tipo</label>
+        <select class="select" id="m-tipo" name="tipo">
+          <% Object.entries(tipos).forEach(([k, v]) => { %><option value="<%= k %>" <%= form.tipo === k ? 'selected' : '' %>><%= v %></option><% }) %>
+        </select>
+        <div class="help">Cor do selo na faixa: Informativo (azul), Atenção (amarelo) ou Urgente (vermelho).</div>
+      </div>
+      <div class="field">
+        <label for="m-inicio">Exibir a partir de</label>
+        <input class="input" id="m-inicio" name="inicio" type="date" value="<%= form.inicio || '' %>">
+      </div>
+      <div class="field <%= errors.fim ? 'has-error' : '' %>">
+        <label for="m-fim">Exibir até</label>
+        <input class="input" id="m-fim" name="fim" type="date" value="<%= form.fim || '' %>">
+        <% if (errors.fim) { %><div class="field-error"><%= errors.fim %></div><% } else { %><div class="help">Em branco: fica no ar até ser desativada.</div><% } %>
+      </div>
+      <label class="msg-check full"><input type="checkbox" name="ativa" <%= form.ativa === false ? '' : 'checked' %>> Mensagem ativa</label>
+    </div>
+    <div class="msg-form-actions">
+      <% if (editing) { %><a class="btn btn-ghost" href="/mensagens">Cancelar</a><% } %>
+      <button class="btn btn-primary" type="submit"><%= editing ? 'Salvar alterações' : 'Publicar no rodapé' %></button>
+    </div>
+  </form>
+
+  <div class="card">
+    <div class="card-head"><h2>Mensagens cadastradas</h2><span class="hint"><%= lista.filter(m => m.situacao === 'No ar').length %> no ar</span></div>
+    <% if (!lista.length) { %>
+      <p class="hint">Nenhuma mensagem cadastrada ainda.</p>
+    <% } else { %>
+      <ul class="msg-list">
+        <% lista.forEach(m => { %>
+          <li class="msg-item">
+            <span class="msg-tag msg-<%= m.tipo %>"><%= tipos[m.tipo] %></span>
+            <div class="msg-main">
+              <p><%= m.texto %></p>
+              <span class="hint"><span class="msg-sit <%= m.situacao === 'No ar' ? 'on' : 'off' %>"><%= m.situacao %></span><%= m.inicio ? ' · de ' + m.inicio.split('-').reverse().join('/') : '' %><%= m.fim ? ' até ' + m.fim.split('-').reverse().join('/') : '' %></span>
+            </div>
+            <div class="msg-actions">
+              <a class="btn btn-ghost" href="/mensagens?editar=<%= m.id %>">Editar</a>
+              <form method="post" action="/mensagens/<%= m.id %>/excluir" data-confirm="Excluir esta mensagem do rodapé?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-danger-outline" type="submit">Excluir</button>
+              </form>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/layout-end') %>
