@@ -5,7 +5,8 @@ const ROOT = path.resolve(__dirname, '..', '..');
 
 // Carrega o .env (Node >= 20.12 tem suporte nativo)
 const envFile = path.join(ROOT, '.env');
-if (fs.existsSync(envFile) && typeof process.loadEnvFile === 'function') {
+// Na Vercel as variáveis vêm do painel do projeto (o .env local não é usado)
+if (!process.env.VERCEL && fs.existsSync(envFile) && typeof process.loadEnvFile === 'function') {
   process.loadEnvFile(envFile);
 }
 

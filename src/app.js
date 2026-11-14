@@ -35,6 +35,38 @@ app.use('/vendor/montserrat', express.static(path.join(config.root, 'node_module
 
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
+/**
+ * Diagnóstico de implantação (sem login): mostra se a configuração e o banco estão ok.
+ * Não expõe valores secretos; mensagens de erro têm usuário/senha removidos.
+ */
+app.get('/saude', async (req, res) => {
+  const out = {
+    aplicacao: 'ok',
+    ambiente: config.isProd ? 'produção' : 'desenvolvimento',
+    vercel: !!process.env.VERCEL,
+    armazenamento: config.storageDriver,
+    variaveis: {
+      MONGODB_URI: !!config.mongoUri && !config.mongoUri.includes('<db_'),
+      MONGODB_DB: config.mongoDb,
+      SESSION_SECRET: !!process.env.SESSION_SECRET,
+    },
+  };
+  if (config.storageDriver === 'mongo') {
+    try {
+      const repos = require('./repositories');
+      await Promise.race([repos.ping(), new Promise((_, rej) => setTimeout(() => rej(new Error('tempo esgotado (10 s) ao conectar')), 10000))]);
+      out.banco = 'conectado';
+    } catch (e) {
+      out.banco = `erro: ${String(e.message).replace(/\/\/[^@/\s]+@/g, '//***@')}`;
+      out.dica = /tempo esgotado|Server selection|ENOTFOUND|ECONNREFUSED|timed out/i.test(e.message)
+        ? 'O Atlas pode estar bloqueando a Vercel: libere o acesso em Network Access.'
+        : /auth/i.test(e.message) ? 'Usuário ou senha do banco incorretos em MONGODB_URI.' : undefined;
+    }
+  }
+  res.set('Cache-Control', 'no-store');
+  res.status(out.banco && out.banco !== 'conectado' ? 503 : 200).json(out);
+});
+
 app.use(session({
   name: 'agch.sid',
   secret: config.sessionSecret,
@@ -49,8 +81,11 @@ app.use(session({
 function mongoSessionStore() {
   const { MongoStore } = require('connect-mongo');
   const repos = require('./repositories');
+  // Falha de conexão não derruba o processo: o erro aparece nas requisições (e em /saude)
+  const clientPromise = repos.db().then(() => repos.client);
+  clientPromise.catch((e) => console.error('[sessões] Falha ao conectar no MongoDB:', e.message));
   return MongoStore.create({
-    clientPromise: repos.db().then(() => repos.client),
+    clientPromise,
     dbName: repos.dbName,
     collectionName: 'sessions',
     ttl: 8 * 60 * 60,
