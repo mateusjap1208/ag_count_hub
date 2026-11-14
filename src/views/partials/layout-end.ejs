@@ -2,6 +2,32 @@
   </div>
 </div>
 
+<% if ((locals.novidades && locals.novidades.pendente) && currentPath !== '/novidades') { %>
+<!-- Aviso de nova versão publicada (some ao clicar em "Entendi") -->
+<aside class="notif-toast" id="notif-toast" role="status" aria-live="polite">
+  <div class="notif-head">
+    <span class="notif-icon" aria-hidden="true"><%- include('icon', { name: 'sparkle' }) %></span>
+    <div>
+      <strong>Nova atualização publicada</strong>
+      <span class="notif-ver">Versão <%= locals.novidades.atual %></span>
+    </div>
+  </div>
+  <div class="notif-body">
+    <% locals.novidades.novas.slice(0, 3).forEach(n => { %>
+      <p class="notif-title"><%= n.titulo %> <span class="notif-ver"><%= n.versao %></span></p>
+      <ul><% n.itens.forEach(i => { %><li><%= i %></li><% }) %></ul>
+    <% }) %>
+    <% if (locals.novidades.novas.length > 3) { %><p class="notif-more">e mais <%= locals.novidades.novas.length - 3 %> versão(ões) com novidades.</p><% } %>
+  </div>
+  <form method="post" action="/novidades/visto" class="notif-actions" data-notif-form>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="voltar" value="<%= currentPath %>">
+    <a class="btn btn-ghost" href="/novidades">Ver todas</a>
+    <button class="btn btn-primary" type="submit">Entendi</button>
+  </form>
+</aside>
+<% } %>
+
 <!-- Aviso: arquivo sem competência no nome (uploads) -->
 <dialog class="modal" id="competencia-dialog" aria-labelledby="cd-title" aria-describedby="cd-text">
   <div class="modal-icon" aria-hidden="true"><%- include('icon', { name: 'clock' }) %></div>

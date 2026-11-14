@@ -10,8 +10,7 @@ const app = express();
 
 app.set('view engine', 'ejs');
 // Versão do sistema (version.json): o build soma +1 a cada commit — exibida no login e no menu
-const versao = require('../version.json');
-app.locals.appVersion = `v${versao.version}.${versao.build}`;
+app.locals.appVersion = require('./config/versao').label;
 app.locals.redesSociais = require('./config/social');
 // Vídeo de fundo da tela de login (YouTube): mudo, em loop, sem controles, começando aos 34s
 const VIDEO_LOGIN = '-JeCqQeFdkk';

@@ -1,0 +1,32 @@
+<%- include('../partials/layout-start') %>
+
+<section class="novidades">
+  <% if (novidades.pendente) { %>
+    <div class="alert alert-ok novidades-alert">
+      <span>Você ainda não confirmou a leitura da versão <strong><%= novidades.atual %></strong>.</span>
+      <form method="post" action="/novidades/visto">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="voltar" value="/novidades">
+        <button class="btn btn-primary" type="submit">Marcar como lida</button>
+      </form>
+    </div>
+  <% } %>
+  <ol class="timeline">
+    <% historico.forEach((n, i) => { %>
+      <li class="timeline-item <%= i === 0 ? 'atual' : '' %>">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="card timeline-card">
+          <div class="timeline-meta">
+            <span class="timeline-ver"><%= n.versao %></span>
+            <% if (i === 0) { %><span class="timeline-tag">Versão atual</span><% } %>
+            <span class="hint"><%= n.data.split('-').reverse().join('/') %></span>
+          </div>
+          <h3><%= n.titulo %></h3>
+          <ul><% n.itens.forEach(it => { %><li><%= it %></li><% }) %></ul>
+        </div>
+      </li>
+    <% }) %>
+  </ol>
+</section>
+
+<%- include('../partials/layout-end') %>

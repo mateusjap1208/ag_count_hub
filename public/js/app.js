@@ -56,6 +56,28 @@
   /* ---------- Filtros (empresa / período) ---------- */
   $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => el.form.submit()));
 
+  /* ---------- Aviso de nova versão: "Entendi" marca como visto sem recarregar a página ---------- */
+  const notifForm = $('[data-notif-form]');
+  if (notifForm) {
+    notifForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const toast = document.getElementById('notif-toast');
+      try {
+        const r = await fetch(notifForm.action, {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(new FormData(notifForm)),
+        });
+        if (!r.ok) throw new Error();
+        toast.classList.add('saindo');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        setTimeout(() => toast.remove(), 400);
+        const bell = $('.notif-bell');
+        if (bell) { bell.classList.remove('has-new'); bell.querySelector('.notif-dot')?.remove(); bell.title = 'Novidades do sistema'; }
+      } catch { notifForm.submit(); }
+    });
+  }
+
   /* ---------- Painel de filtros: abre ao passar o mouse (CSS); o clique fixa/solta, Esc e clique fora fecham ---------- */
   const fWrap = document.getElementById('filters-wrap');
   const fBtn = document.getElementById('filters-toggle');

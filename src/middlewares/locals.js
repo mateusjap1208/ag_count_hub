@@ -6,6 +6,7 @@
 const Report = require('../models/Report');
 const Company = require('../models/Company');
 const fmt = require('../utils/format');
+const novidades = require('../services/novidades');
 
 async function viewLocals(req, res, next) {
   try {
@@ -65,6 +66,7 @@ async function viewLocals(req, res, next) {
       companyName: parts.join(' · '),
       currentPath: req.path,
       fmt,
+      novidades: novidades.paraUsuario(req.user),
     });
     next();
   } catch (e) { next(e); }
