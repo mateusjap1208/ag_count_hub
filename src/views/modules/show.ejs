@@ -57,6 +57,41 @@
   <% const cur = currency || 'BRL'; %>
   <%- include('../partials/kpis', { kpis: view.kpis, currency: cur }) %>
 
+  <% if (view.pedidosRecepcao) { const pr = view.pedidosRecepcao; %>
+    <div class="card mt pedidos-recepcao">
+      <div class="card-head">
+        <h2>Conta <%= pr.conta %> · Recepção & Conferência por pedido de compra</h2>
+        <span class="hint">FAGLL03 de fornecedores + EKKO · valores em <%= cur %></span>
+      </div>
+      <% if (pr.vazio) { %>
+        <p class="hint">Sem lançamentos da conta <%= pr.conta %> nesta seleção.</p>
+      <% } else { %>
+        <p class="conta-arr-resumo">Saldo da conta: <strong class="<%= pr.saldo < 0 ? 'neg' : '' %>"><%= fmt.currency(pr.saldo, cur) %></strong> · <%= fmt.number(pr.lancamentos) %> lançamentos · <%= fmt.number(pr.pedidos.length) %> pedidos com saldo (<%= fmt.number(pr.pedidosZerados) %> zerados não aparecem)<% if (pr.doEkko) { %> · <strong><%= fmt.number(pr.doEkko) %></strong> fornecedores identificados pelo EKKO<% } %></p>
+        <% if (!pr.temEkko) { %>
+          <div class="alert alert-warn">O EKKO (pedidos de compra por fornecedor) ainda não foi carregado em Parâmetros. Sem ele, os pedidos sem fornecedor no lançamento ficam em branco.</div>
+        <% } %>
+        <div class="tl-picker"><input class="input" type="search" placeholder="Buscar pedido ou fornecedor" data-filtro-tabela="#tab-pedidos" aria-label="Buscar pedido ou fornecedor"></div>
+        <div class="table-wrap conta-arr-wrap">
+          <table id="tab-pedidos">
+            <thead><tr><th>Pedido de compra</th><th>Fornecedor</th><th>Data do lançamento</th><th class="num">Lançamentos</th><th class="num">Montante</th></tr></thead>
+            <tbody>
+              <% pr.pedidos.forEach(p => { %>
+                <tr>
+                  <td><%= p.pedido || '(sem pedido)' %></td>
+                  <td><%= p.fornecedorNome || '—' %><% if (p.origem === 'EKKO') { %> <span class="tag-ekko" title="Fornecedor identificado pelo pedido no EKKO">EKKO</span><% } %></td>
+                  <td><%= p.data ? p.data.split('-').reverse().join('/') : '—' %></td>
+                  <td class="num"><%= fmt.number(p.lancamentos) %></td>
+                  <td class="num <%= p.montante < 0 ? 'neg' : '' %>"><%= fmt.currency(p.montante, cur) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+            <tfoot><tr><td colspan="4">Total dos pedidos com saldo</td><td class="num"><%= fmt.currency(pr.pedidos.reduce((a, p) => a + p.montante, 0), cur) %></td></tr></tfoot>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+
   <% if (view.contaArrendamento) { const ca = view.contaArrendamento; %>
     <div class="card mt">
       <div class="card-head">
@@ -118,7 +153,7 @@
               <% } %>
             </form>
           </details>
-          <% if (view.tree.some(l => l.kind === 'group')) { %><button class="btn btn-ghost" type="button" data-tree-toggle>Recolher tudo</button><% } %>
+          <% if (view.tree.some(l => l.kind === 'group')) { %><button class="btn btn-ghost" type="button" data-tree-toggle data-state="closed" aria-controls="tree-table">Expandir tudo</button><% } %>
         </div>
       </div>
       <div class="table-wrap">
@@ -140,8 +175,8 @@
                let gi = 0;
                linhas.forEach(l => {
                  if (l.kind === 'group') gi++;
-                 const attrs = l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="true"` : l.kind === 'item' ? `data-parent="${gi}"` : ''; %>
-              <tr class="t-<%= l.kind %> <%= l.highlight ? 'highlight' : '' %>" <%- attrs %>>
+                 const attrs = l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="false"` : l.kind === 'item' ? `data-parent="${gi}"` : ''; %>
+              <tr class="t-<%= l.kind %> <%= l.highlight ? 'highlight' : '' %> <%= l.kind === 'group' ? 'collapsed' : '' %> <%= l.kind === 'item' && gi > 0 ? 'hidden' : '' %>" <%- attrs %>>
                 <td><% if (l.kind === 'group') { %><span class="caret">▾</span><% } %><%= l.label %></td>
                 <% if (l.kind === 'section') { %>
                   <td colspan="<%= comparando ? periodos.length + 2 : 1 %>"></td>

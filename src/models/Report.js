@@ -265,7 +265,7 @@ async function importEstoque({ buffer, fileName, user, period: periodIn }) {
     for (const [currencyType, which, currency] of variants) {
       const rows = estoque.rowsFor(comp.rows, which);
       items.push({
-        module: 'estoque', period, company, currencyType, rows,
+        module: 'estoque', period, company, currencyType, rows: rows.map(estoque.enxugar),
         summary: agg.computeSummary(rows, def, period),
         meta: { fileName, uploadedBy, batch, source: 'estoque', currency, warnings: 0 },
       });
@@ -299,7 +299,8 @@ async function importGeneric(slug, { buffer, fileName, user, period: periodIn })
   for (const [company, byCur] of data.byCompany) {
     for (const [currency, rows] of byCur) {
       items.push({
-        module: slug, period, company, currencyType: currency, rows,
+        module: slug, period, company, currencyType: currency,
+        rows: def.importer.guardar ? rows.map((r) => genericImport.enxugar(def, r)) : rows,
         summary: agg.computeSummary(rows, def, period),
         meta: { fileName, uploadedBy, batch, source: slug, currency, warnings: data.ignoradas ? 1 : 0 },
       });
@@ -521,6 +522,14 @@ async function loadRawRows(slug, scope) {
     const companies = Object.fromEntries((await Company.list()).map((c) => [c.code, c.name]));
     const parts = await Promise.all(meta.map(async (d) =>
       (await datasets.getRows(d)).map((r) => ({ empresa: companies[d.company] || d.company, ...r }))));
+    // Módulos gravados enxutos (FAGLL03): recompõe descrições, nomes e classificações a partir dos Parâmetros
+    if (def.importer?.guardar) {
+      await Promise.all(meta.map((d, i) => genericImport.rederive(def, parts[i], d.period)));
+    }
+    // Estoque gravado enxuto: classe, próprio × terceiros e status de giro refeitos na leitura
+    if (def.source === 'estoque') {
+      await Promise.all(meta.map((d, i) => estoque.reidratar(parts[i], agg.periodEnd(d.period), statusGiro)));
+    }
     return parts.flat();
   });
 }

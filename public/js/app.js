@@ -498,6 +498,17 @@
     });
   }
 
+  /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
+  $('[data-filtro-tabela]').forEach((inp) => {
+    const tabela = document.querySelector(inp.dataset.filtroTabela);
+    if (!tabela) return;
+    const linhas = $('tbody tr', tabela);
+    inp.addEventListener('input', () => {
+      const q = inp.value.trim().toLowerCase();
+      linhas.forEach((tr) => tr.classList.toggle('hidden', !!q && !tr.textContent.toLowerCase().includes(q)));
+    });
+  });
+
   /* ---------- Seguros e Garantias: linha do tempo de apropriação por contrato ---------- */
   const tlCard = $('#timeline-seguro');
   const tlSelect = $('#tl-contrato');
@@ -663,14 +674,23 @@
     pop.addEventListener('mouseleave', fechar);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && atual) fechar(); });
     window.addEventListener('scroll', () => { if (atual) posicionar(atual); }, { passive: true });
+    // Botão acompanha o estado: tudo aberto → "Recolher tudo"; algum grupo fechado → "Expandir tudo"
     const btn = $('[data-tree-toggle]');
+    const syncBtn = () => {
+      if (!btn) return;
+      const aberto = $$('tr[data-group]', treeTable).every((r) => !r.classList.contains('collapsed'));
+      btn.dataset.state = aberto ? 'open' : 'closed';
+      btn.textContent = aberto ? 'Recolher tudo' : 'Expandir tudo';
+      btn.setAttribute('aria-expanded', String(aberto));
+    };
     if (btn) {
       btn.addEventListener('click', () => {
-        const open = btn.dataset.state === 'closed';
-        $$('tr[data-group]', treeTable).forEach((r) => setGroup(r, open));
-        btn.dataset.state = open ? 'open' : 'closed';
-        btn.textContent = open ? 'Recolher tudo' : 'Expandir tudo';
+        const abrir = btn.dataset.state === 'closed';
+        $$('tr[data-group]', treeTable).forEach((r) => setGroup(r, abrir));
+        syncBtn();
       });
+      $$('tr[data-group]', treeTable).forEach((r) => { r.addEventListener('click', syncBtn); r.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') setTimeout(syncBtn); }); });
+      syncBtn();
     }
   }
 

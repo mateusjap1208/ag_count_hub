@@ -60,6 +60,43 @@ async function buildContext(period) {
   };
 }
 
+/** Contexto em cache (os dicionários do LFA1/KNA1/plano são grandes): 10 minutos por competência */
+const ctxCache = new Map();
+async function cachedContext(period) {
+  const hit = ctxCache.get(period);
+  if (hit && Date.now() - hit.at < 10 * 60 * 1000) return hit.ctx;
+  const ctx = await buildContext(period);
+  ctxCache.set(period, { at: Date.now(), ctx });
+  return ctx;
+}
+
+/**
+ * Linha enxuta para gravar no banco: só os campos de origem listados em `importer.guardar`,
+ * sem textos vazios nem nulos (os campos calculados são refeitos na leitura por `rederive`).
+ */
+function enxugar(def, row) {
+  const out = {};
+  for (const k of def.importer.guardar) {
+    const v = row[k];
+    if (v === '' || v == null) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
+/** Recompõe, na leitura, os campos que não foram gravados (padrões vazios + campos calculados) */
+async function rederive(def, rows, period) {
+  const spec = def.importer;
+  const ctx = await cachedContext(period);
+  for (const r of rows) {
+    for (const [k, f] of Object.entries(spec.fields)) {
+      if (r[k] === undefined) r[k] = f.type === 'number' ? 0 : (f.type === 'date' ? null : '');
+    }
+    if (spec.derive) Object.assign(r, spec.derive(r, ctx));
+  }
+  return rows;
+}
+
 async function importRows(buffer, fileName, def, { period } = {}) {
   const spec = def.importer;
   const sheets = await readSheets(buffer, fileName);
@@ -109,4 +146,4 @@ async function importRows(buffer, fileName, def, { period } = {}) {
   throw new ImportError(`Layout não reconhecido para "${spec.label}". Colunas obrigatórias: ${labels}.`);
 }
 
-module.exports = { importRows, ImportError };
+module.exports = { importRows, ImportError, enxugar, rederive };

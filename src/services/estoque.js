@@ -81,6 +81,7 @@ async function read(buffer, fileName) {
           descricao: str(r[map.descricao]),
           tipoMaterial: str(r[map.tipoMaterial]) || 'Não informado',
           grupoMercadorias: str(r[map.grupoMercadorias]),
+          classeCod: classe,
           classe: classe ? `${classe}${classes.get(classe) ? ' · ' + classes.get(classe) : ''}` : 'Não informada',
           // Classe de avaliação "Materiais de Terceiros" (T025) = estoque de terceiros; o resto é da empresa
           posse: /terceiros/i.test(classes.get(classe) || '') ? 'Estoque de terceiros' : 'Estoque próprio',
@@ -123,4 +124,48 @@ function rowsFor(rows, which) {
   });
 }
 
-module.exports = { read, rowsFor, EstoqueError };
+/* ---------- Gravação enxuta ----------
+ * O banco guarda só os campos de origem com valor (sem zeros, vazios e campos calculados).
+ * Na leitura, reidratar() refaz: classe com descrição, próprio × terceiros, dias sem movimento e status de giro. */
+const GUARDAR = ['material', 'descricao', 'tipoMaterial', 'grupoMercadorias', 'classeCod', 'centro', 'deposito', 'unidade',
+  'quantidade', 'qtdEntrada', 'qtdSaida', 'ultimaEntrada', 'ultimoConsumo', 'ultimoMovimento', 'valor', 'pmm', 'entradas', 'saidas'];
+const NUMEROS = new Set(['quantidade', 'qtdEntrada', 'qtdSaida', 'valor', 'pmm', 'entradas', 'saidas']);
+const DATAS = new Set(['ultimaEntrada', 'ultimoConsumo', 'ultimoMovimento']);
+
+function enxugar(row) {
+  const out = {};
+  for (const k of GUARDAR) {
+    const v = row[k];
+    if (v === '' || v == null || v === 0) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
+let classesCache = null;
+async function classesT025() {
+  if (!classesCache || Date.now() - classesCache.at > 10 * 60 * 1000) {
+    const lista = await Parameter.all('classes-avaliacao').catch(() => []);
+    classesCache = { at: Date.now(), map: new Map(lista.map((c) => [String(c.classe), c.denominacao])) };
+  }
+  return classesCache.map;
+}
+
+/** Refaz os campos calculados das linhas gravadas enxutas (refPeriodEnd = último dia da competência, em ms) */
+async function reidratar(rows, refPeriodEnd, statusGiro) {
+  const classes = await classesT025();
+  for (const r of rows) {
+    if (r.classeCod === undefined && r.classe && r.posse) continue; // linha antiga, gravada completa
+    for (const k of GUARDAR) if (r[k] === undefined) r[k] = NUMEROS.has(k) ? 0 : DATAS.has(k) ? null : '';
+    const desc = classes.get(String(r.classeCod)) || '';
+    r.tipoMaterial ||= 'Não informado';
+    r.classe = r.classeCod ? `${r.classeCod}${desc ? ' · ' + desc : ''}` : 'Não informada';
+    r.posse = /terceiros/i.test(desc) ? 'Estoque de terceiros' : 'Estoque próprio';
+    const dias = r.ultimoMovimento ? Math.max(0, Math.floor((refPeriodEnd - Date.parse(r.ultimoMovimento)) / 86400000)) : null;
+    r.diasSemMov = dias;
+    r.statusGiro = statusGiro(dias);
+  }
+  return rows;
+}
+
+module.exports = { read, rowsFor, EstoqueError, enxugar, reidratar };

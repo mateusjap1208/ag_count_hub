@@ -117,6 +117,21 @@ module.exports = [
     ],
   },
   {
+    // Antes do LFA1: o nome do arquivo do EKKO também tem "fornecedor"
+    id: 'pedidos-compra',
+    title: 'Pedidos de Compra por Fornecedor (EKKO)',
+    description: 'Documento de compras (pedido), empresa, fornecedor e data. Usado para identificar o fornecedor dos pedidos na conta 2115100000 (Fornecedores Recepção & Conferência).',
+    group: 'Cadastros',
+    filePattern: /ekko|pedidos?.de.compra/i,
+    type: 'table',
+    key: 'pedido',
+    columns: [
+      // Só pedido → fornecedor (a tabela é grande; empresa e data do EKKO não são usadas)
+      { key: 'pedido', label: 'Documento de compras', required: true, aliases: ['documento_de_compras', 'ebeln', 'pedido', 'pedido_de_compra'] },
+      { key: 'fornecedor', label: 'Fornecedor', required: true, aliases: ['fornecedor', 'lifnr'] },
+    ],
+  },
+  {
     id: 'fornecedores',
     title: 'Mestre de Fornecedores (LFA1)',
     description: 'Código e nome dos fornecedores. Usado para preencher o nome nos relatórios de contas a pagar.',

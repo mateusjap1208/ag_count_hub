@@ -79,6 +79,9 @@ function fagll03(tipo) {
       currency: 'moeda',
       required: ['empresa', 'conta'],
       fields: FIELDS,
+      // Gravado no banco só o que vem do SAP e é usado; o resto (descrições, nomes, classificação) é refeito na leitura
+      guardar: ['empresa', 'centroLucro', 'conta', 'valor', 'tipoDoc', 'documento', 'dataLancamento', 'vencimento', 'texto',
+        parceiro, 'documentoCompras', 'atribuicao'],
       derive: (r, ctx) => {
         const { n3, n4 } = ctx.contaNivel(r.conta);
         const classe = n4 || 'A classificar';

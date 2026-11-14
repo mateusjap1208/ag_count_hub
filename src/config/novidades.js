@@ -6,6 +6,28 @@
  */
 module.exports = [
   {
+    build: 30,
+    data: '2026-11-14',
+    titulo: 'Banco de dados mais leve',
+    itens: ['Estoque guardado de forma mais enxuta no banco, sem mudar nenhum valor das telas.'],
+  },
+  {
+    build: 29,
+    data: '2026-11-14',
+    titulo: 'Pedidos de compra e atribuições',
+    itens: [
+      'Fornecedores: conta 2115100000 por pedido de compra, com o fornecedor do lançamento ou do EKKO, data do lançamento e montante.',
+      'Arrendamento: conta 2115100020 por Atribuição, só com as atribuições que não zeram.',
+      'Dados de fornecedores guardados de forma mais enxuta no banco.',
+    ],
+  },
+  {
+    build: 27,
+    data: '2026-11-14',
+    titulo: 'Demonstrações recolhidas',
+    itens: ['BP, Capital Empregado e Adiantamentos abrem recolhidos; o botão mostra "Expandir tudo" ou "Recolher tudo" conforme o que está aberto.'],
+  },
+  {
     build: 26,
     data: '2026-11-14',
     titulo: 'Rodapé do menu',
