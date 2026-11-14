@@ -341,28 +341,69 @@
   /* ---------- Demonstração em árvore: recolher/expandir grupos ---------- */
   const treeTable = $('#tree-table');
   if (treeTable) {
-    // Linha (ex.: "Contas a receber de clientes") → contas contábeis; abre/fecha ao clicar
-    const itemAberto = (id) => treeTable.querySelector(`tr[data-item="${id}"]`)?.classList.contains('collapsed') === false;
-    const setItem = (row, open) => {
-      row.classList.toggle('collapsed', !open);
-      row.setAttribute('aria-expanded', String(open));
-      $$(`tr[data-conta-of="${row.dataset.item}"]`, treeTable).forEach((r) => r.classList.toggle('hidden', !open));
-    };
-    // Grupo (ex.: "Ativo Circulante") → linhas; as contas só reaparecem se a linha delas estiver aberta
+    // Grupo (ex.: "Ativo Circulante") → linhas
     const setGroup = (row, open) => {
       row.classList.toggle('collapsed', !open);
       row.setAttribute('aria-expanded', String(open));
-      $$(`tr[data-parent="${row.dataset.group}"]`, treeTable).forEach((r) => {
-        const conta = r.dataset.contaOf;
-        r.classList.toggle('hidden', !open || (conta != null && !itemAberto(conta)));
-      });
+      $$(`tr[data-parent="${row.dataset.group}"]`, treeTable).forEach((r) => r.classList.toggle('hidden', !open));
     };
-    const clicavel = (row, fn) => {
+    $$('tr[data-group]', treeTable).forEach((row) => {
+      const fn = () => setGroup(row, row.classList.contains('collapsed'));
       row.addEventListener('click', fn);
       row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+    });
+
+    /* Olho ao lado do valor: ao passar o mouse (ou focar) o olho abre e um popup mostra as contas contábeis
+       que formam o valor; ao sair, o popup some e o olho fecha. O popup fica aberto enquanto o mouse estiver nele. */
+    const pop = document.createElement('div');
+    pop.className = 'eye-pop';
+    pop.setAttribute('role', 'dialog');
+    pop.hidden = true;
+    document.body.append(pop);
+    let atual = null;
+    let timer = null;
+    const posicionar = (btn) => {
+      const r = btn.getBoundingClientRect();
+      const w = pop.offsetWidth;
+      const h = pop.offsetHeight;
+      let left = r.right - w;
+      if (left < 12) left = 12;
+      let top = r.bottom + 8;
+      if (top + h > window.innerHeight - 12) top = Math.max(12, r.top - h - 8); // sem espaço embaixo: abre para cima
+      pop.style.setProperty('--pop-left', `${left}px`);
+      pop.style.setProperty('--pop-top', `${top}px`);
     };
-    $$('tr[data-group]', treeTable).forEach((row) => clicavel(row, () => setGroup(row, row.classList.contains('collapsed'))));
-    $$('tr[data-item]', treeTable).forEach((row) => clicavel(row, () => setItem(row, row.classList.contains('collapsed'))));
+    const abrir = (btn) => {
+      clearTimeout(timer);
+      if (atual && atual !== btn) atual.classList.remove('aberto');
+      atual = btn;
+      btn.classList.add('aberto');
+      pop.replaceChildren(btn.nextElementSibling.content.cloneNode(true));
+      pop.hidden = false;
+      posicionar(btn);
+      void pop.offsetWidth; // aplica o estado inicial antes da transição de entrada
+      pop.classList.add('show');
+    };
+    const fechar = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        pop.classList.remove('show');
+        atual?.classList.remove('aberto');
+        atual = null;
+        setTimeout(() => { if (!atual) pop.hidden = true; }, 180);
+      }, 160);
+    };
+    $$('[data-eye]', treeTable).forEach((btn) => {
+      btn.addEventListener('mouseenter', () => abrir(btn));
+      btn.addEventListener('mouseleave', fechar);
+      btn.addEventListener('focus', () => abrir(btn));
+      btn.addEventListener('blur', fechar);
+      btn.addEventListener('click', (e) => { e.stopPropagation(); if (atual === btn && pop.classList.contains('show')) fechar(); else abrir(btn); });
+    });
+    pop.addEventListener('mouseenter', () => clearTimeout(timer));
+    pop.addEventListener('mouseleave', fechar);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && atual) fechar(); });
+    window.addEventListener('scroll', () => { if (atual) posicionar(atual); }, { passive: true });
     const btn = $('[data-tree-toggle]');
     if (btn) {
       btn.addEventListener('click', () => {

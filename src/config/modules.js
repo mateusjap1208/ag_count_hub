@@ -177,10 +177,13 @@ const modules = [
       { id: 'grupo', label: 'Capital empregado por grupo', field: 'grupo', value: 'valor', chart: 'bar', keepOrder: true },
       { id: 'linha', label: 'Principais linhas', field: 'linha', value: 'valor', chart: 'hbar', top: 10 },
       { id: 'arvore', field: 'arvore', value: 'valor', chart: null },
+      // Contas contábeis de cada linha do Capital Empregado (popup do olho)
+      { id: 'contas', spread: (r) => (r.conta ? [[`${r.arvore}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.valor || 0]] : []), chart: null },
       { id: 'centros', field: 'centroLucro', value: 'valor', chart: null },
     ],
     tree: {
       breakdown: 'arvore',
+      detail: 'contas',
       itemSort: 'insertion',
       sections: [
         { key: 'Ativos', label: 'Ativos', total: 'Total ativos' },
