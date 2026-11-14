@@ -621,6 +621,11 @@ const modules = [
         recebimentoAcumulado: { names: ['recebimento_acumulado'], type: 'number' },
         provisaoPis: { names: ['provisao_pis'], type: 'number' },
         provisaoCofins: { names: ['provisao_cofins'], type: 'number' },
+        custoIndiretoOrcado: { names: ['custo_indirecto_orcamentado', 'custo_indireto_orcamentado'], type: 'number' },
+        custoIndiretoAcumulado: { names: ['custo_indirecto_acumulado', 'custo_indireto_acumulado'], type: 'number' },
+        custoIndiretoPeriodo: { names: ['custo_indirecto_periodo', 'custo_indireto_periodo'], type: 'number' },
+        custoNaoRelevanteAcumulado: { names: ['custo_nao_relevante_acumulado'], type: 'number' },
+        custoNaoRelevantePeriodo: { names: ['custo_nao_relevante_periodo'], type: 'number' },
       },
       derive: (r) => {
         const avanco = r.custoOrcado ? r.custoAcumulado / r.custoOrcado : 0;
@@ -632,19 +637,25 @@ const modules = [
         };
       },
       /**
-       * No ZS0003 faturamento, recebimento e custo indireto são da OBRA (centro de lucro) e vêm
-       * repetidos em cada obrigação de desempenho: ficam só na primeira obrigação de cada obra
-       * (valores diferentes entre obrigações são somados uma vez cada — [A CONFIRMAR] recebimento acumulado).
+       * Obra com várias obrigações de desempenho (ex.: WTELB01, WTELB02…):
+       *  - preço total, POC e custos diretos são de cada obrigação → somados;
+       *  - faturamento (período e acumulado) e custos indiretos e não relevantes (período e
+       *    acumulado) são da OBRA e vêm repetidos em cada obrigação → contados uma vez só
+       *    (ficam na primeira obrigação da obra);
+       *  - recebimento: valores iguais contam uma vez, diferentes são somados ([A CONFIRMAR]).
        * Ativo/passivo contratual = Σ POC acumulado das obrigações − faturamento acumulado da obra.
        */
       postProcess: (rows) => {
-        const OBRA = ['faturamentoAcumulado', 'faturamentoPeriodo', 'recebimento', 'recebimentoAcumulado'];
+        const UMA_VEZ = ['faturamentoAcumulado', 'faturamentoPeriodo', 'custoIndiretoOrcado', 'custoIndiretoAcumulado',
+          'custoIndiretoPeriodo', 'custoNaoRelevanteAcumulado', 'custoNaoRelevantePeriodo'];
+        const OBRA = ['recebimento', 'recebimentoAcumulado'];
         const groups = new Map();
         for (const r of rows) {
           const k = `${r.empresa}|${r.centroLucro}|${r.moeda}`;
           (groups.get(k) || groups.set(k, []).get(k)).push(r);
         }
         for (const list of groups.values()) {
+          list.slice(1).forEach((r) => { for (const f of UMA_VEZ) r[f] = 0; });
           for (const f of OBRA) {
             const seen = new Set();
             for (const r of list) {
@@ -681,6 +692,10 @@ const modules = [
       { key: 'backlog', label: 'Saldo a executar', type: 'number', format: 'currency' },
       { key: 'custoPeriodo', label: 'Custo do período', type: 'number', format: 'currency' },
       { key: 'custoAcumulado', label: 'Custo acumulado', type: 'number', format: 'currency' },
+      { key: 'custoIndiretoPeriodo', label: 'Custo indireto do período (obra)', type: 'number', format: 'currency' },
+      { key: 'custoIndiretoAcumulado', label: 'Custo indireto acumulado (obra)', type: 'number', format: 'currency' },
+      { key: 'custoNaoRelevantePeriodo', label: 'Custo não relevante do período (obra)', type: 'number', format: 'currency' },
+      { key: 'custoNaoRelevanteAcumulado', label: 'Custo não relevante acumulado (obra)', type: 'number', format: 'currency' },
     ],
     breakdowns: [
       { id: 'centroTop', label: 'Receita do período por centro de lucro', field: 'centroLucro', value: 'receitaPeriodo', chart: 'hbar', top: 10 },
@@ -699,6 +714,8 @@ const modules = [
         { label: 'Faturado antecipado (passivo)', value: t('passivoContratual'), format: 'currency' },
         { label: 'Saldo a executar', value: t('backlog'), format: 'currency', hint: 'Preço total − receita acumulada' },
         { label: 'Margem estimada', value: ratio(t('resultadoEstimado'), t('precoTotal')), format: 'percent' },
+        { label: 'Custo indireto acumulado', value: t('custoIndiretoAcumulado'), format: 'currency', hint: 'Uma vez por obra' },
+        { label: 'Custo não relevante acumulado', value: t('custoNaoRelevanteAcumulado'), format: 'currency', hint: 'Uma vez por obra' },
         { label: 'Contratos', value: Object.keys(g(s, 'contratos')).length, format: 'number' },
       ];
     },
