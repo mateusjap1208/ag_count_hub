@@ -5,9 +5,9 @@
 <% } else { %>
 
   <% if (highlights.length) { %>
-  <div class="grid grid-4">
+  <div class="grid grid-4" data-ordenavel="kpis" aria-label="Indicadores">
     <% highlights.forEach(k => { %>
-      <a class="card kpi <%= k.tone || '' %>" href="/modulos/<%= k.module %>">
+      <a class="card kpi <%= k.tone || '' %>" href="/modulos/<%= k.module %>" data-ordem-chave="<%= k.label %>">
         <div class="label"><%= k.label %></div>
         <div class="value" title="<%= fmt.value(k.value, k.format, k.currency) %>"><%= fmt.kpi(k.value, k.format, k.currency) %></div>
         <div class="meta"><%= fmt.value(k.value, k.format, k.currency) %></div>
@@ -16,23 +16,23 @@
   </div>
   <% } %>
 
-  <div class="grid grid-3 mt">
-    <div class="card span-2">
+  <div class="grid grid-3 mt" data-ordenavel="graficos" aria-label="Gráficos">
+    <div class="card span-2" data-ordem-chave="tendencia">
       <div class="card-head"><h2>Receita líquida x Lucro líquido</h2><span class="hint">Últimos 12 períodos (DRE)</span></div>
       <div class="chart-box"><canvas id="chart-trend" aria-label="Evolução de receita e lucro"></canvas></div>
     </div>
-    <div class="card">
+    <div class="card" data-ordem-chave="bp">
       <div class="card-head"><h2>Balanço por grupo</h2><span class="hint">BP</span></div>
       <div class="chart-box"><canvas id="chart-bp" aria-label="Balanço por grupo"></canvas></div>
     </div>
   </div>
 
-  <div class="grid grid-2 mt">
-    <div class="card">
+  <div class="grid grid-2 mt" data-ordenavel="aging" aria-label="Gráficos de aging">
+    <div class="card" data-ordem-chave="aging-receber">
       <div class="card-head"><h2>Aging · contas a receber</h2><a class="hint" href="/modulos/clientes">Ver clientes →</a></div>
       <div class="chart-box"><canvas id="chart-ar" aria-label="Aging contas a receber"></canvas></div>
     </div>
-    <div class="card">
+    <div class="card" data-ordem-chave="aging-pagar">
       <div class="card-head"><h2>Aging · contas a pagar</h2><a class="hint" href="/modulos/fornecedores">Ver fornecedores →</a></div>
       <div class="chart-box"><canvas id="chart-ap" aria-label="Aging contas a pagar"></canvas></div>
     </div>

@@ -70,6 +70,17 @@ router.get('/', dashboard.index);
 router.get('/novidades', (req, res) => res.render('novidades/index', {
   title: 'Novidades', subtitle: 'O que mudou em cada versão', hideFilters: true, historico: novidadesSvc.historico(),
 }));
+// Ordem dos cards e gráficos de cada tela (preferência do usuário)
+router.post('/api/preferencias/ordem', express.json({ limit: '10kb' }), verifyCsrf, async (req, res, next) => {
+  try {
+    await User.saveOrdem(req.user.id, req.body?.chave, req.body?.ordem);
+    invalidateUser(req.user.id);
+    return res.json({ ok: true });
+  } catch (e) {
+    if (e instanceof User.UserError) return res.status(400).json({ error: e.message });
+    return next(e);
+  }
+});
 router.post('/novidades/visto', verifyCsrf, async (req, res, next) => {
   try {
     await User.markSeen(req.user.id, versaoAtual.build);

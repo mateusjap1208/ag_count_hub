@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 36,
+    data: '2026-11-14',
+    titulo: 'Organize as suas telas',
+    itens: ['Arraste os cards de indicadores e os gráficos pela alça (⋮⋮) para deixá-los na ordem que preferir. A ordem fica salva no seu usuário.'],
+  },
+  {
     build: 35,
     data: '2026-11-14',
     titulo: 'Detalhamento paginado e correção',

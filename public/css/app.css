@@ -1127,3 +1127,26 @@ body.carregando-pagina .content > :not(.skeleton-page) { display: none !importan
 .sk-tr .sk-line { display: block; height: 10px; width: 70%; min-width: 40px; }
 .sk-tr td:nth-child(3n) .sk-line { width: 50%; }
 .sk-tr td:nth-child(4n) .sk-line { width: 85%; }
+
+/* =========================================================================
+ * Ordem personalizada dos cards e gráficos (arrastar pela alça ⋮⋮)
+ * ========================================================================= */
+[data-ordenavel] { grid-auto-flow: row dense; }
+.ordenavel-item { position: relative; }
+.ordem-alca {
+  position: absolute; top: 8px; right: 8px; z-index: 3; width: 26px; height: 26px; padding: 0; display: grid; place-items: center;
+  border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted); cursor: grab;
+  opacity: 0; transition: opacity .15s ease, background-color .15s ease, border-color .15s ease;
+}
+.ordem-alca svg { fill: currentColor; }
+.ordenavel-item:hover .ordem-alca, .ordem-alca:focus-visible { opacity: 1; }
+.ordem-alca:hover, .ordem-alca:focus-visible { background: var(--blue-soft); border-color: var(--border); color: var(--consag-blue); outline: none; }
+.ordem-alca:active { cursor: grabbing; }
+.ordenavel-item.arrastando { opacity: .45; transform: scale(.98); box-shadow: none; }
+.ordenavel-item.ordem-alvo { outline: 2px dashed var(--consag-blue); outline-offset: 3px; }
+.ordem-restaurar {
+  display: block; margin: 6px 0 0 auto; padding: 4px 8px; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 11.5px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px;
+}
+.ordem-restaurar:hover, .ordem-restaurar:focus-visible { color: var(--consag-blue); }
+@media (hover: none) { .ordem-alca { opacity: .7; } }
