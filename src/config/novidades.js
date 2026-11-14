@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 25,
+    data: '2026-11-14',
+    titulo: 'Menu mais enxuto',
+    itens: ['O Fluxo de Caixa saiu do menu.'],
+  },
+  {
     build: 24,
     data: '2026-11-14',
     titulo: 'Olho à direita do valor',
