@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 23,
+    data: '2026-11-14',
+    titulo: 'Tema no topo da tela',
+    itens: ['O botão de tema claro/escuro foi para o topo, ao lado do sino: sol no tema claro e lua no tema escuro, com animação na troca.'],
+  },
+  {
     build: 22,
     data: '2026-11-14',
     titulo: 'Faixa de avisos repaginada',

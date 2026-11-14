@@ -17,9 +17,11 @@
   /* ---------- Tema claro/escuro ---------- */
   const themeBtn = $('#theme-toggle');
   const syncThemeLabel = () => {
-    const lbl = themeBtn && $('[data-theme-label]', themeBtn);
-    if (lbl) lbl.textContent = isDark() ? 'Tema claro' : 'Tema escuro';
-    if (themeBtn) themeBtn.setAttribute('aria-pressed', String(isDark()));
+    if (!themeBtn) return;
+    const texto = isDark() ? 'Mudar para o tema claro' : 'Mudar para o tema escuro';
+    themeBtn.title = texto;
+    themeBtn.setAttribute('aria-label', texto);
+    themeBtn.setAttribute('aria-pressed', String(isDark()));
   };
   if (themeBtn && window.agchTheme) {
     themeBtn.addEventListener('click', () => { window.agchTheme.toggle(); });
