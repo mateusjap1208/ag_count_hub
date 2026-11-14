@@ -494,7 +494,7 @@ const modules = [
     source: 'generic',
     currencyMode: 'row',
     hasCentro: true,
-    tabs: [{ slug: 'receita-poc', label: 'POC (ZS0003)' }, { slug: 'receita-medicao', label: 'Medição (ZC0086)' }],
+    tabs: [{ slug: 'receita-poc', label: 'POC' }, { slug: 'receita-medicao', label: 'Medição' }],
     importer: {
       label: 'ZS0003 — Registro de POC',
       company: 'empresa',
@@ -632,7 +632,7 @@ const modules = [
     currencyMode: 'row',
     hasCentro: true,
     hideInMenu: true, // aba de "Receita"
-    tabs: [{ slug: 'receita-poc', label: 'POC (ZS0003)' }, { slug: 'receita-medicao', label: 'Medição (ZC0086)' }],
+    tabs: [{ slug: 'receita-poc', label: 'POC' }, { slug: 'receita-medicao', label: 'Medição' }],
     importer: {
       label: 'ZC0086 — Receita de medição',
       company: 'empresa',
