@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 42,
+    data: '2026-11-14',
+    titulo: 'Cards da Medição',
+    itens: ['Receita › Medição: cards na ordem receita do mês, medição acumulada, faturamento do período e acumulado, medido não faturado (SAR) e saldo a medir.'],
+  },
+  {
     build: 41,
     data: '2026-11-14',
     titulo: 'Imobilizado pelo Mapeamento de Contas',

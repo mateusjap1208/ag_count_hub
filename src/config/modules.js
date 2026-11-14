@@ -693,10 +693,10 @@ const modules = [
         { label: 'Receita do mês', value: t('receitaMes'), format: 'currency' },
         { label: 'Medição acumulada', value: t('medicaoAcumulada'), format: 'currency', hint: `${t('precoTotal') ? ((t('medicaoAcumulada') / t('precoTotal')) * 100).toFixed(1).replace('.', ',') : '0,0'}% do preço total` },
         { label: 'Faturamento do período', value: t('faturamentoPeriodo'), format: 'currency' },
-        { label: 'Medido não faturado', value: t('medidoNaoFaturado'), format: 'currency', tone: t('medidoNaoFaturado') < 0 ? 'warn' : undefined },
+        { label: 'Faturamento acumulado', value: t('faturamentoAcumulado'), format: 'currency' },
+        // SAR = Ajuste IFRS 15 acumulado (medição acumulada − faturamento acumulado)
+        { label: 'Medido não faturado (SAR)', value: t('ajusteIrf15Acum'), format: 'currency', hint: 'Ajuste IFRS 15 acumulado', tone: t('ajusteIrf15Acum') < 0 ? 'warn' : undefined },
         { label: 'Saldo a medir', value: t('saldoAMedir'), format: 'currency' },
-        { label: 'Ajuste IFRS 15 (mês)', value: t('ajusteIrf15'), format: 'currency' },
-        { label: 'Obras', value: Object.keys(g(s, 'centros')).length, format: 'number' },
       ];
     },
   },
