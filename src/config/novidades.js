@@ -6,6 +6,18 @@
  */
 module.exports = [
   {
+    build: 32,
+    data: '2026-11-14',
+    titulo: 'Tela Sobre',
+    itens: ['Desenvolvedores com foto, GitHub e e-mail na tela Sobre.'],
+  },
+  {
+    build: 31,
+    data: '2026-11-14',
+    titulo: 'Uploads mais leves',
+    itens: ['Os relatórios enviados passam a ser gravados só com o necessário, deixando o banco mais leve e as consultas mais rápidas.'],
+  },
+  {
     build: 30,
     data: '2026-11-14',
     titulo: 'Banco de dados mais leve',

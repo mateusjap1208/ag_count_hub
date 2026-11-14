@@ -86,7 +86,10 @@ router.post('/mensagens/:id', requireAdmin, verifyCsrf, mensagensCtl.save);
 router.post('/mensagens/:id/excluir', requireAdmin, verifyCsrf, mensagensCtl.remove);
 router.get('/sobre', (req, res) => res.render('about/index', {
   title: 'Sobre', subtitle: 'Informações do sistema', hideFilters: true,
-  devs: ['Marcelo Santos', 'Mateus Aguiar Paula'],
+  devs: [
+    { nome: 'Marcelo Santos', github: 'pioriamm', email: 'pioriam@gmail.com' },
+    { nome: 'Mateus Aguiar Paula', github: 'mateusjap1208', email: 'mateus.paula@agnet.com.br' },
+  ],
 }));
 router.get('/modulos/:slug', modules.show);
 

@@ -522,6 +522,12 @@ async function loadRawRows(slug, scope) {
     const companies = Object.fromEntries((await Company.list()).map((c) => [c.code, c.name]));
     const parts = await Promise.all(meta.map(async (d) =>
       (await datasets.getRows(d)).map((r) => ({ empresa: companies[d.company] || d.company, ...r }))));
+    // Campos vazios não são gravados: repõe o padrão das colunas e campos do relatório
+    const padroes = [
+      ...def.columns.filter((c) => c.type !== 'number').map((c) => [c.key, c.type === 'date' ? null : '']),
+      ...Object.entries(def.importer?.fields || {}).filter(([, f]) => f.type !== 'number').map(([k, f]) => [k, f.type === 'date' ? null : '']),
+    ];
+    if (padroes.length) for (const list of parts) for (const r of list) for (const [k, v] of padroes) if (r[k] === undefined) r[k] = v;
     // Módulos gravados enxutos (FAGLL03): recompõe descrições, nomes e classificações a partir dos Parâmetros
     if (def.importer?.guardar) {
       await Promise.all(meta.map((d, i) => genericImport.rederive(def, parts[i], d.period)));

@@ -10,10 +10,21 @@
 
     <h3 class="about-title">Desenvolvedores</h3>
     <ul class="about-devs">
-      <% devs.forEach(d => { %>
+      <% devs.forEach(d => { const iniciais = d.nome.split(/\s+/).map(p => p[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase(); %>
         <li class="about-dev">
-          <span class="avatar about-avatar" aria-hidden="true"><%= d.split(/\s+/).map(p => p[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase() %></span>
-          <strong><%= d %></strong>
+          <span class="avatar about-avatar" aria-hidden="true">
+            <%= iniciais %>
+            <% if (d.github) { %><img class="about-foto" src="https://github.com/<%= d.github %>.png?size=160" alt="" loading="lazy" referrerpolicy="no-referrer" data-foto><% } %>
+          </span>
+          <strong><%= d.nome %></strong>
+          <div class="about-links">
+            <% if (d.github) { %>
+              <a href="https://github.com/<%= d.github %>" target="_blank" rel="noopener noreferrer" title="GitHub de <%= d.nome %>"><%- include('../partials/icon', { name: 'github' }) %><span>github.com/<%= d.github %></span></a>
+            <% } %>
+            <% if (d.email) { %>
+              <a href="mailto:<%= d.email %>" title="Enviar e-mail para <%= d.nome %>"><%- include('../partials/icon', { name: 'mail' }) %><span><%= d.email %></span></a>
+            <% } %>
+          </div>
         </li>
       <% }) %>
     </ul>

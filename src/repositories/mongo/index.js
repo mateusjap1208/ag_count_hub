@@ -21,6 +21,23 @@ const crypto = require('node:crypto');
 const { MongoClient } = require('mongodb');
 
 const CHUNK = 5000;
+/* Parâmetros compactos: linhas em texto (tabulação entre colunas, quebra de linha entre registros) */
+const CHUNK_TEXTO = 40000;
+const chunksDe = (rows, n) => { const out = []; for (let i = 0; i < rows.length; i += n) out.push(rows.slice(i, i + n)); return out; };
+const limpo = (v) => (v == null ? '' : String(v).replace(/[\t\r\n]+/g, ' '));
+const compactarLinhas = (rows, cols) => rows.map((r) => cols.map((c) => limpo(r[c])).join('\t')).join('\n');
+const descompactar = (d) => (d.data ? d.data.split('\n').map((l) => {
+  const v = l.split('\t');
+  return Object.fromEntries(d.cols.map((c, i) => [c, v[i] ?? '']));
+}) : []);
+
+/** Rotina de gravação: campos vazios ("" ou nulos) não vão para o banco (a leitura repõe o padrão) */
+const enxutas = (rows) => rows.map((r) => {
+  const o = {};
+  for (const k in r) { const v = r[k]; if (v === '' || v == null) continue; o[k] = v; }
+  return o;
+});
+
 const chunks = (rows) => {
   const out = [];
   for (let i = 0; i < rows.length; i += CHUNK) out.push(rows.slice(i, i + CHUNK));
@@ -129,7 +146,7 @@ module.exports = function createMongoRepositories(uri, dbName) {
       const rowsCol = await col('dataset_rows');
       const keys = items.map(toKey);
       await rowsCol.deleteMany({ $or: keys });
-      const docs = items.flatMap((it, i) => chunks(it.rows).map((r, chunk) => ({ ...keys[i], chunk, rows: r })));
+      const docs = items.flatMap((it, i) => chunks(enxutas(it.rows)).map((r, chunk) => ({ ...keys[i], chunk, rows: r })));
       for (let i = 0; i < docs.length; i += 200) await rowsCol.insertMany(docs.slice(i, i + 200), { ordered: false });
       const now = new Date().toISOString();
       const records = items.map((it, i) => ({ ...keys[i], rows: it.rows.length, ...it.meta, uploadedAt: now }));
@@ -150,6 +167,15 @@ module.exports = function createMongoRepositories(uri, dbName) {
       const docs = await (await col('dataset_rows')).find(toKey(key), { projection: { rows: 1 } }).sort({ chunk: 1 }).toArray();
       return docs.flatMap((d) => d.rows);
     },
+    /** Regrava as linhas de uma carga já existente no formato enxuto (otimização do banco) */
+    async rewriteRows(key, rows) {
+      const rowsCol = await col('dataset_rows');
+      const k = toKey(key);
+      await rowsCol.deleteMany(k);
+      const docs = chunks(enxutas(rows)).map((r, chunk) => ({ ...k, chunk, rows: r }));
+      for (let i = 0; i < docs.length; i += 200) await rowsCol.insertMany(docs.slice(i, i + 200), { ordered: false });
+      return docs.length;
+    },
     async remove(key) { return datasets.removeWhere(toKey(key)); },
     async removeWhere(filter) {
       const q = toQuery(filter);
@@ -166,13 +192,19 @@ module.exports = function createMongoRepositories(uri, dbName) {
     async getRows(id) {
       const meta = await (await col('params')).findOne({ id }, { projection: { _id: 1 } });
       if (!meta) return null;
-      const docs = await (await col('param_rows')).find({ id }, { projection: { rows: 1 } }).sort({ chunk: 1 }).toArray();
-      return docs.flatMap((d) => d.rows);
+      const docs = await (await col('param_rows')).find({ id }, { projection: { rows: 1, cols: 1, data: 1 } }).sort({ chunk: 1 }).toArray();
+      return docs.flatMap((d) => (d.data != null ? descompactar(d) : d.rows));
     },
-    async save(id, rows, meta) {
+    /**
+     * meta.compactar = [colunas]: tabelas grandes e simples (EKKO, LFA1, KNA1) são gravadas como texto
+     * (uma linha por registro, colunas separadas por tabulação), bem menor que um objeto por linha.
+     */
+    async save(id, rows, { compactar, ...meta } = {}) {
       const rowsCol = await col('param_rows');
       await rowsCol.deleteMany({ id });
-      const docs = chunks(rows).map((r, chunk) => ({ id, chunk, rows: r }));
+      const docs = compactar
+        ? chunksDe(rows, CHUNK_TEXTO).map((r, chunk) => ({ id, chunk, cols: compactar, data: compactarLinhas(r, compactar) }))
+        : chunks(rows).map((r, chunk) => ({ id, chunk, rows: r }));
       if (docs.length) await rowsCol.insertMany(docs, { ordered: false });
       const record = { id, rows: rows.length, ...meta, updatedAt: new Date().toISOString() };
       await (await col('params')).replaceOne({ id }, record, { upsert: true });
