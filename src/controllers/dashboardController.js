@@ -13,14 +13,20 @@ exports.index = async (req, res, next) => {
     const views = Object.fromEntries(await Promise.all(
       slugs.map(async (s) => [s, await Report.getModuleView(s, scope)])));
 
+    // Passivo + PL: soma dos dois indicadores do BP (deve fechar com o ativo)
+    const passivo = kpi(views.bp, 'Passivo total');
+    const pl = kpi(views.bp, 'Patrimônio líquido');
+    const passivoPl = passivo && pl
+      ? { label: 'Passivo + PL', value: passivo.value + pl.value, format: 'currency', currency: views.bp.currency, hint: 'Passivo total + patrimônio líquido' }
+      : null;
+
+    // Ordem: Ativo, Passivo + PL, Receita líquida, Lucro líquido, Capital empregado, Valor em estoque
     const highlights = [
+      { module: 'bp', ...kpi(views.bp, 'Ativo total') },
+      { module: 'bp', ...passivoPl },
       { module: 'dre', ...kpi(views.dre, 'Receita líquida') },
       { module: 'dre', ...kpi(views.dre, 'Lucro líquido') },
-      { module: 'bp', ...kpi(views.bp, 'Ativo total') },
-      { module: 'bp', ...kpi(views.bp, 'Patrimônio líquido') },
       { module: 'capital-empregado', ...kpi(views['capital-empregado'], 'Capital empregado') },
-      { module: 'clientes', ...kpi(views.clientes, 'Clientes faturados') },
-      { module: 'fornecedores', ...kpi(views.fornecedores, 'Total a pagar') },
       { module: 'estoque', ...kpi(views.estoque, 'Valor em estoque') },
     ].filter((h) => h.label);
 
