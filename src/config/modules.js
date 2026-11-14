@@ -35,6 +35,8 @@ const AGING_SCHEMES = {
 const sumKeys = (map = {}, predicate) =>
   Object.entries(map).reduce((acc, [k, v]) => (predicate(norm(k)) ? acc + v : acc), 0);
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const { fagll03 } = require('./fagll03');
+const seguros = require('./seguros');
 const ratio = (a, b) => (b ? a / b : null);
 const g = (s, key) => (s.breakdowns && s.breakdowns[key]) || {};
 
@@ -269,38 +271,7 @@ const modules = [
       ];
     },
   },
-  {
-    slug: 'clientes',
-    menu: 'Clientes',
-    title: 'Clientes (contas a receber)',
-    icon: 'users',
-    // Nome opcional no .txt: se vier vazio, é preenchido pelo Mestre de Clientes (KNA1)
-    nameLookup: { param: 'clientes', codeField: 'codigo', nameField: 'nome' },
-    columns: [
-      { key: 'codigo', label: 'Código', type: 'string', required: true, aliases: ['cliente', 'cod_cliente', 'cliente_cod', 'cod', 'kunnr'] },
-      { key: 'nome', label: 'Cliente', type: 'string', aliases: ['nome_1', 'nome', 'razao_social', 'nome_cliente'] },
-      { key: 'obra', label: 'Obra', type: 'string', aliases: ['contrato', 'centro_custo', 'projeto'] },
-      { key: 'documento', label: 'Documento', type: 'string', aliases: ['doc', 'n_documento', 'nf'] },
-      { key: 'vencimento', label: 'Vencimento', type: 'date', required: true, aliases: ['data_vencimento', 'dt_venc', 'venc'] },
-      { key: 'valor', label: 'Valor', type: 'number', format: 'currency', required: true, aliases: ['saldo', 'montante', 'valor_aberto'] },
-    ],
-    breakdowns: [
-      { id: 'aging', label: 'Aging (vencimento)', aging: { dateField: 'vencimento', scheme: 'overdue' }, value: 'valor', chart: 'bar' },
-      { id: 'top', label: 'Maiores clientes', field: 'nome', value: 'valor', chart: 'hbar', top: 10 },
-      { id: 'obra', label: 'Saldo por obra', field: 'obra', value: 'valor', chart: 'doughnut', top: 8 },
-    ],
-    kpis: (s) => {
-      const ag = g(s, 'aging');
-      const total = s.totals?.valor?.sum ?? 0;
-      const vencido = total - (ag['A vencer'] || 0);
-      return [
-        { label: 'Total a receber', value: total, format: 'currency' },
-        { label: 'Vencido', value: vencido, format: 'currency', tone: vencido > 0 ? 'neg' : undefined },
-        { label: '% vencido', value: ratio(vencido, total), format: 'percent' },
-        { label: 'Clientes', value: Object.keys(g(s, 'top')).length, format: 'number' },
-      ];
-    },
-  },
+  fagll03('clientes'),
   {
     slug: 'adiantamentos',
     menu: 'Adiantamentos',
@@ -382,69 +353,8 @@ const modules = [
       ];
     },
   },
-  {
-    slug: 'seguros-garantias',
-    menu: 'Seguros e Garantias',
-    title: 'Seguros e Garantias',
-    icon: 'shield',
-    columns: [
-      { key: 'apolice', label: 'Apólice', type: 'string', required: true, aliases: ['n_apolice', 'contrato'] },
-      { key: 'seguradora', label: 'Seguradora', type: 'string', required: true, aliases: ['emissor', 'banco'] },
-      { key: 'tipo', label: 'Tipo', type: 'string', required: true, aliases: ['modalidade', 'ramo'] },
-      { key: 'obra', label: 'Obra', type: 'string', aliases: ['projeto', 'objeto'] },
-      { key: 'inicio', label: 'Início', type: 'date', aliases: ['inicio_vigencia', 'dt_inicio'] },
-      { key: 'vencimento', label: 'Vencimento', type: 'date', required: true, aliases: ['fim_vigencia', 'dt_fim', 'vigencia_fim'] },
-      { key: 'importancia', label: 'Importância segurada', type: 'number', format: 'currency', required: true, aliases: ['importancia_segurada', 'is', 'valor_garantido'] },
-      { key: 'premio', label: 'Prêmio', type: 'number', format: 'currency', aliases: ['valor_premio', 'custo'] },
-    ],
-    breakdowns: [
-      { id: 'tipo', label: 'Importância segurada por tipo', field: 'tipo', value: 'importancia', chart: 'doughnut' },
-      { id: 'vigencia', label: 'Apólices por vencimento', aging: { dateField: 'vencimento', scheme: 'expiry' }, value: '_count', chart: 'bar' },
-      { id: 'seguradora', label: 'Por seguradora', field: 'seguradora', value: 'importancia', chart: 'hbar', top: 10 },
-    ],
-    kpis: (s) => {
-      const v = g(s, 'vigencia');
-      const proximas = (v['Até 30 dias'] || 0) + (v['31-90 dias'] || 0);
-      return [
-        { label: 'Importância segurada', value: s.totals?.importancia?.sum ?? 0, format: 'currency' },
-        { label: 'Prêmios', value: s.totals?.premio?.sum ?? 0, format: 'currency' },
-        { label: 'Vencem em 90 dias', value: proximas, format: 'number', tone: proximas > 0 ? 'warn' : undefined },
-        { label: 'Vencidas', value: v['Vencida'] || 0, format: 'number', tone: v['Vencida'] ? 'neg' : undefined },
-      ];
-    },
-  },
-  {
-    slug: 'fornecedores',
-    menu: 'Fornecedores',
-    title: 'Fornecedores (contas a pagar)',
-    icon: 'truck',
-    // Nome opcional no .txt: se vier vazio, é preenchido pelo Mestre de Fornecedores (LFA1)
-    nameLookup: { param: 'fornecedores', codeField: 'codigo', nameField: 'nome' },
-    columns: [
-      { key: 'codigo', label: 'Código', type: 'string', required: true, aliases: ['fornecedor', 'cod_fornecedor', 'cod', 'lifnr'] },
-      { key: 'nome', label: 'Fornecedor', type: 'string', aliases: ['nome_1', 'nome', 'razao_social'] },
-      { key: 'obra', label: 'Obra', type: 'string', aliases: ['contrato', 'centro_custo', 'projeto'] },
-      { key: 'documento', label: 'Documento', type: 'string', aliases: ['doc', 'n_documento', 'nf'] },
-      { key: 'vencimento', label: 'Vencimento', type: 'date', required: true, aliases: ['data_vencimento', 'dt_venc', 'venc'] },
-      { key: 'valor', label: 'Valor', type: 'number', format: 'currency', required: true, aliases: ['saldo', 'montante', 'valor_aberto'] },
-    ],
-    breakdowns: [
-      { id: 'aging', label: 'Aging (vencimento)', aging: { dateField: 'vencimento', scheme: 'overdue' }, value: 'valor', chart: 'bar' },
-      { id: 'top', label: 'Maiores fornecedores', field: 'nome', value: 'valor', chart: 'hbar', top: 10 },
-      { id: 'obra', label: 'Saldo por obra', field: 'obra', value: 'valor', chart: 'doughnut', top: 8 },
-    ],
-    kpis: (s) => {
-      const ag = g(s, 'aging');
-      const total = s.totals?.valor?.sum ?? 0;
-      const vencido = total - (ag['A vencer'] || 0);
-      return [
-        { label: 'Total a pagar', value: total, format: 'currency' },
-        { label: 'Vencido', value: vencido, format: 'currency', tone: vencido > 0 ? 'neg' : undefined },
-        { label: '% vencido', value: ratio(vencido, total), format: 'percent' },
-        { label: 'Fornecedores', value: Object.keys(g(s, 'top')).length, format: 'number' },
-      ];
-    },
-  },
+  seguros,
+  fagll03('fornecedores'),
   {
     slug: 'fluxo-caixa',
     menu: 'Fluxo de Caixa',

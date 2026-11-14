@@ -9,6 +9,9 @@ const routes = require('./routes');
 const app = express();
 
 app.set('view engine', 'ejs');
+// Versão do sistema (version.json): o build soma +1 a cada commit — exibida no login e no menu
+const versao = require('../version.json');
+app.locals.appVersion = `v${versao.version}.${versao.build}`;
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1);
 app.disable('x-powered-by');

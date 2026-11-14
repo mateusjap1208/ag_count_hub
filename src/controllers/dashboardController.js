@@ -19,7 +19,7 @@ exports.index = async (req, res, next) => {
       { module: 'bp', ...kpi(views.bp, 'Ativo total') },
       { module: 'bp', ...kpi(views.bp, 'Patrimônio líquido') },
       { module: 'capital-empregado', ...kpi(views['capital-empregado'], 'Capital empregado') },
-      { module: 'clientes', ...kpi(views.clientes, 'Total a receber') },
+      { module: 'clientes', ...kpi(views.clientes, 'Clientes faturados') },
       { module: 'fornecedores', ...kpi(views.fornecedores, 'Total a pagar') },
       { module: 'estoque', ...kpi(views.estoque, 'Valor em estoque') },
     ].filter((h) => h.label);

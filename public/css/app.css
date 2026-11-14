@@ -102,6 +102,9 @@ button, input, select { font: inherit; }
 .user-info span { font-size: 11px; color: var(--sb-muted); }
 .nav-logout { margin: 0; }
 .sidebar-tagline { font-size: 11px; color: var(--sb-muted); margin: 10px 16px 0; line-height: 1.4; }
+/* Versão do sistema (version.json): no fim do menu e na tela de login */
+.app-version { font-size: 11px; color: var(--sb-muted); margin: 4px 16px 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.login-card .app-version { color: var(--muted, #777777); margin: 24px 0 0; text-align: center; }
 
 /* Ícones animados: cada ícone tem um micro-movimento ao passar o mouse (e ao abrir a página, no item ativo) */
 .nav-item:hover .icon, .nav-item.active .icon { animation-duration: .6s; animation-timing-function: ease-in-out; animation-iteration-count: 1; }

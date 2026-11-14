@@ -56,6 +56,11 @@ function computeSummary(rows, moduleDef, period) {
       if (v >= 0) totals[k].pos += v; else totals[k].neg += v;
     }
     for (const b of moduleDef.breakdowns) {
+      // spread(row, period): a linha contribui para várias chaves (ex.: apropriação mês a mês)
+      if (b.spread) {
+        for (const [k, v] of b.spread(row, period)) breakdowns[b.id][k] = (breakdowns[b.id][k] || 0) + v;
+        continue;
+      }
       const key = b.aging
         ? agingBucket(row[b.aging.dateField], ref, b.aging.scheme)
         : (row[b.field] || 'Não informado');
@@ -109,7 +114,7 @@ function breakdownSeries(b, map, moduleDef) {
     }
     entries = head;
   }
-  return { labels: entries.map((e) => e[0]), values: entries.map((e) => round2(e[1])) };
+  return { labels: entries.map((e) => (b.labelFn ? b.labelFn(e[0]) : e[0])), values: entries.map((e) => round2(e[1])) };
 }
 
 /** Monta uma demonstração estruturada (ex.: DRE em cascata) */
