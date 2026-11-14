@@ -26,6 +26,8 @@
         <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
         <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
       <% } %>
+      <div class="nav-label">Sistema</div>
+      <%- navItem('/sobre', 'info', 'Sobre', currentPath === '/sobre') %>
     </nav>
     <div class="sidebar-foot">
       <div class="sidebar-user">

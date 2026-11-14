@@ -675,3 +675,15 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .module-tab:hover { color: var(--heading); }
 .module-tab.active { color: var(--consag-blue); border-bottom-color: var(--consag-blue); }
 .nav-item:hover .icon-trend, .nav-item.active .icon-trend { animation-name: ic-nudge; }
+
+/* Tela Sobre: informações centralizadas */
+.about { display: flex; justify-content: center; padding: 24px 0; }
+.about-card { width: 100%; max-width: 560px; text-align: center; padding: 40px 32px; }
+.about-logo { height: 48px; margin: 0 auto 20px; }
+.about-card h2 { font-size: 24px; margin: 0; }
+.about-sub { color: var(--muted); margin: 6px 0 0; }
+.about-version { display: inline-block; margin: 14px 0 0; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--consag-blue); background: color-mix(in srgb, var(--consag-blue) 12%, transparent); font-variant-numeric: tabular-nums; }
+.about-title { margin: 32px 0 16px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.about-devs { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.about-dev { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 180px; padding: 20px 16px; border: 1px solid var(--border); border-radius: 12px; }
+.about-avatar { width: 56px; height: 56px; font-size: 18px; }

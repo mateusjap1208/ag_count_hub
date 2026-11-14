@@ -1,0 +1,23 @@
+<%- include('../partials/layout-start') %>
+
+<section class="about">
+  <div class="about-card card">
+    <img class="about-logo logo-pos" src="/static/img/logo-consag.png" alt="CONSAG Engenharia">
+    <img class="about-logo logo-neg" src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia">
+    <h2>AG Cont Hub</h2>
+    <p class="about-sub">Dashboard Contábil · CONSAG Engenharia</p>
+    <p class="about-version">Versão <%= appVersion %></p>
+
+    <h3 class="about-title">Desenvolvedores</h3>
+    <ul class="about-devs">
+      <% devs.forEach(d => { %>
+        <li class="about-dev">
+          <span class="avatar about-avatar" aria-hidden="true"><%= d.split(/\s+/).map(p => p[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase() %></span>
+          <strong><%= d %></strong>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+</section>
+
+<%- include('../partials/layout-end') %>
