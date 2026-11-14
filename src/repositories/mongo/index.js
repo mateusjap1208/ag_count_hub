@@ -99,6 +99,11 @@ module.exports = function createMongoRepositories(uri, dbName) {
     async touchLogin(id) {
       await (await col('users')).updateOne({ id }, { $set: { lastLoginAt: new Date().toISOString() } });
     },
+    /** Ordem dos cards/gráficos de uma tela; ordem = null volta ao padrão */
+    async setOrdem(id, chave, ordem) {
+      const campo = `prefs.ordem.${chave}`;
+      await (await col('users')).updateOne({ id }, ordem ? { $set: { [campo]: ordem } } : { $unset: { [campo]: '' } });
+    },
     async setBuildVisto(id, build) {
       await (await col('users')).updateOne({ id }, { $set: { buildVisto: build } });
     },

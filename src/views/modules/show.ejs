@@ -207,9 +207,9 @@
   <% } %>
 
   <% const charts = view.charts; %>
-  <div class="grid <%= charts.length === 1 && !view.statement ? '' : 'grid-2' %> mt">
+  <div class="grid <%= charts.length === 1 && !view.statement ? '' : 'grid-2' %> mt" data-ordenavel="graficos" aria-label="Gráficos">
     <% if (view.statement) { %>
-      <div class="card">
+      <div class="card" data-ordem-chave="demonstracao">
         <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : view.def.slug === 'imobilizado' ? 'Movimentação do ano' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
         <div class="table-wrap">
           <table class="statement">
@@ -230,7 +230,7 @@
       </div>
     <% } %>
     <% charts.forEach((c, i) => { %>
-      <div class="card <%= (charts.length === 3 && i === 0 && !view.statement) || (view.statement && charts.length === 3 && i === 2) ? 'span-2' : '' %>">
+      <div class="card <%= (charts.length === 3 && i === 0 && !view.statement) || (view.statement && charts.length === 3 && i === 2) ? 'span-2' : '' %>" data-ordem-chave="<%= c.id %>">
         <div class="card-head"><h2><%= c.label %></h2></div>
         <div class="chart-box <%= c.type === 'hbar' ? 'tall' : '' %>"><canvas id="chart-<%= c.id %>" aria-label="<%= c.label %>"></canvas></div>
       </div>

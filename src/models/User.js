@@ -27,6 +27,7 @@ const publicUser = (u) => ({
   updatedAt: u.updatedAt,
   lastLoginAt: u.lastLoginAt,
   buildVisto: u.buildVisto, // último build cujo aviso de atualização o usuário já fechou
+  ordem: u.prefs?.ordem || {}, // ordem dos cards e gráficos escolhida pelo usuário, por tela
 });
 
 /** Conjunto de centros permitidos (null = sem restrição) e chave de cache da permissão */
@@ -120,10 +121,21 @@ async function remove(id, { actor } = {}) {
   await users.remove(id);
 }
 
+/**
+ * Salva a ordem dos cards/gráficos de uma tela (chave = "tela:grupo"); ordem vazia volta ao padrão.
+ * A chave só aceita letras, números e - _ : / (sem ponto, que o MongoDB usa como separador).
+ */
+async function saveOrdem(id, chave, ordem) {
+  const k = String(chave || '');
+  if (!/^[a-z0-9\-_:/]{1,80}$/i.test(k)) throw new UserError('Tela inválida.');
+  const lista = Array.isArray(ordem) ? ordem.map((x) => String(x).slice(0, 120)).filter(Boolean).slice(0, 60) : [];
+  await users.setOrdem(id, k.replace(/\//g, '_'), lista.length ? lista : null);
+}
+
 /** Marca o aviso de atualização como visto até o build informado */
 async function markSeen(id, build) { await users.setBuildVisto(id, build); }
 
 async function list() { return (await users.list()).map(publicUser); }
 async function get(id) { const u = await users.findById(id); return u ? publicUser(u) : null; }
 
-module.exports = { markSeen, authenticate, create, update, remove, list, get, permission, publicUser, ROLES, UserError, findByEmail: users.findByEmail };
+module.exports = { markSeen, saveOrdem, authenticate, create, update, remove, list, get, permission, publicUser, ROLES, UserError, findByEmail: users.findByEmail };

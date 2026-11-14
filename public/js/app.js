@@ -56,6 +56,103 @@
   if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
 
   /* ---------- Filtros (empresa / período) ---------- */
+  /* ---------- Ordem dos cards e gráficos escolhida pelo usuário (salva nas preferências) ----------
+     Cada grupo marcado com data-ordenavel pode ser reorganizado: arrastando pela alça (⋮⋮) ou,
+     com a alça em foco, pelas setas do teclado. A ordem é salva no usuário e vale em qualquer computador. */
+  const prefsEl = document.getElementById('user-prefs');
+  const prefs = prefsEl ? JSON.parse(prefsEl.textContent) : { ordem: {} };
+  const telaChave = (grupo) => `${location.pathname.replace(/[^a-z0-9-]+/gi, '_')}:${grupo}`;
+  const chaveDe = (el) => el.dataset.ordemChave;
+  const salvarOrdem = async (box, ordem) => {
+    try {
+      await fetch('/api/preferencias/ordem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'x-csrf-token': prefs.csrf || '' },
+        body: JSON.stringify({ chave: telaChave(box.dataset.ordenavel), ordem }),
+      });
+    } catch { /* sem rede: a ordem vale até recarregar */ }
+  };
+  const restaurarBtn = (box) => {
+    let b = box.nextElementSibling;
+    if (!b || !b.classList.contains('ordem-restaurar')) {
+      b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ordem-restaurar';
+      b.textContent = 'Restaurar ordem padrão';
+      b.addEventListener('click', () => {
+        const padrao = JSON.parse(box.dataset.ordemPadrao || '[]');
+        padrao.forEach((k) => { const el = [...box.children].find((x) => chaveDe(x) === k); if (el) box.append(el); });
+        salvarOrdem(box, null);
+        b.remove();
+      });
+      box.after(b);
+    }
+  };
+  $$('[data-ordenavel]').forEach((box) => {
+    const itens = () => [...box.children].filter((x) => x.dataset.ordemChave !== undefined);
+    box.dataset.ordemPadrao = JSON.stringify(itens().map(chaveDe));
+    // 1) aplica a ordem salva (itens novos que não estão na lista ficam no fim)
+    const salva = (prefs.ordem || {})[telaChave(box.dataset.ordenavel)];
+    if (Array.isArray(salva) && salva.length) {
+      salva.forEach((k) => { const el = itens().find((x) => chaveDe(x) === k); if (el) box.append(el); });
+      itens().filter((x) => !salva.includes(chaveDe(x))).forEach((x) => box.append(x));
+      restaurarBtn(box);
+    }
+    const mudou = () => { salvarOrdem(box, itens().map(chaveDe)); restaurarBtn(box); };
+    // 2) alça de arrastar em cada item
+    itens().forEach((item) => {
+      const alca = document.createElement('button');
+      alca.type = 'button';
+      alca.className = 'ordem-alca';
+      alca.title = 'Arraste para mudar a ordem (ou use as setas do teclado)';
+      alca.setAttribute('aria-label', `Mover "${(item.querySelector('h2, .label')?.textContent || chaveDe(item)).trim()}" (setas para mudar a posição)`);
+      alca.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+      alca.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
+      alca.addEventListener('pointerdown', () => { item.draggable = true; });
+      alca.addEventListener('keydown', (e) => {
+        const antes = ['ArrowLeft', 'ArrowUp'].includes(e.key);
+        const depois = ['ArrowRight', 'ArrowDown'].includes(e.key);
+        if (!antes && !depois) return;
+        e.preventDefault();
+        const lista = itens();
+        const i = lista.indexOf(item);
+        const alvo = lista[antes ? i - 1 : i + 1];
+        if (!alvo) return;
+        if (antes) box.insertBefore(item, alvo); else box.insertBefore(alvo, item);
+        alca.focus();
+        mudou();
+      });
+      item.classList.add('ordenavel-item');
+      item.prepend(alca);
+      item.addEventListener('dragstart', (e) => {
+        item.classList.add('arrastando');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', chaveDe(item)); } catch { /* alguns navegadores */ }
+      });
+      item.addEventListener('dragend', () => {
+        item.classList.remove('arrastando');
+        item.draggable = false;
+        $$('.ordem-alvo', box).forEach((x) => x.classList.remove('ordem-alvo'));
+        mudou();
+      });
+    });
+    box.addEventListener('dragover', (e) => {
+      const arrastando = $('.arrastando', box);
+      if (!arrastando) return;
+      e.preventDefault();
+      const alvo = e.target.closest('[data-ordem-chave]');
+      if (!alvo || alvo === arrastando || alvo.parentElement !== box) return;
+      $$('.ordem-alvo', box).forEach((x) => x.classList.remove('ordem-alvo'));
+      alvo.classList.add('ordem-alvo');
+      const r = alvo.getBoundingClientRect();
+      const depoisDoAlvo = (e.clientX - r.left) / r.width > 0.5 || (e.clientY - r.top) / r.height > 0.75;
+      box.insertBefore(arrastando, depoisDoAlvo ? alvo.nextSibling : alvo);
+    });
+    box.addEventListener('drop', (e) => { if ($('.arrastando', box)) e.preventDefault(); });
+  });
+  // Os gráficos se ajustam ao novo tamanho do card depois de mudar de lugar
+  document.addEventListener('dragend', () => { if (window.Chart) Object.values(Chart.instances).forEach((c) => c.resize()); });
+
   /* ---------- Carregamento de página: esqueleto com brilho (shimmer) enquanto a próxima página chega ----------
      As páginas são montadas no servidor; entre o clique e a resposta, a área de conteúdo mostra o
      "desenho" de cards, gráficos e tabela, para deixar claro que está carregando. */

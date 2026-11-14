@@ -1,7 +1,7 @@
 <% const cur = locals.currency || 'BRL'; %>
-<div class="grid kpi-grid">
+<div class="grid kpi-grid" data-ordenavel="kpis" aria-label="Indicadores">
   <% kpis.forEach(k => { %>
-    <div class="card kpi <%= k.tone || '' %>">
+    <div class="card kpi <%= k.tone || '' %>" data-ordem-chave="<%= k.label %>">
       <div class="label"><%= k.label %></div>
       <div class="value" title="<%= fmt.value(k.value, k.format, cur) %>"><%= fmt.kpi(k.value, k.format, cur) %></div>
       <div class="meta"><%= k.format === 'currency' ? fmt.value(k.value, k.format, cur) : '' %><%= k.hint ? (k.format === 'currency' ? ' · ' : '') + k.hint : '' %></div>
