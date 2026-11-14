@@ -68,6 +68,8 @@ app.use((req, res) => {
 // Erros
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
+  // Erro depois da resposta enviada (ex.: falha ao gravar a sessão): só registra, não responde de novo
+  if (res.headersSent) { console.error(err); return next(err); }
   const status = err.status || 500;
   if (status >= 500) console.error(err);
   const message = status >= 500 ? 'Ocorreu um erro inesperado. Tente novamente.' : err.message;

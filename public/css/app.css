@@ -652,3 +652,16 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .chip-giro { display: inline-flex; align-items: center; gap: 6px; }
 .giro-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--giro-dot); }
 .chip-giro.active { background: var(--giro-bg); color: var(--giro-fg); border-color: var(--giro-dot); }
+
+/* Aviso modal (ex.: competência ausente no nome do arquivo) */
+.modal { border: 0; border-radius: 16px; padding: 28px; max-width: 460px; width: calc(100% - 32px); background: var(--surface); color: var(--text); box-shadow: 0 24px 60px rgba(6, 23, 43, .35); }
+.modal::backdrop { background: rgba(6, 23, 43, .55); backdrop-filter: blur(2px); }
+.modal h2 { font-size: 17px; margin: 12px 0 8px; }
+.modal p { margin: 0 0 10px; line-height: 1.55; color: var(--text-2); font-size: 13.5px; }
+.modal code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; font-size: 12px; }
+.modal-icon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--warn-bg); color: var(--warn); }
+.modal-icon svg { width: 22px; height: 22px; }
+.modal-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+.modal[open] { animation: modal-in .18s ease-out; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.input.needs-attention { border-color: var(--warn); box-shadow: 0 0 0 3px rgba(236, 140, 0, .25); }

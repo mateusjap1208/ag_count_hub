@@ -23,6 +23,14 @@
     <% } %>
     <div class="mt"><a class="btn btn-primary" href="/modulos/bp">Ver Balanço Patrimonial</a> <a class="btn btn-ghost" href="/modulos/dre">Ver DRE</a> <a class="btn btn-ghost" href="/modulos/capital-empregado">Ver Capital Empregado</a></div>
   </div>
+<% } else if (result && result.ok && result.estoque) { const r = result.estoque; %>
+  <div class="alert alert-ok">
+    <strong>Estoque importado:</strong> <%= r.fileName %> · competência <strong><%= fmt.periodFull(r.period) %></strong> ·
+    <%= fmt.number(r.linhas) %> itens com saldo ou movimento em <%= fmt.number(r.empresas) %> empresa(s).
+    <br>Status de giro (empresas em BRL):
+    <% r.giroBRL.forEach(g => { %><span class="badge badge-giro" data-giro="<%= g.status %>"><%= g.status %>: <%= fmt.compact(g.valor, 'BRL') %></span> <% }) %>
+    <div class="mt"><a class="btn btn-primary" href="/modulos/estoque">Ver análise do estoque</a></div>
+  </div>
 <% } else if (result && result.ok) { %>
   <div class="alert alert-ok">
     <strong>Arquivo importado:</strong> <%= result.record.fileName %> ·

@@ -2,13 +2,17 @@ const Report = require('../models/Report');
 const Company = require('../models/Company');
 const { ParseError } = require('../services/txtParser');
 const { Fgi0Error } = require('../services/fgi0');
+const { EstoqueError } = require('../services/estoque');
+const { ArrendamentoError } = require('../services/arrendamento');
 
-const FGI0_LAYOUT = {
-  slug: 'fgi0',
-  title: 'FGI0 — Saldos contábeis',
-  columns: ['Empresa', 'Centro de lucro', 'Nº conta', 'Moeda', 'Saldo acumulado', 'Área funcional', 'Tipo de moeda']
-    .map((label, i) => ({ label, key: label, required: [0, 2, 4].includes(i) })),
-};
+const layout = (slug, title, cols, req) => ({ slug, title, columns: cols.map((label, i) => ({ label, key: label, required: req.includes(i) })) });
+const FGI0_LAYOUT = layout('fgi0', 'FGI0 — Saldos contábeis',
+  ['Empresa', 'Centro de lucro', 'Nº conta', 'Moeda', 'Saldo acumulado', 'Área funcional', 'Tipo de moeda'], [0, 2, 4]);
+const ESTOQUE_LAYOUT = layout('estoque', 'ZL0190 — Estoque',
+  ['Centro', 'Depósito', 'Tipo de material', 'Empresa', 'Classe de avaliação', 'Material', 'Texto breve material', 'Qtd. Estoque no Depósito', 'Valor Total MI', 'Valor Total M2', 'Último movimento'], [3, 5, 8]);
+const ARR_LAYOUT = layout('arrendamento', 'Arrendamento (IFRS 16)',
+  ['Contrato avaliado', 'Ano civil', 'Período', 'Carteira final', 'Carteira final_2', 'Empresa', 'Centro de lucro'], [0, 3, 4, 5]);
+const AUTO_ERRORS = [ParseError, Fgi0Error, EstoqueError, ArrendamentoError];
 
 /** Histórico: cada FGI0 vira uma linha (gera centenas de cargas: empresas × BP/DRE/CE) */
 function groupUploads(uploads, companies) {
@@ -23,7 +27,7 @@ function groupUploads(uploads, companies) {
         b = {
           kind: 'fgi0', batch: u.batch, period: u.period, currencyType: u.currencyType, fileName: u.fileName,
           uploadedBy: u.uploadedBy, uploadedAt: u.uploadedAt, rows: 0, companies: new Set(), currencies: new Set(),
-          moduleName: u.source === 'arrendamento' ? 'Arrendamento (IFRS 16)' : 'FGI0 → BP, DRE e Capital Empregado',
+          moduleName: u.source === 'arrendamento' ? 'Arrendamento (IFRS 16)' : u.source === 'estoque' ? 'ZL0190 → Estoque' : 'FGI0 → BP, DRE e Capital Empregado',
           source: u.source,
         };
         batches.set(u.batch, b);
@@ -49,13 +53,17 @@ function groupUploads(uploads, companies) {
 
 async function renderPage(res, extra = {}) {
   const uploads = groupUploads(await Report.listUploads(), res.locals.companies);
-  const simple = Report.modules.filter((m) => m.source !== 'fgi0');
+  const simple = Report.modules.filter((m) => !m.source);
   res.render('upload/index', {
     title: 'Upload de relatórios',
     hideFilters: true,
     uploads,
-    uploadModules: [{ slug: 'fgi0', title: 'FGI0 — Saldos contábeis (gera BP, DRE e Capital Empregado)' }, ...simple.map((m) => ({ slug: m.slug, title: m.title }))],
-    layouts: [FGI0_LAYOUT, ...simple.map((m) => ({ slug: m.slug, title: m.title, columns: m.columns.map((c) => ({ label: c.label, key: c.key, required: !!c.required })) }))],
+    uploadModules: [
+      { slug: 'fgi0', title: 'FGI0 — Saldos contábeis (gera BP, DRE e Capital Empregado)' },
+      { slug: 'estoque', title: 'ZL0190 — Estoque (posição e giro)' },
+      { slug: 'arrendamento', title: 'Arrendamento (IFRS 16)' },
+      ...simple.map((m) => ({ slug: m.slug, title: m.title }))],
+    layouts: [FGI0_LAYOUT, ESTOQUE_LAYOUT, ARR_LAYOUT, ...simple.map((m) => ({ slug: m.slug, title: m.title, columns: m.columns.map((c) => ({ label: c.label, key: c.key, required: !!c.required })) }))],
     result: null,
     error: null,
     form: {},
@@ -72,6 +80,18 @@ exports.upload = async (req, res, next) => {
   try {
     if (!req.file) throw new ParseError('Selecione o arquivo (.xlsx ou .txt).');
 
+    if (req.body.module === 'estoque') {
+      const result = await Report.importEstoque({ buffer: req.file.buffer, fileName: req.file.originalname, user: req.session.user, period: req.body.period || null });
+      req.session.flash = { ok: true, estoque: result };
+      req.session.filter = { ...(req.session.filter || {}), periodo: result.period };
+      return res.redirect('/upload');
+    }
+    if (req.body.module === 'arrendamento') {
+      const result = await Report.importArrendamento({ buffer: req.file.buffer, fileName: req.file.originalname, user: req.session.user, period: req.body.period || null });
+      req.session.leaseFlash = result;
+      req.session.filter = { ...(req.session.filter || {}), periodo: result.period };
+      return res.redirect('/arrendamento/importar');
+    }
     if (req.body.module === 'fgi0') {
       const result = await Report.importFgi0({
         buffer: req.file.buffer,
@@ -109,7 +129,7 @@ exports.upload = async (req, res, next) => {
     req.session.flash = { ok: true, record, warnings };
     res.redirect('/upload');
   } catch (e) {
-    if (e instanceof ParseError || e instanceof Fgi0Error || e.status === 404 || /empresa|formato/i.test(e.message)) {
+    if (AUTO_ERRORS.some((C) => e instanceof C) || e.status === 404 || /empresa|formato/i.test(e.message)) {
       res.status(422);
       return renderPage(res, { error: e.message, form }).catch(next);
     }
@@ -139,8 +159,9 @@ exports.remove = async (req, res, next) => {
 /** Modelo de arquivo .txt com o cabeçalho esperado do módulo */
 exports.template = (req, res, next) => {
   try {
-    const cols = req.params.slug === 'fgi0'
-      ? FGI0_LAYOUT.columns.map((c) => c.label)
+    const fixed = { fgi0: FGI0_LAYOUT, estoque: ESTOQUE_LAYOUT, arrendamento: ARR_LAYOUT }[req.params.slug];
+    const cols = fixed
+      ? fixed.columns.map((c) => c.label)
       : Report.getModule(req.params.slug).columns.map((c) => c.key);
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.set('Content-Disposition', `attachment; filename="modelo_${req.params.slug}.txt"`);
