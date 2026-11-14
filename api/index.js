@@ -12,8 +12,8 @@ const config = require('../src/config');
 function configProblems() {
   const p = [];
   if (config.storageDriver !== 'mongo') p.push('STORAGE_DRIVER deve ser "mongo" (o disco da Vercel é temporário).');
-  if (!config.mongoUri) p.push('MONGODB_URI não definida.');
-  else if (config.mongoUri.includes('<db_')) p.push('MONGODB_URI ainda tem o texto de exemplo (<db_password>).');
+  const uriProblem = config.mongoUriProblem(config.mongoUri);
+  if (uriProblem) p.push(uriProblem);
   if (!process.env.SESSION_SECRET) p.push('SESSION_SECRET não definida.');
   return p;
 }

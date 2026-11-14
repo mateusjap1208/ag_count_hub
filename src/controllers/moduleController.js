@@ -1,9 +1,23 @@
 const Report = require('../models/Report');
 const { sessionScope } = require('../middlewares/locals');
 
+/**
+ * Módulos com moeda por linha (Arrendamento, Imobilizado, Receita): a moeda escolhida precisa
+ * existir no módulo; senão usa a mais frequente dele (sem alterar a escolha salva na sessão).
+ */
+async function withModuleCurrency(slug, scope) {
+  const def = Report.getModule(slug);
+  if (!Report.rowCurrency(def)) return { scope, rowCurrencies: [] };
+  const rowCurrencies = await Report.moduleCurrencies(slug, scope.period);
+  const ok = rowCurrencies.some((c) => c.code === scope.moedaContrato);
+  return { scope: ok ? scope : { ...scope, moedaContrato: rowCurrencies[0]?.code || 'BRL' }, rowCurrencies };
+}
+
 exports.show = async (req, res, next) => {
   try {
-    const { scope } = res.locals;
+    const { scope, rowCurrencies } = await withModuleCurrency(req.params.slug, res.locals.scope);
+    res.locals.filter = { ...res.locals.filter, moedaContrato: scope.moedaContrato };
+    res.locals.rowCurrencies = rowCurrencies;
     const view = await Report.getModuleView(req.params.slug, scope);
     const columns = [
       ...(scope.company === Report.ALL ? [{ key: 'empresa', label: 'Empresa', type: 'string' }] : []),
@@ -24,7 +38,7 @@ exports.show = async (req, res, next) => {
 /** API JSON: linhas paginadas para a tabela */
 exports.rows = async (req, res, next) => {
   try {
-    const scope = sessionScope(req);
+    const { scope } = await withModuleCurrency(req.params.slug, sessionScope(req));
     if (!scope.period) return res.json({ total: 0, page: 1, pages: 1, rows: [] });
     const data = await Report.getRows(req.params.slug, scope, {
       page: req.query.page,
@@ -46,7 +60,7 @@ const GIRO_FONT = { 'Saudável': 'FF00603F', 'Atenção': 'FF8A5200', 'Baixo Gir
 exports.exportXlsx = async (req, res, next) => {
   try {
     const ExcelJS = require('exceljs');
-    const scope = sessionScope(req);
+    const { scope } = await withModuleCurrency(req.params.slug, sessionScope(req));
     const def = Report.getModule(req.params.slug);
     const rows = scope.period ? await Report.getAllRows(def.slug, scope) : [];
     const currency = await Report.displayCurrency(def, scope);
@@ -91,7 +105,7 @@ exports.exportXlsx = async (req, res, next) => {
 /** Exportação CSV (separador ";" e vírgula decimal, abre direto no Excel em pt-BR) */
 exports.exportCsv = async (req, res, next) => {
   try {
-    const scope = sessionScope(req);
+    const { scope } = await withModuleCurrency(req.params.slug, sessionScope(req));
     const def = Report.getModule(req.params.slug);
     const rows = scope.period ? await Report.getAllRows(def.slug, scope) : [];
     const cols = [{ key: 'empresa', label: 'Empresa', type: 'string' }, ...def.columns];

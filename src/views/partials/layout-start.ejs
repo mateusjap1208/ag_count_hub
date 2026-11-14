@@ -15,8 +15,9 @@
     <nav class="nav" aria-label="Menu principal">
       <%- navItem('/', 'home', 'Visão Geral', currentPath === '/') %>
       <div class="nav-label">Relatórios</div>
-      <% menu.forEach(m => { %>
-        <%- navItem('/modulos/' + m.slug, m.icon, m.menu, currentPath === '/modulos/' + m.slug) %>
+      <% menu.filter(m => !m.hideInMenu).forEach(m => {
+           const ativo = (m.tabs || [{ slug: m.slug }]).some(t => currentPath === '/modulos/' + t.slug); %>
+        <%- navItem('/modulos/' + m.slug, m.icon, m.menu, ativo) %>
       <% }) %>
       <% if (user.role === 'admin') { %>
         <div class="nav-label">Dados</div>

@@ -23,6 +23,13 @@
     <% } %>
     <div class="mt"><a class="btn btn-primary" href="/modulos/bp">Ver Balanço Patrimonial</a> <a class="btn btn-ghost" href="/modulos/dre">Ver DRE</a> <a class="btn btn-ghost" href="/modulos/capital-empregado">Ver Capital Empregado</a></div>
   </div>
+<% } else if (result && result.ok && result.generic) { const r = result.generic; %>
+  <div class="alert alert-ok">
+    <strong><%= r.title %> importado:</strong> <%= r.fileName %> · competência <strong><%= fmt.periodFull(r.period) %></strong> ·
+    <%= fmt.number(r.linhas) %> linha(s) em <%= fmt.number(r.empresas) %> empresa(s) · moedas: <%= r.moedas.map(m => m.cur + ' (' + fmt.number(m.n) + ')').join(', ') %>.
+    <% if (r.ignoradas) { %><br><%= fmt.number(r.ignoradas) %> linha(s) sem valores ou incompletas foram ignoradas.<% } %>
+    <div class="mt"><a class="btn btn-primary" href="/modulos/<%= r.slug %>">Ver relatório</a></div>
+  </div>
 <% } else if (result && result.ok && result.estoque) { const r = result.estoque; %>
   <div class="alert alert-ok">
     <strong>Estoque importado:</strong> <%= r.fileName %> · competência <strong><%= fmt.periodFull(r.period) %></strong> ·
@@ -58,7 +65,7 @@
           <label for="u-module">Relatório</label>
           <select class="select" name="module" id="u-module" required>
             <% uploadModules.forEach(m => { %>
-              <option value="<%= m.slug %>" <%= selModule === m.slug ? 'selected' : '' %>><%= m.title %></option>
+              <option value="<%= m.slug %>" data-auto="<%= autoSlugs.includes(m.slug) ? 1 : 0 %>" <%= selModule === m.slug ? 'selected' : '' %>><%= m.title %></option>
             <% }) %>
           </select>
         </div>

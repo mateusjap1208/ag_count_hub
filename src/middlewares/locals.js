@@ -27,8 +27,9 @@ async function viewLocals(req, res, next) {
     const currencyOptions = await Report.currencyOptions(f.periodo);
     if (!currencyOptions.some((o) => o.value === f.moeda)) f.moeda = currencyOptions[0]?.value || 'grupo';
     // Arrendamento: moeda do contrato (BRL, EUR, COP…), escolhida na própria tela
+    // (cada tela confere se a moeda existe no seu módulo; ver moduleController.withModuleCurrency)
     const leaseCurrencies = await Report.leaseCurrencies(f.periodo);
-    if (!leaseCurrencies.some((c) => c.code === f.moedaContrato)) f.moedaContrato = leaseCurrencies[0]?.code || 'BRL';
+    if (!/^[A-Z]{3}$/.test(String(f.moedaContrato || ''))) f.moedaContrato = 'BRL';
 
     // Cascata: valida cada nível com as opções geradas pelo nível anterior
     let opts = await Report.filterOptions({ allowed: perm.allowed, period: f.periodo, moeda: f.moeda, estrutura: f.estrutura });
