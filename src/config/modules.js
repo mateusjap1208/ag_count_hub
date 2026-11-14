@@ -348,6 +348,9 @@ const modules = [
   {
     slug: 'fluxo-caixa',
     menu: 'Fluxo de Caixa',
+    // Fora do menu, da Visão Geral e do upload por enquanto (a tela continua no sistema)
+    hideInMenu: true,
+    inativo: true,
     title: 'Fluxo de Caixa',
     icon: 'flow',
     columns: [

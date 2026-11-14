@@ -58,7 +58,7 @@ function groupUploads(uploads, companies) {
 
 async function renderPage(res, extra = {}) {
   const uploads = groupUploads(await Report.listUploads(), res.locals.companies);
-  const simple = Report.modules.filter((m) => !m.source);
+  const simple = Report.modules.filter((m) => !m.source && !m.inativo);
   const generic = Report.modules.filter((m) => m.importer);
   res.render('upload/index', {
     title: 'Upload de relatórios',

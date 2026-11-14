@@ -44,7 +44,7 @@ exports.index = async (req, res, next) => {
 
     const uploads = scope.period ? await Report.listUploads({ period: scope.period }) : [];
     const ct = String(scope.moeda).split(':')[0];
-    const status = Report.modules.map((m) => {
+    const status = Report.modules.filter((m) => !m.inativo).map((m) => {
       const list = uploads.filter((u) => u.module === m.slug && (m.source !== 'fgi0' || u.currencyType === ct));
       return { slug: m.slug, title: m.menu, icon: m.icon, companies: list.length, rows: list.reduce((a, u) => a + u.rows, 0) };
     });

@@ -1029,3 +1029,34 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 /* Números alinhados: todas as colunas de valor da demonstração reservam o espaço do olho à direita */
 .statement.tree td.num { position: relative; padding-right: 46px; }
 .statement.tree td.num .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); margin: 0; }
+
+/* =========================================================================
+ * Rodapé do menu expandido: "Sair" vira um ícone ao lado do usuário e a versão
+ * do sistema ocupa o lugar onde ficava o botão. Recolhido, continua como antes.
+ * (no computador o menu expande ao passar o mouse; no celular ele abre sempre expandido)
+ * ========================================================================= */
+.sidebar-foot { position: relative; display: flex; flex-direction: column; }
+.sidebar-foot .sidebar-user { order: 1; }
+@media (min-width: 961px) {
+  .sidebar-foot form { order: 2; }
+  .sidebar-foot .sidebar-tagline { order: 3; }
+  .sidebar-foot .app-version { order: 4; }
+  .sidebar:is(:hover, :has(:focus-visible)) .sidebar-foot .app-version { order: 2; margin: 0 0 4px 20px; }
+  .sidebar:is(:hover, :has(:focus-visible)) .sidebar-foot .sidebar-tagline { order: 3; }
+  .sidebar:is(:hover, :has(:focus-visible)) .sidebar-foot .sidebar-user { padding-right: 48px; }
+  .sidebar:is(:hover, :has(:focus-visible)) .sidebar-foot form { position: absolute; top: 15px; right: 4px; }
+  .sidebar:is(:hover, :has(:focus-visible)) .sidebar-foot .nav-logout { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 10px; }
+  .sidebar:is(:hover, :has(:focus-visible)) .sidebar-foot .nav-logout .nav-text { display: none; }
+}
+@media (max-width: 960px) {
+  .sidebar-foot .app-version { order: 2; margin: 0 0 4px 16px; }
+  .sidebar-foot .sidebar-tagline { order: 3; }
+  .sidebar-foot .sidebar-user { padding-right: 48px; }
+  .sidebar-foot form { position: absolute; top: 15px; right: 8px; }
+  .sidebar-foot .nav-logout { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 10px; }
+  .sidebar-foot .nav-logout .nav-text { display: none; }
+}
+.sidebar-foot .nav-logout { color: var(--sb-text); }
+.sidebar-foot .nav-logout:hover { color: var(--danger); }
+/* O menu expandido fica por cima da faixa de avisos */
+.ticker { z-index: 25; }

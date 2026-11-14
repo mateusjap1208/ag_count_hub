@@ -6,6 +6,18 @@
  */
 module.exports = [
   {
+    build: 26,
+    data: '2026-11-14',
+    titulo: 'Rodapé do menu',
+    itens: ['Com o menu aberto, o botão Sair fica ao lado do seu nome e a versão do sistema aparece logo abaixo.'],
+  },
+  {
+    build: 25,
+    data: '2026-11-14',
+    titulo: 'Menu mais enxuto',
+    itens: ['O Fluxo de Caixa saiu do menu.'],
+  },
+  {
     build: 24,
     data: '2026-11-14',
     titulo: 'Olho à direita do valor',
