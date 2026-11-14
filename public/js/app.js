@@ -561,11 +561,10 @@
     company.addEventListener('change', syncCompany); syncCompany();
 
     const moduleSel = $('#u-module');
-    // Relatórios que trazem a empresa no próprio arquivo (não pedem empresa na tela)
-    const AUTO = ['fgi0', 'estoque', 'arrendamento'];
     const syncLayout = () => {
       const mod = moduleSel.value;
-      const isAuto = AUTO.includes(mod);
+      // Relatórios que trazem a empresa no próprio arquivo (não pedem empresa na tela)
+      const isAuto = moduleSel.selectedOptions[0]?.dataset.auto === '1';
       $$('[data-layout]').forEach((el) => el.classList.toggle('hidden', el.dataset.layout !== mod));
       // Mostra só os campos do tipo escolhido; campos ocultos ficam desabilitados (não são enviados)
       $$('[data-show-for]').forEach((el) => {

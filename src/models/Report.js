@@ -14,6 +14,7 @@ const cache = require('../services/cache');
 const fgi0 = require('../services/fgi0');
 const arrendamento = require('../services/arrendamento');
 const estoque = require('../services/estoque');
+const genericImport = require('../services/genericImport');
 const { resolvePeriod, CompetenciaError } = require('../utils/competencia');
 const { statusGiro } = require('../config/modules');
 const { readSheets } = require('../services/sheetReader');
@@ -45,7 +46,7 @@ function scopeFilter(def, { period, company, moeda, moedaContrato }) {
     const m = parseMoeda(moeda);
     f.currencyType = m.type;
     if (m.type === 'empresa' && (!company || company === ALL)) currency = m.cur;
-  } else if (def.source === 'arrendamento') {
+  } else if (rowCurrency(def)) {
     // Arrendamento: cargas separadas pela moeda do contrato (guardada em currencyType)
     f.currencyType = moedaContrato || 'BRL';
   } else {
@@ -54,7 +55,9 @@ function scopeFilter(def, { period, company, moeda, moedaContrato }) {
   return { filter: f, currency };
 }
 /** Módulos com centro de lucro nas linhas (aceitam os filtros de obra) */
-const hasCentro = (def) => def.source === 'fgi0' || def.source === 'arrendamento';
+const hasCentro = (def) => def.source === 'fgi0' || def.source === 'arrendamento' || !!def.hasCentro;
+/** Módulos cuja moeda vem da própria linha (moeda do contrato/bem): uma carga por empresa × moeda */
+function rowCurrency(def) { return def.source === 'arrendamento' || def.currencyMode === 'row'; }
 /** Módulos com o esquema de moedas do FGI0 (moeda do grupo × moeda da empresa) */
 function usesGroupCurrency(def) { return def.source === 'fgi0' || def.currencyMode === 'grupo-empresa'; }
 /** Filtros de linha próprios do módulo (ex.: Status Giro do estoque) ativos no escopo */
@@ -65,7 +68,7 @@ const scopeKey = (slug, s) => {
   const def = bySlug[slug];
   const a = `|A${s.allowedKey || ''}`;
   if (def?.source === 'fgi0') return `${slug}|${s.period}|${s.company}|${s.moeda}|${s.estrutura || ''}|${s.sigla || ''}|${s.centro || ''}${a}`;
-  if (def?.source === 'arrendamento') return `${slug}|${s.period}|${s.company}|${s.moedaContrato || 'BRL'}|${s.estrutura || ''}|${s.sigla || ''}|${s.centro || ''}${a}`;
+  if (def && rowCurrency(def)) return `${slug}|${s.period}|${s.company}|${s.moedaContrato || 'BRL'}|${s.estrutura || ''}|${s.sigla || ''}|${s.centro || ''}${a}`;
   if (def && usesGroupCurrency(def)) return `${slug}|${s.period}|${s.company}|${s.moeda}|${rowFilterKey(def, s)}${a}`;
   return `${slug}|${s.period}|${s.company}|-${a}`;
 };
@@ -273,6 +276,50 @@ async function importEstoque({ buffer, fileName, user, period: periodIn }) {
   };
 }
 
+/**
+ * Importação genérica (AR02, ZS0003, ZC0086…): layout descrito em `importer` no módulo.
+ * Uma carga por empresa × moeda da linha; substitui a carga anterior da mesma competência.
+ */
+async function importGeneric(slug, { buffer, fileName, user, period: periodIn }) {
+  const def = getModule(slug);
+  if (!def.importer) throw new parser.ParseError(`"${def.title}" não tem importação genérica.`);
+  const period = periodOf(fileName, periodIn, genericImport.ImportError);
+  const data = await genericImport.importRows(buffer, fileName, def);
+  const batch = `${slug}:${period}`;
+  const uploadedBy = user?.name || user?.email || 'sistema';
+  const items = [];
+  const moedas = new Map();
+  for (const [company, byCur] of data.byCompany) {
+    for (const [currency, rows] of byCur) {
+      items.push({
+        module: slug, period, company, currencyType: currency, rows,
+        summary: agg.computeSummary(rows, def, period),
+        meta: { fileName, uploadedBy, batch, source: slug, currency, warnings: data.ignoradas ? 1 : 0 },
+      });
+      moedas.set(currency, (moedas.get(currency) || 0) + rows.length);
+    }
+  }
+  await datasets.removeWhere({ batch });
+  for (let i = 0; i < items.length; i += 60) await datasets.saveMany(items.slice(i, i + 60));
+  const known = new Set((await Company.list()).map((c) => c.code));
+  for (const code of data.byCompany.keys()) if (code && !known.has(code)) await Company.upsert({ code, name: (await Parameter.nameOf('empresas', code)) || code });
+  clearCaches();
+  return {
+    slug, title: def.importer.label, fileName, period, linhas: data.linhas, ignoradas: data.ignoradas,
+    empresas: data.byCompany.size, moedas: [...moedas].map(([cur, n]) => ({ cur, n })),
+  };
+}
+
+/** Moedas disponíveis de um módulo com moeda por linha, na competência (BRL, EUR, COP…) */
+async function moduleCurrencies(slug, period) {
+  if (!period) return [];
+  return cache.summaries.wrap(`mod-cur|${slug}|${period}`, async () => {
+    const m = new Map();
+    for (const d of await datasets.list({ module: slug, period })) m.set(d.currencyType, (m.get(d.currencyType) || 0) + 1);
+    return [...m].filter(([c]) => c).sort((a, b) => b[1] - a[1]).map(([cur, n]) => ({ code: cur, empresas: n, symbol: currencySymbol(cur), flag: currencyFlag(cur) }));
+  });
+}
+
 /** Moedas de contrato com arrendamento na competência (BRL, EUR, COP…) */
 async function leaseCurrencies(period) {
   if (!period) return [];
@@ -372,7 +419,7 @@ async function companyCurrency(period, company) {
 
 /** Código da moeda em que os valores do escopo estão expressos */
 async function displayCurrency(def, scope) {
-  if (def.source === 'arrendamento') return scope.moedaContrato || 'BRL';
+  if (rowCurrency(def)) return scope.moedaContrato || 'BRL';
   if (!usesGroupCurrency(def)) return 'BRL';
   const m = parseMoeda(scope.moeda);
   if (m.type === 'grupo') return (await currencyOptions(scope.period)).find((o) => o.value === 'grupo')?.currency || 'USD';
@@ -579,5 +626,5 @@ async function trend(slug, scope, limit = 12) {
 module.exports = {
   ALL, modules, FGI0_MODULES, getModule, importFile, importFgi0, removeDataset, removeBatch, listUploads,
   periods, currencyOptions, displayCurrency, getSummary, getModuleView, getRows, getAllRows, trend, filterOptions,
-  importArrendamento, importEstoque, leaseCurrencies, effectiveObras, companyCentros, allowedCompanies,
+  importArrendamento, importEstoque, importGeneric, moduleCurrencies, rowCurrency, leaseCurrencies, effectiveObras, companyCentros, allowedCompanies,
 };

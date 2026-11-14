@@ -472,32 +472,311 @@ const modules = [
       ];
     },
   },
+  /* ------------------------------------------------------------------
+   * Imobilizado: AR02 (Quadro do imobilizado, área 01 — depreciação do grupo). Um bem por linha.
+   * ------------------------------------------------------------------ */
   {
     slug: 'imobilizado',
     menu: 'Imobilizado',
     title: 'Imobilizado',
     icon: 'building',
+    source: 'generic',
+    currencyMode: 'row',
+    hasCentro: true,
+    importer: {
+      label: 'AR02 — Quadro do imobilizado',
+      company: 'empresa',
+      currency: 'moeda',
+      required: ['imobilizado', 'empresa', 'custo'],
+      fields: {
+        imobilizado: { names: ['imobilizado'], label: 'Imobilizado' },
+        subnumero: { names: ['sbn', 'subnumero'] },
+        empresa: { names: ['empr', 'empresa'], label: 'Empr.' },
+        conta: { names: ['ctabal_cap', 'conta_do_balanco_cap'] },
+        descricao: { names: ['denominacao_do_imobilizado', 'denominacao'] },
+        incorporacao: { names: ['dt_incorp', 'data_de_incorporacao'], type: 'date' },
+        desativacao: { names: ['dta_descap', 'data_de_desativacao'], type: 'date' },
+        baixas: { names: ['baixa'], type: 'number' },
+        aquisicoes: { names: ['aquis', 'aquisicao'], type: 'number' },
+        custoInicio: { names: ['cap_inicex'], type: 'number' },
+        depInicio: { names: ['dep_inicex'], type: 'number' },
+        vcInicio: { names: ['valcontiniexer'], type: 'number' },
+        custo: { names: ['cap_atuais'], type: 'number', label: 'CAP atuais' },
+        depAcumulada: { names: ['depr_acumulada'], type: 'number' },
+        depAno: { names: ['deprec_do_ano'], type: 'number' },
+        valorContabil: { names: ['valcon_atual'], type: 'number' },
+        moeda: { names: ['moeda'] },
+        centroLucro: { names: ['cen_lucro', 'centro_de_lucro'], upper: true },
+        baixaDep: { names: ['baixa_dep'], type: 'number' },
+      },
+      skip: (r) => !r.custo && !r.custoInicio && !r.aquisicoes && !r.baixas && !r.valorContabil && !r.depAno,
+      derive: (r, ctx) => ({
+        classe: ctx.contaClasse(r.conta) || `Conta ${r.conta}`,
+        situacao: r.desativacao ? 'Baixado' : (r.valorContabil > 0 ? 'Em uso' : 'Totalmente depreciado'),
+        anoIncorporacao: r.incorporacao ? r.incorporacao.slice(0, 4) : 'Sem data',
+      }),
+    },
+    sumFields: ['custoInicio', 'depInicio', 'vcInicio', 'baixaDep'],
     columns: [
-      { key: 'bem', label: 'Bem', type: 'string', required: true, aliases: ['imobilizado', 'n_imobilizado', 'codigo'] },
-      { key: 'descricao', label: 'Descrição', type: 'string', aliases: ['desc', 'denominacao'] },
-      { key: 'classe', label: 'Classe', type: 'string', required: true, aliases: ['classe_imobilizado', 'categoria'] },
-      { key: 'aquisicao', label: 'Aquisição', type: 'date', aliases: ['data_aquisicao', 'dt_aquisicao'] },
-      { key: 'custo', label: 'Custo', type: 'number', format: 'currency', required: true, aliases: ['valor_aquisicao', 'custo_aquisicao'] },
-      { key: 'depreciacao', label: 'Depreciação acumulada', type: 'number', format: 'currency', aliases: ['depreciacao_acumulada', 'deprec_acum'] },
-      { key: 'liquido', label: 'Valor líquido', type: 'number', format: 'currency', aliases: ['valor_liquido', 'valor_contabil'],
-        compute: (r) => (r.custo || 0) - Math.abs(r.depreciacao || 0) },
+      { key: 'imobilizado', label: 'Imobilizado', type: 'string' },
+      { key: 'subnumero', label: 'Sub.', type: 'string' },
+      { key: 'descricao', label: 'Denominação', type: 'string' },
+      { key: 'classe', label: 'Classe', type: 'string' },
+      { key: 'conta', label: 'Conta', type: 'string' },
+      { key: 'centroLucro', label: 'Centro de lucro', type: 'string' },
+      { key: 'incorporacao', label: 'Incorporação', type: 'date' },
+      { key: 'situacao', label: 'Situação', type: 'string' },
+      { key: 'custo', label: 'Custo (CAP)', type: 'number', format: 'currency' },
+      { key: 'depAcumulada', label: 'Depr. acumulada', type: 'number', format: 'currency' },
+      { key: 'valorContabil', label: 'Valor contábil', type: 'number', format: 'currency' },
+      { key: 'aquisicoes', label: 'Aquisições no ano', type: 'number', format: 'currency' },
+      { key: 'baixas', label: 'Baixas no ano', type: 'number', format: 'currency' },
+      { key: 'depAno', label: 'Depr. do ano', type: 'number', format: 'currency' },
     ],
     breakdowns: [
-      { id: 'classe', label: 'Valor líquido por classe', field: 'classe', value: 'liquido', chart: 'bar' },
+      { id: 'classe', label: 'Valor contábil por classe', field: 'classe', value: 'valorContabil', chart: 'hbar', top: 10 },
+      { id: 'situacao', label: 'Custo por situação', field: 'situacao', value: 'custo', chart: 'doughnut' },
+      { id: 'centroTop', label: 'Maiores centros de lucro (valor contábil)', field: 'centroLucro', value: 'valorContabil', chart: 'hbar', top: 10 },
+      { id: 'centros', field: 'centroLucro', value: 'custo', chart: null },
+      { id: 'bens', field: 'imobilizado', value: '_count', chart: null },
+    ],
+    // Movimentação do ano (custo e depreciação), conferida contra os saldos atuais
+    statementFn: (s) => {
+      const t = (k) => s.totals?.[k]?.sum ?? 0;
+      const custoCalc = t('custoInicio') + t('aquisicoes') + t('baixas');
+      const depCalc = t('depInicio') + t('depAno') + t('baixaDep');
+      const lines = [
+        { label: 'Custo (CAP)', kind: 'section' },
+        { label: 'Saldo no início do exercício', value: t('custoInicio') },
+        { label: '(+) Aquisições', value: t('aquisicoes') },
+        { label: '(-) Baixas', value: t('baixas') },
+      ];
+      if (Math.abs(t('custo') - custoCalc) >= 0.5) lines.push({ label: '(+/-) Transferências e ajustes', value: t('custo') - custoCalc });
+      lines.push({ label: 'Saldo atual do custo', value: t('custo'), subtotal: true });
+      lines.push({ label: 'Depreciação acumulada', kind: 'section' });
+      lines.push({ label: 'Saldo no início do exercício', value: t('depInicio') });
+      lines.push({ label: '(-) Depreciação do ano', value: t('depAno') });
+      lines.push({ label: '(+) Baixas de depreciação', value: t('baixaDep') });
+      if (Math.abs(t('depAcumulada') - depCalc) >= 0.5) lines.push({ label: '(+/-) Transferências e ajustes', value: t('depAcumulada') - depCalc });
+      lines.push({ label: 'Saldo atual da depreciação', value: t('depAcumulada'), subtotal: true });
+      lines.push({ label: 'Valor contábil atual', value: t('valorContabil'), subtotal: true, highlight: true });
+      return lines;
+    },
+    kpis: (s) => {
+      const t = (k) => s.totals?.[k]?.sum ?? 0;
+      const custo = t('custo');
+      const dep = Math.abs(t('depAcumulada'));
+      return [
+        { label: 'Custo (CAP)', value: custo, format: 'currency' },
+        { label: 'Depreciação acumulada', value: dep, format: 'currency', hint: `${custo ? ((dep / custo) * 100).toFixed(1).replace('.', ',') : '0,0'}% do custo` },
+        { label: 'Valor contábil', value: t('valorContabil'), format: 'currency' },
+        { label: 'Depreciação do ano', value: Math.abs(t('depAno')), format: 'currency' },
+        { label: 'Aquisições no ano', value: t('aquisicoes'), format: 'currency' },
+        { label: 'Baixas no ano', value: Math.abs(t('baixas')), format: 'currency' },
+        { label: 'Bens', value: s.count, format: 'number' },
+      ];
+    },
+  },
+
+  /* ------------------------------------------------------------------
+   * Receita: item único no menu, com duas abas
+   *   POC (ZS0003) — receita reconhecida pelo método de avanço (IFRS 15)
+   *   Medição (ZC0086) — receita de medição e faturamento
+   * ------------------------------------------------------------------ */
+  {
+    slug: 'receita-poc',
+    menu: 'Receita',
+    title: 'Receita · POC',
+    icon: 'trend',
+    source: 'generic',
+    currencyMode: 'row',
+    hasCentro: true,
+    tabs: [{ slug: 'receita-poc', label: 'POC (ZS0003)' }, { slug: 'receita-medicao', label: 'Medição (ZC0086)' }],
+    importer: {
+      label: 'ZS0003 — Registro de POC',
+      company: 'empresa',
+      currency: 'moeda',
+      required: ['empresa', 'centroLucro', 'obrigacao', 'precoTotal'],
+      fields: {
+        empresa: { names: ['empresa'], label: 'Empresa' },
+        ledger: { names: ['ledger'] },
+        centroLucro: { names: ['centro_de_lucro'], upper: true, label: 'Centro de lucro' },
+        obrigacao: { names: ['obrigacoes_de_desempenho', 'obrigacao_de_desempenho'], label: 'Obrigações de Desempenho' },
+        inicio: { names: ['data_inicio_contrato'], type: 'date' },
+        fim: { names: ['data_termino_contrato'], type: 'date' },
+        precoTotal: { names: ['preco_total'], type: 'number', label: 'Preço Total' },
+        moeda: { names: ['moeda'] },
+        custoOrcado: { names: ['custo_total_orcado'], type: 'number' },
+        resultadoEstimado: { names: ['resultado_estimado'], type: 'number' },
+        custoAcumulado: { names: ['custo_acumulado_obra'], type: 'number' },
+        faturamentoAcumulado: { names: ['faturamento_acumulado'], type: 'number' },
+        custoPeriodo: { names: ['custo_do_periodo'], type: 'number' },
+        faturamentoPeriodo: { names: ['faturamento_do_periodo'], type: 'number' },
+        pocPeriodo: { names: ['poc_do_periodo'], type: 'number' },
+        pocAcumulado: { names: ['poc_acumulado'], type: 'number' },
+        receitaPeriodo: { names: ['receita_periodo_mes'], type: 'number' },
+        resultadoAcumulado: { names: ['resultado_acumulado_apos_ias'], type: 'number' },
+        cliente: { names: ['cliente_da_obra'] },
+        recebimento: { names: ['recebimento'], type: 'number' },
+        recebimentoAcumulado: { names: ['recebimento_acumulado'], type: 'number' },
+        provisaoPis: { names: ['provisao_pis'], type: 'number' },
+        provisaoCofins: { names: ['provisao_cofins'], type: 'number' },
+      },
+      derive: (r) => {
+        const avanco = r.custoOrcado ? r.custoAcumulado / r.custoOrcado : 0;
+        return {
+          avanco: Math.round(avanco * 10000) / 100,
+          margemEstimada: r.precoTotal ? Math.round((r.resultadoEstimado / r.precoTotal) * 10000) / 100 : 0,
+          backlog: Math.max(0, r.precoTotal - r.pocAcumulado),
+          faixaAvanco: avanco >= 1 ? 'Concluída' : avanco >= 0.75 ? '75% a 99%' : avanco >= 0.5 ? '50% a 74%' : avanco >= 0.25 ? '25% a 49%' : avanco > 0 ? 'Até 25%' : 'Não iniciada',
+        };
+      },
+      /**
+       * No ZS0003 faturamento, recebimento e custo indireto são da OBRA (centro de lucro) e vêm
+       * repetidos em cada obrigação de desempenho: ficam só na primeira obrigação de cada obra
+       * (valores diferentes entre obrigações são somados uma vez cada — [A CONFIRMAR] recebimento acumulado).
+       * Ativo/passivo contratual = Σ POC acumulado das obrigações − faturamento acumulado da obra.
+       */
+      postProcess: (rows) => {
+        const OBRA = ['faturamentoAcumulado', 'faturamentoPeriodo', 'recebimento', 'recebimentoAcumulado'];
+        const groups = new Map();
+        for (const r of rows) {
+          const k = `${r.empresa}|${r.centroLucro}|${r.moeda}`;
+          (groups.get(k) || groups.set(k, []).get(k)).push(r);
+        }
+        for (const list of groups.values()) {
+          for (const f of OBRA) {
+            const seen = new Set();
+            for (const r of list) {
+              const key = String(r[f]);
+              if (seen.has(key)) r[f] = 0; else seen.add(key);
+            }
+          }
+          const poc = list.reduce((a, r) => a + r.pocAcumulado, 0);
+          const fat = list.reduce((a, r) => a + r.faturamentoAcumulado, 0);
+          const saldo = poc - fat; // + a faturar (ativo) / − faturado antecipado (passivo)
+          list.forEach((r, i) => {
+            r.ativoContratual = i === 0 && saldo > 0 ? saldo : 0;
+            r.passivoContratual = i === 0 && saldo < 0 ? -saldo : 0;
+            r.obrigacoesNaObra = list.length;
+          });
+        }
+      },
+    },
+    sumFields: ['custoOrcado', 'resultadoEstimado', 'recebimento', 'recebimentoAcumulado', 'provisaoPis', 'provisaoCofins', 'resultadoAcumulado'],
+    columns: [
+      { key: 'obrigacao', label: 'Obrigação de desempenho', type: 'string' },
+      { key: 'centroLucro', label: 'Centro de lucro', type: 'string' },
+      { key: 'cliente', label: 'Cliente', type: 'string' },
+      { key: 'ledger', label: 'Ledger', type: 'string' },
+      { key: 'fim', label: 'Término', type: 'date' },
+      { key: 'avanco', label: 'Avanço (%)', type: 'number', format: 'number' },
+      { key: 'margemEstimada', label: 'Margem est. (%)', type: 'number', format: 'number' },
+      { key: 'precoTotal', label: 'Preço total', type: 'number', format: 'currency' },
+      { key: 'receitaPeriodo', label: 'Receita do período', type: 'number', format: 'currency' },
+      { key: 'pocAcumulado', label: 'Receita acumulada (POC)', type: 'number', format: 'currency' },
+      { key: 'faturamentoAcumulado', label: 'Faturamento acumulado (obra)', type: 'number', format: 'currency' },
+      { key: 'ativoContratual', label: 'A faturar (obra)', type: 'number', format: 'currency' },
+      { key: 'passivoContratual', label: 'Faturado antecipado (obra)', type: 'number', format: 'currency' },
+      { key: 'backlog', label: 'Saldo a executar', type: 'number', format: 'currency' },
+      { key: 'custoPeriodo', label: 'Custo do período', type: 'number', format: 'currency' },
+      { key: 'custoAcumulado', label: 'Custo acumulado', type: 'number', format: 'currency' },
+    ],
+    breakdowns: [
+      { id: 'centroTop', label: 'Receita do período por centro de lucro', field: 'centroLucro', value: 'receitaPeriodo', chart: 'hbar', top: 10 },
+      { id: 'faixa', label: 'Saldo a executar por faixa de avanço', field: 'faixaAvanco', value: 'backlog', chart: 'bar', order: ['Não iniciada', 'Até 25%', '25% a 49%', '50% a 74%', '75% a 99%', 'Concluída'] },
+      { id: 'cliente', label: 'Receita acumulada por cliente', field: 'cliente', value: 'pocAcumulado', chart: 'doughnut', top: 8 },
+      { id: 'centros', field: 'centroLucro', value: 'precoTotal', chart: null },
+      { id: 'contratos', field: 'obrigacao', value: '_count', chart: null },
     ],
     kpis: (s) => {
-      const custo = s.totals?.custo?.sum ?? 0;
-      const dep = Math.abs(s.totals?.depreciacao?.sum ?? 0);
+      const t = (k) => s.totals?.[k]?.sum ?? 0;
       return [
-        { label: 'Custo de aquisição', value: custo, format: 'currency' },
-        { label: 'Depreciação acumulada', value: dep, format: 'currency' },
-        { label: 'Valor líquido', value: s.totals?.liquido?.sum ?? 0, format: 'currency' },
-        { label: '% depreciado', value: ratio(dep, custo), format: 'percent' },
+        { label: 'Receita do período', value: t('receitaPeriodo'), format: 'currency', hint: 'POC do mês' },
+        { label: 'Receita acumulada (POC)', value: t('pocAcumulado'), format: 'currency' },
+        { label: 'Faturamento acumulado', value: t('faturamentoAcumulado'), format: 'currency' },
+        { label: 'A faturar (ativo contratual)', value: t('ativoContratual'), format: 'currency' },
+        { label: 'Faturado antecipado (passivo)', value: t('passivoContratual'), format: 'currency' },
+        { label: 'Saldo a executar', value: t('backlog'), format: 'currency', hint: 'Preço total − receita acumulada' },
+        { label: 'Margem estimada', value: ratio(t('resultadoEstimado'), t('precoTotal')), format: 'percent' },
+        { label: 'Contratos', value: Object.keys(g(s, 'contratos')).length, format: 'number' },
+      ];
+    },
+  },
+  {
+    slug: 'receita-medicao',
+    menu: 'Receita',
+    title: 'Receita · Medição',
+    icon: 'trend',
+    source: 'generic',
+    currencyMode: 'row',
+    hasCentro: true,
+    hideInMenu: true, // aba de "Receita"
+    tabs: [{ slug: 'receita-poc', label: 'POC (ZS0003)' }, { slug: 'receita-medicao', label: 'Medição (ZC0086)' }],
+    importer: {
+      label: 'ZC0086 — Receita de medição',
+      company: 'empresa',
+      currency: 'moeda',
+      required: ['empresa', 'centroLucro', 'precoTotal'],
+      fields: {
+        empresa: { names: ['empresa'], label: 'Empresa' },
+        centroLucro: { names: ['centro_de_lucro'], upper: true, label: 'Centro de lucro' },
+        classeReceita: { names: ['classe_de_receita'] },
+        moeda: { names: ['moeda'] },
+        precoTotal: { names: ['preco_total'], type: 'number', label: 'Preço Total' },
+        medicaoPeriodo: { names: ['medicao_periodo'], type: 'number' },
+        medicaoAcumulada: { names: ['medicao_acumulada'], type: 'number' },
+        faturamentoPeriodo: { names: ['faturamento_periodo'], type: 'number' },
+        faturamentoAcumulado: { names: ['faturamento_acumulado'], type: 'number' },
+        receitaMes: { names: ['receita_mes'], type: 'number' },
+        pis: { names: ['valor_pis'], type: 'number' },
+        cofins: { names: ['valor_cofins'], type: 'number' },
+        ajusteIrf15: { names: ['ajuste_irf15'], type: 'number' },
+        ajusteIrf15Acum: { names: ['ajuste_irf15_acumulado'], type: 'number' },
+        issAjuste: { names: ['iss_ajuste_irf15'], type: 'number' },
+        documento: { names: ['n_documento', 'numero_documento'] },
+      },
+      derive: (r, ctx) => ({
+        classeDescricao: ctx.contaDescricao(r.classeReceita) ? `${r.classeReceita} · ${ctx.contaDescricao(r.classeReceita)}` : r.classeReceita,
+        pctMedido: r.precoTotal ? Math.round((r.medicaoAcumulada / r.precoTotal) * 10000) / 100 : 0,
+        medidoNaoFaturado: r.medicaoAcumulada - r.faturamentoAcumulado,
+        saldoAMedir: Math.max(0, r.precoTotal - r.medicaoAcumulada),
+      }),
+    },
+    sumFields: ['ajusteIrf15Acum', 'issAjuste'],
+    columns: [
+      { key: 'centroLucro', label: 'Centro de lucro', type: 'string' },
+      { key: 'classeDescricao', label: 'Classe de receita', type: 'string' },
+      { key: 'pctMedido', label: 'Medido (%)', type: 'number', format: 'number' },
+      { key: 'precoTotal', label: 'Preço total', type: 'number', format: 'currency' },
+      { key: 'receitaMes', label: 'Receita do mês', type: 'number', format: 'currency' },
+      { key: 'medicaoPeriodo', label: 'Medição do período', type: 'number', format: 'currency' },
+      { key: 'medicaoAcumulada', label: 'Medição acumulada', type: 'number', format: 'currency' },
+      { key: 'faturamentoPeriodo', label: 'Faturamento do período', type: 'number', format: 'currency' },
+      { key: 'faturamentoAcumulado', label: 'Faturamento acumulado', type: 'number', format: 'currency' },
+      { key: 'medidoNaoFaturado', label: 'Medido não faturado', type: 'number', format: 'currency' },
+      { key: 'saldoAMedir', label: 'Saldo a medir', type: 'number', format: 'currency' },
+      { key: 'pis', label: 'PIS', type: 'number', format: 'currency' },
+      { key: 'cofins', label: 'COFINS', type: 'number', format: 'currency' },
+      { key: 'ajusteIrf15', label: 'Ajuste IFRS 15', type: 'number', format: 'currency' },
+      { key: 'documento', label: 'Documento', type: 'string' },
+    ],
+    breakdowns: [
+      { id: 'centroTop', label: 'Receita do mês por centro de lucro', field: 'centroLucro', value: 'receitaMes', chart: 'hbar', top: 10 },
+      { id: 'classe', label: 'Medição acumulada por classe de receita', field: 'classeDescricao', value: 'medicaoAcumulada', chart: 'doughnut' },
+      { id: 'saldo', label: 'Maiores saldos a medir', field: 'centroLucro', value: 'saldoAMedir', chart: 'hbar', top: 10 },
+      { id: 'centros', field: 'centroLucro', value: 'precoTotal', chart: null },
+    ],
+    kpis: (s) => {
+      const t = (k) => s.totals?.[k]?.sum ?? 0;
+      return [
+        { label: 'Receita do mês', value: t('receitaMes'), format: 'currency' },
+        { label: 'Medição acumulada', value: t('medicaoAcumulada'), format: 'currency', hint: `${t('precoTotal') ? ((t('medicaoAcumulada') / t('precoTotal')) * 100).toFixed(1).replace('.', ',') : '0,0'}% do preço total` },
+        { label: 'Faturamento do período', value: t('faturamentoPeriodo'), format: 'currency' },
+        { label: 'Medido não faturado', value: t('medidoNaoFaturado'), format: 'currency', tone: t('medidoNaoFaturado') < 0 ? 'warn' : undefined },
+        { label: 'Saldo a medir', value: t('saldoAMedir'), format: 'currency' },
+        { label: 'Ajuste IFRS 15 (mês)', value: t('ajusteIrf15'), format: 'currency' },
+        { label: 'Obras', value: Object.keys(g(s, 'centros')).length, format: 'number' },
       ];
     },
   },

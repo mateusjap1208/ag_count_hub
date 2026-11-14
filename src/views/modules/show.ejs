@@ -1,18 +1,27 @@
 <%- include('../partials/layout-start') %>
 
-<% if (view.def.source === 'arrendamento') { %>
+<% if (view.def.tabs) { %>
+  <nav class="module-tabs" aria-label="<%= view.def.menu %>">
+    <% view.def.tabs.forEach(t => { %>
+      <a class="module-tab <%= t.slug === slug ? 'active' : '' %>" href="/modulos/<%= t.slug %>" <%- t.slug === slug ? 'aria-current="page"' : '' %>><%= t.label %></a>
+    <% }) %>
+  </nav>
+<% } %>
+
+<% const rc = locals.rowCurrencies || []; %>
+<% if (view.def.source === 'arrendamento' || rc.length > 1) { %>
   <div class="module-toolbar">
-    <% if (leaseCurrencies.length > 1) { %>
-      <div class="chips-row" role="group" aria-label="Moeda do contrato">
-        <span class="note">Moeda do contrato:</span>
-        <% leaseCurrencies.forEach(c => { %>
+    <% if (rc.length > 1) { %>
+      <div class="chips-row" role="group" aria-label="Moeda">
+        <span class="note"><%= view.def.source === 'arrendamento' ? 'Moeda do contrato:' : 'Moeda:' %></span>
+        <% rc.forEach(c => { %>
           <a class="chip chip-cur <%= filter.moedaContrato === c.code ? 'active' : '' %>" href="?moedaContrato=<%= c.code %>">
             <% if (c.flag) { %><img src="<%= c.flag %>" alt=""><% } %><%= c.code %> <span class="chip-count"><%= c.symbol %></span>
           </a>
         <% }) %>
       </div>
     <% } else { %><span></span><% } %>
-    <% if (user.role === 'admin') { %>
+    <% if (user.role === 'admin' && view.def.source === 'arrendamento') { %>
       <a class="btn btn-primary" href="/arrendamento/importar"><%- include('../partials/icon', { name: 'upload' }) %>Importar arrendamento</a>
     <% } %>
   </div>
@@ -39,6 +48,8 @@
     ? { heading: 'Sem FGI0 para este filtro', text: 'Suba o relatório FGI0 (saldos contábeis) da competência e moeda desejadas para gerar este relatório.' }
     : view.def.source === 'estoque'
       ? { heading: 'Sem estoque para este filtro', text: 'Suba o relatório ZL0190 (estoque) da competência em Upload de relatórios. O nome do arquivo deve ter a competência, ex.: "ZL0190 - ESTOQUE_10.2026.xlsx".' }
+    : view.def.importer
+      ? { heading: 'Sem dados para este filtro', text: 'Suba o relatório ' + view.def.importer.label + ' da competência em Upload de relatórios (o nome do arquivo deve ter a competência, ex.: _10.2026).' }
     : view.def.source === 'arrendamento'
       ? { heading: 'Sem arrendamento para este filtro', text: 'Importe o cronograma de arrendamento (IFRS 16) da competência selecionada.' }
       : {}) %>
@@ -74,7 +85,7 @@
   <div class="grid <%= charts.length === 1 && !view.statement ? '' : 'grid-2' %> mt">
     <% if (view.statement) { %>
       <div class="card">
-        <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
+        <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : view.def.slug === 'imobilizado' ? 'Movimentação do ano' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
         <div class="table-wrap">
           <table class="statement">
             <tbody>
