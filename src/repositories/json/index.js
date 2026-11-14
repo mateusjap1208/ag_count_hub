@@ -199,5 +199,24 @@ module.exports = function createJsonRepositories(dataDir) {
     },
   };
 
-  return { users, companies, datasets, params, obras };
+  const mensagensFile = path.join(dataDir, 'mensagens.json');
+  const mensagens = {
+    async list() { return (await readJson(mensagensFile, [])).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); },
+    async save(m) {
+      return withLock(async () => {
+        const all = await readJson(mensagensFile, []);
+        const i = all.findIndex((x) => x.id === m.id);
+        if (i >= 0) all[i] = m; else all.push(m);
+        await writeJson(mensagensFile, all);
+        return m;
+      });
+    },
+    async remove(id) {
+      return withLock(async () => {
+        await writeJson(mensagensFile, (await readJson(mensagensFile, [])).filter((m) => m.id !== id));
+      });
+    },
+  };
+
+  return { users, companies, datasets, params, obras, mensagens };
 };

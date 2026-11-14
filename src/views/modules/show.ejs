@@ -57,6 +57,35 @@
   <% const cur = currency || 'BRL'; %>
   <%- include('../partials/kpis', { kpis: view.kpis, currency: cur }) %>
 
+  <% if (view.contaArrendamento) { const ca = view.contaArrendamento; %>
+    <div class="card mt">
+      <div class="card-head">
+        <h2>Conta <%= ca.conta %> · Medições × parcelas de arrendamento</h2>
+        <span class="hint">FAGLL03 de fornecedores · valores em <%= ca.moeda %></span>
+      </div>
+      <% if (ca.vazio) { %>
+        <p class="hint">Sem lançamentos da conta <%= ca.conta %> nesta competência. Suba o FAGLL03 de fornecedores do mês.</p>
+      <% } else { %>
+        <p class="conta-arr-resumo">Saldo da conta: <strong class="<%= ca.saldo < 0 ? 'neg' : '' %>"><%= fmt.currency(ca.saldo, ca.moeda) %></strong> · <%= fmt.number(ca.lancamentos) %> lançamentos<% if (ca.temAtribuicao) { %> · <%= fmt.number(ca.abertas.length) %> atribuições com saldo (<%= fmt.number(ca.zeradas) %> zeradas não aparecem)<% } %></p>
+        <% if (!ca.temAtribuicao) { %>
+          <div class="alert alert-warn">O arquivo FAGLL03 de fornecedores desta competência não tem a coluna <strong>Atribuição</strong>. Exporte o FAGLL03 com essa coluna e suba de novo para ver o detalhe por atribuição.</div>
+        <% } else { %>
+          <div class="table-wrap conta-arr-wrap">
+            <table class="table">
+              <thead><tr><th>Atribuição</th><th class="num">Lançamentos</th><th class="num">Montante</th></tr></thead>
+              <tbody>
+                <% ca.abertas.forEach(o => { %>
+                  <tr><td><%= o.atribuicao %></td><td class="num"><%= fmt.number(o.lancamentos) %></td><td class="num <%= o.montante < 0 ? 'neg' : '' %>"><%= fmt.currency(o.montante, ca.moeda) %></td></tr>
+                <% }) %>
+              </tbody>
+              <tfoot><tr><td>Total das atribuições com saldo</td><td></td><td class="num"><%= fmt.currency(ca.abertas.reduce((a, o) => a + o.montante, 0), ca.moeda) %></td></tr></tfoot>
+            </table>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  <% } %>
+
   <% if (view.tree) {
        const periodos = view.periodos || [filter.periodo];
        const comparando = periodos.length > 1;

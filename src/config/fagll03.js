@@ -25,6 +25,7 @@ const FIELDS = {
   cliente: { names: ['cliente'] },
   fornecedor: { names: ['fornecedor'] },
   documentoCompras: { names: ['documento_de_compras'] },
+  atribuicao: { names: ['atribuicao'] },
 };
 
 /** Último dia da competência (ms UTC) */

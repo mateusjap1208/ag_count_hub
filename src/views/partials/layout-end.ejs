@@ -1,4 +1,19 @@
     </main>
+    <% const msgs = locals.mensagensRodape || []; if (msgs.length) { %>
+    <!-- Faixa de mensagens no rodapé (cadastro em Mensagens): passa como as cotações num telejornal -->
+    <div class="ticker" role="marquee" aria-label="Avisos">
+      <div class="ticker-label"><%- include('icon', { name: 'megaphone' }) %><span>Avisos</span></div>
+      <div class="ticker-viewport">
+        <div class="ticker-track" data-ticker>
+          <% [0, 1].forEach(copia => { %>
+            <ul class="ticker-group" <%- copia ? 'aria-hidden="true"' : '' %>>
+              <% msgs.forEach(m => { %><li class="ticker-item"><span class="ticker-dot msg-<%= m.tipo %>" aria-hidden="true"></span><%= m.texto %></li><% }) %>
+            </ul>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <% } %>
   </div>
 </div>
 

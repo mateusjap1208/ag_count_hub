@@ -919,3 +919,56 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 @media (prefers-reduced-motion: reduce) { .eye *, .eye-pop { transition: none !important; } }
 
 @media (prefers-reduced-motion: reduce) { .kpi { transition: none; } .kpi:hover, .kpi:focus-visible { transform: none; } }
+
+/* =========================================================================
+ * Faixa de avisos no rodapé (como as cotações num telejornal)
+ * ========================================================================= */
+.ticker {
+  position: sticky; bottom: 0; z-index: 40; display: flex; align-items: stretch; height: 38px;
+  background: var(--consag-navy); color: #fff; border-top: 2px solid var(--consag-blue); font-size: 13px;
+}
+.ticker-label {
+  display: flex; align-items: center; gap: 8px; padding: 0 16px; flex-shrink: 0;
+  background: var(--consag-blue); font-weight: 700; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); padding-right: 22px;
+}
+.ticker-label .icon { width: 17px; height: 17px; }
+.ticker-viewport { flex: 1; overflow: hidden; display: flex; align-items: center; mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%); }
+.ticker-track { display: flex; width: max-content; animation: ticker-roll var(--ticker-dur, 30s) linear infinite; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker-group { display: flex; list-style: none; margin: 0; padding: 0; }
+.ticker-item { display: flex; align-items: center; gap: 10px; padding: 0 40px 0 0; white-space: nowrap; }
+.ticker-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--consag-cyan); flex-shrink: 0; }
+.ticker-dot.msg-alerta { background: #F5B300; }
+.ticker-dot.msg-urgente { background: #FF5A5F; box-shadow: 0 0 0 3px rgba(255, 90, 95, .25); }
+@keyframes ticker-roll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+  .ticker-group[aria-hidden] { display: none; }
+  .ticker-viewport { overflow-x: auto; }
+}
+
+/* Cadastro de mensagens */
+.msg-check { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.msg-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.msg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.msg-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.msg-main p { color: var(--heading); font-size: 13.5px; margin: 0 0 4px; }
+.msg-actions { display: flex; gap: 6px; }
+.msg-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; background: var(--blue-soft); color: var(--consag-blue); }
+.msg-tag.msg-alerta { background: rgba(245, 179, 0, .16); color: #9A6B00; }
+.msg-tag.msg-urgente { background: rgba(210, 35, 42, .12); color: var(--danger); }
+.msg-sit { font-weight: 600; }
+.msg-sit.on { color: var(--ok); }
+@media (max-width: 720px) { .msg-item { grid-template-columns: 1fr; } }
+
+/* Arrendamento: conta 2115100020 por atribuição */
+.conta-arr-resumo { color: var(--text-2); font-size: 13px; margin-bottom: 12px; }
+.conta-arr-resumo .neg { color: var(--danger); }
+.conta-arr-wrap { max-height: 420px; overflow: auto; }
+.conta-arr-wrap tfoot td { position: sticky; bottom: 0; background: var(--surface-2); font-weight: 700; color: var(--heading); }
+.alert-warn { background: rgba(245, 179, 0, .1); border-color: rgba(245, 179, 0, .45); color: var(--text-2); }
+/* A faixa de avisos fica sempre no pé da janela, mesmo em páginas curtas */
+.main { display: flex; flex-direction: column; min-height: 100vh; }
+.main > .content { flex: 1 0 auto; width: 100%; }
+.ticker { margin-top: auto; }

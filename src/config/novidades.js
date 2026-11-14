@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 19,
+    data: '2026-11-14',
+    titulo: 'Avisos no rodapé e conta 2115100020 no Arrendamento',
+    itens: [
+      'Faixa de avisos passando no rodapé de todas as telas (ex.: fechamento em andamento), cadastrada pelos administradores em "Mensagens".',
+      'Arrendamento: quadro da conta 2115100020 (medições × parcelas pagas) por Atribuição, só com as atribuições que não zeram.',
+    ],
+  },
+  {
     build: 18,
     data: '2026-11-14',
     titulo: 'Olho que mostra as contas',

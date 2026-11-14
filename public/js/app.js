@@ -56,6 +56,17 @@
   /* ---------- Filtros (empresa / período) ---------- */
   $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => el.form.submit()));
 
+  /* ---------- Faixa de avisos do rodapé: velocidade constante, qualquer que seja o tamanho do texto ---------- */
+  const ticker = $('[data-ticker]');
+  if (ticker) {
+    const ajustar = () => {
+      const largura = ticker.firstElementChild.getBoundingClientRect().width;
+      ticker.style.setProperty('--ticker-dur', `${Math.max(12, largura / 70)}s`); // ~70 px por segundo
+    };
+    ajustar();
+    window.addEventListener('resize', ajustar);
+  }
+
   /* ---------- Aviso de nova versão: "Entendi" marca como visto sem recarregar a página ---------- */
   const notifForm = $('[data-notif-form]');
   if (notifForm) {
