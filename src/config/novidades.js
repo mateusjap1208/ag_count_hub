@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 27,
+    data: '2026-11-14',
+    titulo: 'Demonstrações recolhidas',
+    itens: ['BP, Capital Empregado e Adiantamentos abrem recolhidos; o botão mostra "Expandir tudo" ou "Recolher tudo" conforme o que está aberto.'],
+  },
+  {
     build: 26,
     data: '2026-11-14',
     titulo: 'Rodapé do menu',

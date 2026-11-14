@@ -118,7 +118,7 @@
               <% } %>
             </form>
           </details>
-          <% if (view.tree.some(l => l.kind === 'group')) { %><button class="btn btn-ghost" type="button" data-tree-toggle>Recolher tudo</button><% } %>
+          <% if (view.tree.some(l => l.kind === 'group')) { %><button class="btn btn-ghost" type="button" data-tree-toggle data-state="closed" aria-controls="tree-table">Expandir tudo</button><% } %>
         </div>
       </div>
       <div class="table-wrap">
@@ -140,8 +140,8 @@
                let gi = 0;
                linhas.forEach(l => {
                  if (l.kind === 'group') gi++;
-                 const attrs = l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="true"` : l.kind === 'item' ? `data-parent="${gi}"` : ''; %>
-              <tr class="t-<%= l.kind %> <%= l.highlight ? 'highlight' : '' %>" <%- attrs %>>
+                 const attrs = l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="false"` : l.kind === 'item' ? `data-parent="${gi}"` : ''; %>
+              <tr class="t-<%= l.kind %> <%= l.highlight ? 'highlight' : '' %> <%= l.kind === 'group' ? 'collapsed' : '' %> <%= l.kind === 'item' && gi > 0 ? 'hidden' : '' %>" <%- attrs %>>
                 <td><% if (l.kind === 'group') { %><span class="caret">▾</span><% } %><%= l.label %></td>
                 <% if (l.kind === 'section') { %>
                   <td colspan="<%= comparando ? periodos.length + 2 : 1 %>"></td>
