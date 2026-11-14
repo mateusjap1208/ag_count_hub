@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 35,
+    data: '2026-11-14',
+    titulo: 'Detalhamento paginado e correção',
+    itens: [
+      'Tabela de detalhamento com páginas numeradas, primeira/última e escolha de linhas por página; carrega só quando aparece na tela.',
+      'Corrigido: BP, Capital Empregado e demais quadros voltaram a expandir os grupos.',
+    ],
+  },
+  {
     build: 34,
     data: '2026-11-14',
     titulo: 'Carregamento mais claro',

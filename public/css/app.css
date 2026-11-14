@@ -1112,3 +1112,18 @@ body.carregando-pagina .content > :not(.skeleton-page) { display: none !importan
 :root[data-theme="dark"] { --sk-base: #12243C; --sk-shine: #1D3557; }
 @keyframes sk-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .sk-line, .sk-bar { animation: none; } .skeleton-page { animation: none; } }
+
+/* Detalhamento: paginação completa e linhas com shimmer enquanto carregam */
+.pager-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pager-size { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.pager-size .select { height: 32px; min-width: 0; padding: 0 8px; }
+.pager .btns { align-items: center; flex-wrap: wrap; }
+.pager-pages { display: inline-flex; gap: 4px; align-items: center; }
+.pager .btn.pager-num { min-width: 34px; padding: 0 8px; justify-content: center; }
+.pager .btn.pager-num.atual { background: var(--consag-blue); border-color: var(--consag-blue); color: #fff; }
+.pager-gap { padding: 0 4px; color: var(--muted); }
+.pager .btn:disabled { opacity: .45; cursor: default; }
+.sk-tr td { padding-top: 13px; padding-bottom: 13px; }
+.sk-tr .sk-line { display: block; height: 10px; width: 70%; min-width: 40px; }
+.sk-tr td:nth-child(3n) .sk-line { width: 50%; }
+.sk-tr td:nth-child(4n) .sk-line { width: 85%; }

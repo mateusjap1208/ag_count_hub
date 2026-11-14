@@ -582,16 +582,16 @@
   }
 
   /* ---------- Sobre: se a foto do GitHub não carregar, ficam as iniciais ---------- */
-  $('img[data-foto]').forEach((img) => {
+  $$('img[data-foto]').forEach((img) => {
     const falhou = () => img.remove();
     if (img.complete && !img.naturalWidth) falhou(); else img.addEventListener('error', falhou);
   });
 
   /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
-  $('[data-filtro-tabela]').forEach((inp) => {
+  $$('[data-filtro-tabela]').forEach((inp) => {
     const tabela = document.querySelector(inp.dataset.filtroTabela);
     if (!tabela) return;
-    const linhas = $('tbody tr', tabela);
+    const linhas = $$('tbody tr', tabela);
     inp.addEventListener('input', () => {
       const q = inp.value.trim().toLowerCase();
       linhas.forEach((tr) => tr.classList.toggle('hidden', !!q && !tr.textContent.toLowerCase().includes(q)));
@@ -792,7 +792,28 @@
     const info = $('.pager .info', tableCard);
     const prev = $('[data-page="prev"]', tableCard);
     const next = $('[data-page="next"]', tableCard);
+    const first = $('[data-page="first"]', tableCard);
+    const last = $('[data-page="last"]', tableCard);
+    const pagesBox = $('[data-pages]', tableCard);
+    const sizeSel = $('[data-page-size]', tableCard);
     const state = { page: 1, size: 25, q: '', sort: '', dir: 'asc', pages: 1 };
+    // Linhas "fantasma" com brilho enquanto a página chega
+    const shimmer = (n) => Array.from({ length: n }, () => `<tr class="sk-tr" aria-hidden="true">${columns.map(() => '<td><span class="sk sk-line"></span></td>').join('')}</tr>`).join('');
+    // Botões de página: primeira, vizinhas da atual e última (com reticências)
+    const paginas = (atual, total) => {
+      const set = new Set([1, total, atual - 2, atual - 1, atual, atual + 1, atual + 2].filter((p) => p >= 1 && p <= total));
+      const lista = [...set].sort((a, b) => a - b);
+      const out = [];
+      lista.forEach((p, i) => { if (i && p - lista[i - 1] > 1) out.push('…'); out.push(p); });
+      return out;
+    };
+    const desenharPaginas = () => {
+      if (!pagesBox) return;
+      pagesBox.innerHTML = paginas(state.page, state.pages).map((p) => (p === '…'
+        ? '<span class="pager-gap">…</span>'
+        : `<button class="btn btn-ghost pager-num${p === state.page ? ' atual' : ''}" type="button" data-go="${p}"${p === state.page ? ' aria-current="page"' : ''}>${num.format(p)}</button>`)).join('');
+    };
+    pagesBox?.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { state.page = Number(b.dataset.go); load(); } });
     let ctrl;
 
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -812,7 +833,7 @@
       ctrl = new AbortController();
       const params = new URLSearchParams(tableCard.dataset.extra || '');
       Object.entries({ page: state.page, size: state.size, q: state.q, sort: state.sort, dir: state.dir }).forEach(([k, v]) => params.set(k, v));
-      tbody.style.opacity = '.5';
+      tbody.innerHTML = shimmer(Math.min(state.size, 10));
       try {
         const res = await fetch(`${endpoint}?${params}`, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
         if (res.status === 401) { window.location.href = '/login'; return; }
@@ -826,13 +847,19 @@
         info.textContent = `${num.format(from)}–${num.format(Math.min(d.page * d.size, d.total))} de ${num.format(d.total)} · página ${d.page} de ${d.pages}`;
         prev.disabled = d.page <= 1;
         next.disabled = d.page >= d.pages;
+        if (first) first.disabled = d.page <= 1;
+        if (last) last.disabled = d.page >= d.pages;
+        desenharPaginas();
       } catch (e) {
         if (e.name !== 'AbortError') tbody.innerHTML = `<tr><td colspan="${columns.length}">${esc(e.message)}</td></tr>`;
-      } finally { tbody.style.opacity = ''; }
+      }
     }
 
     prev.addEventListener('click', () => { state.page--; load(); });
     next.addEventListener('click', () => { state.page++; load(); });
+    first?.addEventListener('click', () => { state.page = 1; load(); });
+    last?.addEventListener('click', () => { state.page = state.pages; load(); });
+    sizeSel?.addEventListener('change', () => { state.size = Number(sizeSel.value) || 25; state.page = 1; load(); });
     let t;
     $('#table-search').addEventListener('input', (e) => {
       clearTimeout(t);
@@ -846,7 +873,13 @@
       $('.arrow', th).textContent = state.dir === 'asc' ? '▲' : '▼';
       load();
     }));
-    load();
+    // Só busca as linhas quando a tabela chega perto da área visível (a página abre mais rápido)
+    if (typeof window.IntersectionObserver === 'function') {
+      const io = new IntersectionObserver((entradas) => {
+        if (entradas.some((x) => x.isIntersecting)) { io.disconnect(); load(); }
+      }, { rootMargin: '300px 0px' });
+      io.observe(tableCard);
+    } else load();
   }
 
   /* ---------- Cadastro de usuário: perfil e seletor de centros de lucro ---------- */
