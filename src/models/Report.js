@@ -504,6 +504,7 @@ async function getModuleView(slug, scope, { comparar = [] } = {}) {
     statement: def.statementDetail ? null : def.statementFn ? def.statementFn(summary, scope) : agg.buildStatement(def, summary),
     tree: def.statementDetail ? agg.buildStatementTree(def, [summary, ...anteriores]) : agg.buildTree(def, [summary, ...anteriores]),
     periodos: [scope.period, ...periodos],
+    fluxo: def.fluxoFn ? def.fluxoFn(summary, scope) : null,
   };
 }
 

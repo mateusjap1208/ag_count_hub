@@ -57,8 +57,11 @@
   <% const cur = currency || 'BRL'; %>
   <%- include('../partials/kpis', { kpis: view.kpis, currency: cur }) %>
 
+  <%# Todos os quadros e gráficos da tela num grupo só: o usuário pode reordenar qualquer um %>
+  <div class="grid grid-2 mt blocos" data-ordenavel="blocos" aria-label="Quadros e gráficos">
+
   <% if (view.pedidosRecepcao) { const pr = view.pedidosRecepcao; %>
-    <div class="card mt pedidos-recepcao">
+    <div class="card pedidos-recepcao bloco-largo" data-ordem-chave="pedidos-recepcao">
       <div class="card-head">
         <h2>Conta <%= pr.conta %> · Recepção & Conferência por pedido de compra</h2>
         <span class="hint">FAGLL03 de fornecedores + EKKO · valores em <%= cur %></span>
@@ -92,8 +95,31 @@
     </div>
   <% } %>
 
+  <% if (view.imobMapeamento) { const im = view.imobMapeamento; %>
+    <div class="card bloco-largo imob-mapa" data-ordem-chave="classificacao-mapeamento">
+      <div class="card-head">
+        <h2>Classificação pelo Mapeamento de Contas</h2>
+        <span class="hint">Grupo do Capital Empregado › Descrição Conta Contábil · valores em <%= cur %></span>
+      </div>
+      <div class="table-wrap">
+        <table class="statement">
+          <thead><tr><th>Classificação</th><th class="num">Bens</th><th class="num">Custo (CAP)</th><th class="num">Depreciação acumulada</th><th class="num">Valor contábil</th><th class="num">% do valor contábil</th></tr></thead>
+          <tbody>
+            <% im.grupos.forEach(g => { %>
+              <tr class="subtotal"><td><%= g.grupo %></td><td class="num"><%= fmt.number(g.total.bens) %></td><td class="num"><%= fmt.currency(g.total.custo, cur) %></td><td class="num <%= g.total.dep < 0 ? 'neg' : '' %>"><%= fmt.currency(g.total.dep, cur) %></td><td class="num"><%= fmt.currency(g.total.vc, cur) %></td><td class="num"><%= im.total.vc ? (g.total.vc / im.total.vc * 100).toFixed(1).replace('.', ',') + '%' : '—' %></td></tr>
+              <% g.contas.forEach(c => { %>
+                <tr class="imob-conta"><td><%= c.conta %></td><td class="num"><%= fmt.number(c.bens) %></td><td class="num"><%= fmt.currency(c.custo, cur) %></td><td class="num <%= c.dep < 0 ? 'neg' : '' %>"><%= fmt.currency(c.dep, cur) %></td><td class="num"><%= fmt.currency(c.vc, cur) %></td><td class="num"><%= im.total.vc ? (c.vc / im.total.vc * 100).toFixed(1).replace('.', ',') + '%' : '—' %></td></tr>
+              <% }) %>
+            <% }) %>
+            <tr class="highlight"><td>Total do imobilizado</td><td class="num"><%= fmt.number(im.total.bens) %></td><td class="num"><%= fmt.currency(im.total.custo, cur) %></td><td class="num"><%= fmt.currency(im.total.dep, cur) %></td><td class="num"><%= fmt.currency(im.total.vc, cur) %></td><td class="num">100,0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+
   <% if (view.contaArrendamento) { const ca = view.contaArrendamento; %>
-    <div class="card mt">
+    <div class="card bloco-largo" data-ordem-chave="conta-arrendamento">
       <div class="card-head">
         <h2>Conta <%= ca.conta %> · Medições × parcelas de arrendamento</h2>
         <span class="hint">FAGLL03 de fornecedores · valores em <%= ca.moeda %></span>
@@ -130,7 +156,7 @@
        const variacao = (l) => (l.values[0] == null || l.values[1] == null) ? null : l.values[0] - l.values[1];
        const pct = (l) => { const d = variacao(l); return d == null || !l.values[1] ? '—' : ((d / Math.abs(l.values[1])) * 100).toFixed(1).replace('.', ',') + '%'; };
        const comp = locals.comparacao || { disponiveis: [], escolhidas: [], max: 3 }; %>
-    <div class="card mt">
+    <div class="card bloco-largo" data-ordem-chave="demonstracao">
       <div class="card-head">
         <h2><%= view.def.title %><%= comparando ? ' comparativo' : '' %></h2>
         <div class="table-tools">
@@ -206,10 +232,36 @@
     </div>
   <% } %>
 
-  <% const charts = view.charts; %>
-  <div class="grid <%= charts.length === 1 && !view.statement ? '' : 'grid-2' %> mt" data-ordenavel="graficos" aria-label="Gráficos">
-    <% if (view.statement) { %>
-      <div class="card" data-ordem-chave="demonstracao">
+  <% const charts = view.fluxo ? view.charts.filter(c => c.id !== 'fluxo') : view.charts; %>
+  <% if (view.fluxo) { const fx = view.fluxo; %>
+    <div class="card bloco-largo fluxo-tl" data-ordem-chave="fluxo-timeline">
+      <div class="card-head">
+        <h2>Fluxo mensal de apropriação</h2>
+        <span class="hint">Valores em <%= cur %> · de janeiro até 12 meses após a competência</span>
+      </div>
+      <div class="fluxo-totais">
+        <div><span>Apropriado no ano</span><strong><%= fmt.currency(fx.ano, cur) %></strong></div>
+        <div><span>A apropriar em até 12 meses</span><strong><%= fmt.currency(fx.cp, cur) %></strong></div>
+        <div><span>A apropriar após 12 meses</span><strong><%= fmt.currency(fx.lp, cur) %></strong></div>
+        <div class="destaque"><span>Saldo a apropriar</span><strong><%= fmt.currency(fx.saldo, cur) %></strong></div>
+      </div>
+      <div class="fluxo-legenda" aria-hidden="true"><span class="lg realizado">Realizado</span><span class="lg atual">Competência</span><span class="lg futuro">A apropriar</span></div>
+      <div class="fluxo-trilha" tabindex="0" aria-label="Linha do tempo mês a mês (role para os lados)">
+        <ol class="fluxo-meses">
+          <% fx.meses.forEach(x => { %>
+            <li class="fluxo-mes <%= x.fase %>" title="<%= x.nome %>: <%= fmt.currency(x.valor, cur) %>">
+              <span class="fm-valor"><%= fmt.kpi(x.valor, 'currency', cur) %></span>
+              <span class="fm-barra" data-h="<%= Math.round(Math.abs(x.valor) / fx.max * 100) %>"></span>
+              <span class="fm-ponto"></span>
+              <span class="fm-mes"><%= x.rotulo %><% if (x.fase === 'atual') { %><em>competência</em><% } %></span>
+            </li>
+          <% }) %>
+        </ol>
+      </div>
+    </div>
+  <% } %>
+    <% if (view.statement && !view.fluxo) { %>
+      <div class="card" data-ordem-chave="quadro">
         <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : view.def.slug === 'imobilizado' ? 'Movimentação do ano' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
         <div class="table-wrap">
           <table class="statement">
@@ -230,15 +282,14 @@
       </div>
     <% } %>
     <% charts.forEach((c, i) => { %>
-      <div class="card <%= (charts.length === 3 && i === 0 && !view.statement) || (view.statement && charts.length === 3 && i === 2) ? 'span-2' : '' %>" data-ordem-chave="<%= c.id %>">
+      <div class="card <%= (charts.length === 1 && !view.statement) || (charts.length === 3 && i === 0 && !view.statement) || (view.statement && charts.length === 3 && i === 2) ? 'span-2' : '' %>" data-ordem-chave="<%= c.id %>">
         <div class="card-head"><h2><%= c.label %></h2></div>
         <div class="chart-box <%= c.type === 'hbar' ? 'tall' : '' %>"><canvas id="chart-<%= c.id %>" aria-label="<%= c.label %>"></canvas></div>
       </div>
     <% }) %>
-  </div>
 
   <% if (view.contratosSeguro) { const cs = view.contratosSeguro; %>
-    <div class="card mt timeline-seguro" id="timeline-seguro" data-moeda="<%= cur %>">
+    <div class="card timeline-seguro bloco-largo" data-ordem-chave="linha-do-tempo" id="timeline-seguro" data-moeda="<%= cur %>">
       <div class="card-head">
         <h2>Linha do tempo por contrato</h2>
         <span class="hint">Evolução mensal da apropriação do prêmio</span>
@@ -265,7 +316,7 @@
     </div>
   <% } %>
 
-  <div class="card mt" id="data-table" data-endpoint="/api/modulos/<%= slug %>/linhas" data-currency="<%= cur %>" data-columns="<%= JSON.stringify(columns) %>">
+  <div class="card bloco-largo" data-ordem-chave="detalhamento" id="data-table" data-endpoint="/api/modulos/<%= slug %>/linhas" data-currency="<%= cur %>" data-columns="<%= JSON.stringify(columns) %>">
     <div class="card-head">
       <h2>Detalhamento <span class="hint">(<%= fmt.number(view.count) %> linhas<%= showCurrency ? ' · ' + cur : '' %>)</span></h2>
       <div class="table-tools">
@@ -305,6 +356,7 @@
       </div>
     </nav>
   </div>
+  </div><%# fim dos quadros reordenáveis %>
 <% } %>
 
 <%- include('../partials/layout-end') %>

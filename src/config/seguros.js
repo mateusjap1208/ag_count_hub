@@ -138,6 +138,23 @@ module.exports = {
     lines.push({ label: 'Saldo a apropriar', value: t('aApropriar'), subtotal: true, highlight: true });
     return lines;
   },
+  /** Linha do tempo horizontal do fluxo de apropriação (substitui o quadro e o gráfico do fluxo na tela) */
+  fluxoFn: (s, scope) => {
+    const t = (k) => s.totals?.[k]?.sum ?? 0;
+    const fl = g(s, 'fluxo');
+    const [y, m] = scope.period.split('-').map(Number);
+    const meses = [];
+    for (let i = 1; i <= m + 12; i++) {
+      const k = chaveMes(y, i);
+      const [yy, mm] = k.split('-');
+      meses.push({ mes: k, rotulo: `${MESES[+mm - 1].slice(0, 3).toLowerCase()}/${yy.slice(2)}`, nome: `${MESES[+mm - 1]}/${yy}`, valor: fl[k] || 0, fase: i < m ? 'realizado' : i === m ? 'atual' : 'futuro' });
+    }
+    return {
+      meses,
+      max: Math.max(1, ...meses.map((x) => Math.abs(x.valor))),
+      ano: t('apropriadoAno'), cp: t('aApropriarCP'), lp: t('aApropriarLP'), saldo: t('aApropriar'),
+    };
+  },
   kpis: (s) => {
     const t = (k) => s.totals?.[k]?.sum ?? 0;
     return [

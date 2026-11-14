@@ -1150,3 +1150,69 @@ body.carregando-pagina .content > :not(.skeleton-page) { display: none !importan
 }
 .ordem-restaurar:hover, .ordem-restaurar:focus-visible { color: var(--consag-blue); }
 @media (hover: none) { .ordem-alca { opacity: .7; } }
+
+/* Quadros da tela num grupo só: os largos ocupam a linha inteira; alça centralizada no topo */
+.blocos > .bloco-largo { grid-column: 1 / -1; }
+.blocos > .card { margin-top: 0; }
+.ordem-alca { top: 4px; right: auto; left: 50%; transform: translateX(-50%); width: 40px; height: 18px; border-radius: 999px; }
+
+/* =========================================================================
+ * Seguros: fluxo mensal de apropriação como linha do tempo horizontal
+ * ========================================================================= */
+.fluxo-totais { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.fluxo-totais > div { padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+.fluxo-totais span { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.fluxo-totais strong { display: block; margin-top: 3px; color: var(--heading); font-size: 15px; font-variant-numeric: tabular-nums; }
+.fluxo-totais .destaque { background: var(--consag-navy); border-color: var(--consag-navy); }
+.fluxo-totais .destaque span { color: #B8C4D6; }
+.fluxo-totais .destaque strong { color: #fff; }
+.fluxo-legenda { display: flex; gap: 16px; font-size: 11.5px; color: var(--muted); margin-bottom: 6px; }
+.fluxo-legenda .lg::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.fluxo-legenda .realizado::before { background: var(--consag-blue); }
+.fluxo-legenda .atual::before { background: var(--consag-navy); box-shadow: 0 0 0 3px var(--blue-soft); }
+.fluxo-legenda .futuro::before { background: transparent; border: 2px dashed var(--consag-blue); width: 8px; height: 8px; }
+:root[data-theme="dark"] .fluxo-legenda .atual::before { background: #fff; }
+
+.fluxo-trilha { overflow-x: auto; padding: 4px 2px 6px; scroll-behavior: smooth; }
+.fluxo-trilha:focus-visible { outline: 2px solid var(--consag-blue); outline-offset: 2px; border-radius: 10px; }
+.fluxo-meses { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(84px, 1fr); position: relative; min-width: max-content; }
+/* a linha do tempo passa pelos pontos */
+.fluxo-meses::before { content: ''; position: absolute; left: 0; right: 0; bottom: 31px; height: 2px; background: var(--border); }
+.fluxo-mes { position: relative; display: grid; grid-template-rows: auto 120px 18px auto; justify-items: center; align-items: end; gap: 6px; padding: 0 4px; }
+.fm-valor { font-size: 11.5px; font-weight: 600; color: var(--heading); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fm-barra { width: 28px; height: var(--h, 0%); min-height: 3px; border-radius: 8px 8px 3px 3px; background: linear-gradient(180deg, var(--consag-blue), rgba(48, 116, 246, .45)); transform-origin: bottom; animation: fm-sobe .7s cubic-bezier(.2, .9, .3, 1) both; }
+.fm-ponto { width: 14px; height: 14px; border-radius: 50%; background: var(--consag-blue); border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--consag-blue); position: relative; z-index: 1; }
+.fm-mes { font-size: 11.5px; color: var(--text-2); text-align: center; line-height: 1.3; }
+.fm-mes em { display: block; font-style: normal; font-size: 10px; font-weight: 700; color: var(--consag-blue); text-transform: uppercase; letter-spacing: .04em; }
+/* meses futuros: tracejado e mais claro */
+.fluxo-mes.futuro .fm-barra { background: repeating-linear-gradient(135deg, rgba(48, 116, 246, .28) 0 6px, rgba(48, 116, 246, .14) 6px 12px); border: 1px dashed rgba(48, 116, 246, .6); }
+.fluxo-mes.futuro .fm-ponto { background: var(--surface); }
+.fluxo-mes.futuro .fm-valor { color: var(--muted); font-weight: 500; }
+/* competência: destaque */
+.fluxo-mes.atual .fm-barra { background: linear-gradient(180deg, var(--consag-navy), #2D4A70); }
+.fluxo-mes.atual .fm-ponto { width: 18px; height: 18px; background: var(--consag-navy); box-shadow: 0 0 0 2px var(--consag-navy), 0 0 0 7px var(--blue-soft); }
+.fluxo-mes.atual .fm-mes { font-weight: 700; color: var(--heading); }
+.fluxo-mes.atual::after { content: ''; position: absolute; inset: -4px 2px; border-radius: 12px; background: var(--blue-soft); z-index: -1; }
+:root[data-theme="dark"] .fluxo-mes.atual .fm-barra { background: linear-gradient(180deg, #fff, #9EC3FF); }
+:root[data-theme="dark"] .fluxo-mes.atual .fm-ponto { background: #fff; box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(48, 116, 246, .25); }
+.fluxo-mes:nth-child(2) .fm-barra { animation-delay: .03s; } .fluxo-mes:nth-child(3) .fm-barra { animation-delay: .06s; }
+.fluxo-mes:nth-child(4) .fm-barra { animation-delay: .09s; } .fluxo-mes:nth-child(n+5) .fm-barra { animation-delay: .12s; }
+@keyframes fm-sobe { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .fm-barra { animation: none; } .fluxo-trilha { scroll-behavior: auto; } }
+.fluxo-mes { isolation: isolate; }
+.fluxo-meses { grid-auto-columns: minmax(104px, 1fr); }
+/* Alças de reordenar sempre visíveis (mais discretas sem o mouse em cima) */
+.ordem-alca { opacity: .55; }
+.ordenavel-item:hover .ordem-alca, .ordem-alca:focus-visible { opacity: 1; }
+
+/* Visão Geral: gráficos e status num grupo só (grade de 6 colunas) */
+.blocos-dash { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.blocos-dash > .col-2 { grid-column: span 2; } .blocos-dash > .col-3 { grid-column: span 3; }
+.blocos-dash > .col-4 { grid-column: span 4; } .blocos-dash > .col-6 { grid-column: 1 / -1; }
+@media (max-width: 1100px) { .blocos-dash > .col-2, .blocos-dash > .col-3, .blocos-dash > .col-4 { grid-column: 1 / -1; } }
+
+/* Imobilizado: classificação pelo Mapeamento de Contas */
+.imob-mapa .statement thead th { text-align: right; white-space: nowrap; }
+.imob-mapa .statement thead th:first-child { text-align: left; }
+.imob-mapa tr.imob-conta td:first-child { padding-left: 32px; color: var(--text-2); }
+.imob-mapa td.num { white-space: nowrap; }

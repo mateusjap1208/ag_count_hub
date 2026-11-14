@@ -6,6 +6,39 @@
  */
 module.exports = [
   {
+    build: 42,
+    data: '2026-11-14',
+    titulo: 'Cards da Medição',
+    itens: ['Receita › Medição: cards na ordem receita do mês, medição acumulada, faturamento do período e acumulado, medido não faturado (SAR) e saldo a medir.'],
+  },
+  {
+    build: 41,
+    data: '2026-11-14',
+    titulo: 'Imobilizado pelo Mapeamento de Contas',
+    itens: ['Novo quadro no Imobilizado: bens classificados pelo grupo do Capital Empregado e pela Descrição Conta Contábil do mapeamento.', 'Abas da Receita renomeadas para POC e Medição.'],
+  },
+  {
+    build: 39,
+    data: '2026-11-14',
+    titulo: 'Alça em todos os cards',
+    itens: ['Na Visão Geral, gráficos e o Status da carga também podem ser reorganizados, num grupo só.'],
+  },
+  {
+    build: 38,
+    data: '2026-11-14',
+    titulo: 'Fluxo de apropriação em linha do tempo',
+    itens: [
+      'Seguros e Garantias: o fluxo mensal de apropriação virou uma linha do tempo horizontal, com o realizado, a competência e o que falta apropriar.',
+      'As alças para reorganizar os quadros ficam sempre visíveis.',
+    ],
+  },
+  {
+    build: 37,
+    data: '2026-11-14',
+    titulo: 'Todos os quadros reorganizáveis',
+    itens: ['Além de cards e gráficos, os quadros (conta 2115100020, demonstrações, linha do tempo, detalhamento) também podem mudar de lugar pela alça no topo de cada um.'],
+  },
+  {
     build: 36,
     data: '2026-11-14',
     titulo: 'Organize as suas telas',

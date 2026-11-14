@@ -106,7 +106,7 @@
       alca.className = 'ordem-alca';
       alca.title = 'Arraste para mudar a ordem (ou use as setas do teclado)';
       alca.setAttribute('aria-label', `Mover "${(item.querySelector('h2, .label')?.textContent || chaveDe(item)).trim()}" (setas para mudar a posição)`);
-      alca.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+      alca.innerHTML = '<svg viewBox="0 0 24 12" width="20" height="10" aria-hidden="true"><circle cx="6" cy="3" r="1.6"/><circle cx="12" cy="3" r="1.6"/><circle cx="18" cy="3" r="1.6"/><circle cx="6" cy="9" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="18" cy="9" r="1.6"/></svg>';
       alca.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
       alca.addEventListener('pointerdown', () => { item.draggable = true; });
       alca.addEventListener('keydown', (e) => {
@@ -683,6 +683,16 @@
     const falhou = () => img.remove();
     if (img.complete && !img.naturalWidth) falhou(); else img.addEventListener('error', falhou);
   });
+
+  /* ---------- Seguros: linha do tempo horizontal do fluxo de apropriação ---------- */
+  document.querySelectorAll('.fm-barra[data-h]').forEach((b) => b.style.setProperty('--h', `${b.dataset.h}%`));
+  const trilha = document.querySelector('.fluxo-trilha');
+  const atualMes = trilha && trilha.querySelector('.fluxo-mes.atual');
+  // Abre a trilha já com a competência no meio (depois que a página termina de montar)
+  const centrarCompetencia = () => {
+    if (trilha && atualMes) trilha.scrollTo({ left: Math.max(0, atualMes.offsetLeft - trilha.clientWidth / 2 + atualMes.offsetWidth / 2), behavior: 'instant' });
+  };
+  if (document.readyState === 'complete') setTimeout(centrarCompetencia, 0); else window.addEventListener('load', centrarCompetencia);
 
   /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
   $$('[data-filtro-tabela]').forEach((inp) => {
