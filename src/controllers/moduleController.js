@@ -5,6 +5,8 @@ const { sessionScope } = require('../middlewares/locals');
  * Módulos com moeda por linha (Arrendamento, Imobilizado, Receita): a moeda escolhida precisa
  * existir no módulo; senão usa a mais frequente dele (sem alterar a escolha salva na sessão).
  */
+const MAX_COMPARAR = 3;
+
 async function withModuleCurrency(slug, scope) {
   const def = Report.getModule(slug);
   if (!Report.rowCurrency(def)) return { scope, rowCurrencies: [] };
@@ -18,7 +20,16 @@ exports.show = async (req, res, next) => {
     const { scope, rowCurrencies } = await withModuleCurrency(req.params.slug, res.locals.scope);
     res.locals.filter = { ...res.locals.filter, moedaContrato: scope.moedaContrato };
     res.locals.rowCurrencies = rowCurrencies;
-    const view = await Report.getModuleView(req.params.slug, scope);
+    // BP/CE comparativo: competências extras escolhidas na tela (guardadas na sessão por módulo; até 3)
+    const def = Report.getModule(req.params.slug);
+    const disponiveis = (def.tree || def.statementDetail) ? await Report.periods() : [];
+    req.session.comparar ||= {};
+    if ('comparar' in req.query) {
+      const pedidas = [].concat(req.query.comparar).flatMap((p) => String(p).split(','));
+      req.session.comparar[def.slug] = [...new Set(pedidas)].filter((p) => disponiveis.includes(p)).slice(0, MAX_COMPARAR);
+    }
+    const comparar = (req.session.comparar[def.slug] || []).filter((p) => p !== scope.period);
+    const view = await Report.getModuleView(req.params.slug, scope, { comparar });
     const columns = [
       ...(scope.company === Report.ALL ? [{ key: 'empresa', label: 'Empresa', type: 'string' }] : []),
       ...view.def.columns.map(({ key, label, type, format }) => ({ key, label, type, format })),
@@ -30,6 +41,7 @@ exports.show = async (req, res, next) => {
       columns,
       currency: view.currency,
       showCurrency: view.def.source === 'fgi0',
+      comparacao: { disponiveis: disponiveis.filter((p) => p !== scope.period), escolhidas: comparar, max: MAX_COMPARAR },
       chartData: view.empty ? null : { charts: view.charts, currency: view.currency },
     });
   } catch (e) { next(e); }

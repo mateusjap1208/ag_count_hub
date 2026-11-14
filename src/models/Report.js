@@ -462,14 +462,23 @@ async function getSummary(slug, scope) {
     const empresas = await allowedCompanies(scope);
     if (empresas) parts = parts.filter((p) => empresas.has(p.company));
     if (!parts.length) return null;
+    // Resumo gravado antes de um breakdown novo existir (ex.: contas do BP): recalcula a partir das linhas
+    const faltando = def.breakdowns.some((b) => parts.some((p) => p.summary && !(b.id in (p.summary.breakdowns || {}))));
+    if (faltando) {
+      const rows = await loadRawRows(slug, baseScope(scope)); // já restritas às empresas liberadas
+      return rows.length ? agg.computeSummary(rows, def, scope.period) : null;
+    }
     return agg.mergeSummaries(parts.map((p) => p.summary).filter(Boolean));
   });
 }
 
 /** Dados prontos para a tela do módulo: KPIs, gráficos e demonstração */
-async function getModuleView(slug, scope) {
+async function getModuleView(slug, scope, { comparar = [] } = {}) {
   const def = getModule(slug);
   const summary = scope.period ? await getSummary(slug, scope) : null;
+  // Demonstração comparativa: competências extras (mais recente primeiro), só para módulos em árvore
+  const periodos = (def.tree || def.statementDetail) ? comparar.filter((p) => p !== scope.period).sort().reverse() : [];
+  const anteriores = await Promise.all(periodos.map((p) => getSummary(slug, { ...scope, period: p })));
   const currency = await displayCurrency(def, scope);
   if (!summary) return { def, empty: true, currency };
   return {
@@ -483,8 +492,10 @@ async function getModuleView(slug, scope) {
       isCount: b.value === '_count',
       ...agg.breakdownSeries(b, summary.breakdowns[b.id], def),
     })),
-    statement: def.statementFn ? def.statementFn(summary, scope) : agg.buildStatement(def, summary),
-    tree: agg.buildTree(def, summary),
+    // DRE: a cascata vira árvore (contas + comparativo) e substitui o quadro simples
+    statement: def.statementDetail ? null : def.statementFn ? def.statementFn(summary, scope) : agg.buildStatement(def, summary),
+    tree: def.statementDetail ? agg.buildStatementTree(def, [summary, ...anteriores]) : agg.buildTree(def, [summary, ...anteriores]),
+    periodos: [scope.period, ...periodos],
   };
 }
 
