@@ -498,6 +498,12 @@
     });
   }
 
+  /* ---------- Sobre: se a foto do GitHub não carregar, ficam as iniciais ---------- */
+  $('img[data-foto]').forEach((img) => {
+    const falhou = () => img.remove();
+    if (img.complete && !img.naturalWidth) falhou(); else img.addEventListener('error', falhou);
+  });
+
   /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
   $('[data-filtro-tabela]').forEach((inp) => {
     const tabela = document.querySelector(inp.dataset.filtroTabela);

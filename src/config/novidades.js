@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 32,
+    data: '2026-11-14',
+    titulo: 'Tela Sobre',
+    itens: ['Desenvolvedores com foto, GitHub e e-mail na tela Sobre.'],
+  },
+  {
     build: 31,
     data: '2026-11-14',
     titulo: 'Uploads mais leves',

@@ -25,7 +25,7 @@ app.use(helmet({
       'default-src': ["'self'"],
       'script-src': ["'self'"],
       'style-src': ["'self'"],
-      'img-src': ["'self'", 'data:'],
+      'img-src': ["'self'", 'data:', 'https://github.com', 'https://avatars.githubusercontent.com'],
       'font-src': ["'self'"],
       // Vídeo de fundo do login (YouTube, modo de privacidade aprimorada)
       'frame-src': ['https://www.youtube-nocookie.com'],
