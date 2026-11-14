@@ -284,7 +284,7 @@ async function importGeneric(slug, { buffer, fileName, user, period: periodIn })
   const def = getModule(slug);
   if (!def.importer) throw new parser.ParseError(`"${def.title}" não tem importação genérica.`);
   const period = periodOf(fileName, periodIn, genericImport.ImportError);
-  const data = await genericImport.importRows(buffer, fileName, def);
+  const data = await genericImport.importRows(buffer, fileName, def, { period });
   const batch = `${slug}:${period}`;
   const uploadedBy = user?.name || user?.email || 'sistema';
   const items = [];
@@ -483,7 +483,7 @@ async function getModuleView(slug, scope) {
       isCount: b.value === '_count',
       ...agg.breakdownSeries(b, summary.breakdowns[b.id], def),
     })),
-    statement: def.statementFn ? def.statementFn(summary) : agg.buildStatement(def, summary),
+    statement: def.statementFn ? def.statementFn(summary, scope) : agg.buildStatement(def, summary),
     tree: agg.buildTree(def, summary),
   };
 }

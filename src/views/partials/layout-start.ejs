@@ -26,6 +26,8 @@
         <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
         <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
       <% } %>
+      <div class="nav-label">Sistema</div>
+      <%- navItem('/sobre', 'info', 'Sobre', currentPath === '/sobre') %>
     </nav>
     <div class="sidebar-foot">
       <div class="sidebar-user">
@@ -41,6 +43,7 @@
         <button class="nav-item nav-logout" type="submit"><span class="nav-icon"><%- include('icon', { name: 'logout' }) %></span><span class="nav-text">Sair</span></button>
       </form>
       <p class="sidebar-tagline">Dashboard Contábil · CONSAG Engenharia</p>
+      <p class="app-version" title="Versão do sistema"><%= appVersion %></p>
     </div>
   </aside>
 
@@ -56,7 +59,16 @@
         <% } %>
       </div>
       <div class="spacer"></div>
-      <% if (typeof hideFilters === 'undefined' || !hideFilters) { %>
+      <% if (typeof hideFilters === 'undefined' || !hideFilters) {
+           // Filtros de obra/empresa em uso (mostrados no selo do botão)
+           const filtrosAtivos = [filter.estrutura, filter.sigla, filter.empresa && filter.empresa !== 'all', filter.centro].filter(Boolean).length; %>
+      <div class="filters-wrap" id="filters-wrap">
+        <button class="filters-toggle" type="button" id="filters-toggle" aria-controls="filters-panel" aria-expanded="false" title="Filtros">
+          <%- include('icon', { name: 'filter' }) %>
+          <span class="filters-toggle-text">Filtros</span>
+          <% if (filtrosAtivos) { %><span class="filters-badge" aria-label="<%= filtrosAtivos %> filtro(s) ativo(s)"><%= filtrosAtivos %></span><% } %>
+        </button>
+        <div class="filters-panel" id="filters-panel">
       <form class="filters" method="get" id="filters">
         <div>
           <label for="f-estrutura">Estrutura</label>
@@ -127,6 +139,8 @@
           <div class="filters-clear"><a class="btn btn-ghost" href="?estrutura=&sigla=&empresa=all&centro=">Limpar filtros</a></div>
         <% } %>
       </form>
+        </div>
+      </div>
       <% } %>
     </header>
     <main class="content">

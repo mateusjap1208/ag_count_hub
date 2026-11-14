@@ -32,15 +32,27 @@ function toValue(raw, type) {
 }
 
 /** Dicionários dos Parâmetros usados nos campos calculados (carregados uma vez por importação) */
-async function buildContext() {
+async function buildContext(period) {
   const plano = await Parameter.all('plano-contas').catch(() => []);
+  const nomes = async (id) => new Map((await Parameter.all(id).catch(() => [])).map((c) => [String(c.codigo).replace(/^0+/, ''), c.nome]));
+  const clientes = await nomes('clientes');
+  const fornecedores = await nomes('fornecedores');
   const porConta = new Map();
   const porGrupo = new Map();
   for (const p of plano) {
     if (!porConta.has(String(p.conta))) porConta.set(String(p.conta), p);
     if (!porGrupo.has(String(p.contaGrupo))) porGrupo.set(String(p.contaGrupo), p);
   }
+  const linhaPlano = (c) => porConta.get(String(c)) || porGrupo.get(String(c));
   return {
+    /** Competência da carga (AAAA-MM) */
+    period,
+    /** Níveis N3 e N4 do Plano de Contas de uma conta do razão ('' se a conta não está no plano) */
+    contaNivel: (c) => { const p = linhaPlano(c); return { n3: stripCode(p?.n3), n4: stripCode(p?.n4) }; },
+    /** Nome do cliente pelo Mestre de Clientes (KNA1) */
+    clienteNome: (c) => clientes.get(String(c).replace(/^0+/, '')) || '',
+    /** Nome do fornecedor pelo Mestre de Fornecedores (LFA1) */
+    fornecedorNome: (c) => fornecedores.get(String(c).replace(/^0+/, '')) || '',
     /** Descrição de uma conta do razão (ou da conta do grupo) */
     contaDescricao: (c) => (porConta.get(String(c)) || porGrupo.get(String(c)))?.descricao || '',
     /** Classe (nível N4 do Plano de Contas) de uma conta do grupo ou do razão */
@@ -48,7 +60,7 @@ async function buildContext() {
   };
 }
 
-async function importRows(buffer, fileName, def) {
+async function importRows(buffer, fileName, def, { period } = {}) {
   const spec = def.importer;
   const sheets = await readSheets(buffer, fileName);
   for (const sheet of sheets) {
@@ -61,7 +73,7 @@ async function importRows(buffer, fileName, def) {
       }
       if (!spec.required.every((k) => k in map)) continue;
 
-      const ctx = await buildContext();
+      const ctx = await buildContext(period);
       const all = [];
       let ignoradas = 0;
       for (let i = h + 1; i < sheet.rows.length; i++) {
@@ -81,7 +93,7 @@ async function importRows(buffer, fileName, def) {
       }
       if (!all.length) throw new ImportError('Nenhuma linha válida encontrada no arquivo.');
       // Ajustes que dependem de várias linhas (ex.: valores da obra repetidos em cada obrigação)
-      if (spec.postProcess) spec.postProcess(all);
+      if (spec.postProcess) spec.postProcess(all, ctx);
       const byCompany = new Map();
       for (const row of all) {
         const company = str(row[spec.company]);

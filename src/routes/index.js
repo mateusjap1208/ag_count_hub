@@ -61,6 +61,10 @@ router.get('/api/parametros/:id/linhas', requireAdmin, parameters.rows);
 
 router.use(viewLocals);
 router.get('/', dashboard.index);
+router.get('/sobre', (req, res) => res.render('about/index', {
+  title: 'Sobre', subtitle: 'Informações do sistema', hideFilters: true,
+  devs: ['Marcelo Santos', 'Mateus Aguiar Paula'],
+}));
 router.get('/modulos/:slug', modules.show);
 
 router.get('/upload', requireAdmin, upload.index);

@@ -102,6 +102,14 @@ button, input, select { font: inherit; }
 .user-info span { font-size: 11px; color: var(--sb-muted); }
 .nav-logout { margin: 0; }
 .sidebar-tagline { font-size: 11px; color: var(--sb-muted); margin: 10px 16px 0; line-height: 1.4; }
+/* Versão do sistema (version.json): no fim do menu e na tela de login */
+.app-version { font-size: 11px; color: var(--sb-muted); margin: 4px 16px 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.login-card .app-version { color: var(--muted, #777777); margin: 16px 0 0; text-align: center; }
+/* Redes sociais na tela de login */
+.social { display: flex; justify-content: center; gap: 10px; margin-top: 28px; }
+.social-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--border); color: var(--muted); transition: color .15s ease, border-color .15s ease, background-color .15s ease, transform .15s ease; }
+.social-btn .icon { width: 18px; height: 18px; }
+.social-btn:hover, .social-btn:focus-visible { color: #fff; background: var(--consag-blue); border-color: var(--consag-blue); transform: translateY(-2px); }
 
 /* Ícones animados: cada ícone tem um micro-movimento ao passar o mouse (e ao abrir a página, no item ativo) */
 .nav-item:hover .icon, .nav-item.active .icon { animation-duration: .6s; animation-timing-function: ease-in-out; animation-iteration-count: 1; }
@@ -672,3 +680,70 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .module-tab:hover { color: var(--heading); }
 .module-tab.active { color: var(--consag-blue); border-bottom-color: var(--consag-blue); }
 .nav-item:hover .icon-trend, .nav-item.active .icon-trend { animation-name: ic-nudge; }
+
+/* Tela Sobre: informações centralizadas */
+.about { display: flex; justify-content: center; padding: 24px 0; }
+.about-card { width: 100%; max-width: 560px; text-align: center; padding: 40px 32px; }
+.about-logo { height: 48px; margin: 0 auto 20px; }
+.about-card h2 { font-size: 24px; margin: 0; }
+.about-sub { color: var(--muted); margin: 6px 0 0; }
+.about-version { display: inline-block; margin: 14px 0 0; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--consag-blue); background: color-mix(in srgb, var(--consag-blue) 12%, transparent); font-variant-numeric: tabular-nums; }
+.about-title { margin: 32px 0 16px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.about-devs { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.about-dev { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 180px; padding: 20px 16px; border: 1px solid var(--border); border-radius: 12px; }
+.about-avatar { width: 56px; height: 56px; font-size: 18px; }
+
+/* =========================================================================
+ * Filtros recolhidos num botão (ícone de funil) à direita do título.
+ * Ao passar o mouse (ou focar/tocar) o painel expande com animação.
+ * O painel fica aberto enquanto um campo dele estiver em uso (foco ou lista de moeda aberta).
+ * ========================================================================= */
+.topbar .spacer { display: block; flex: 1; }
+.filters-wrap { position: relative; margin-left: auto; }
+.filters-toggle {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);
+  font: inherit; font-size: 13px; font-weight: 600;
+  transition: border-color .2s ease, color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.filters-toggle .icon { width: 18px; height: 18px; transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+.filters-badge {
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center;
+  background: var(--consag-blue); color: #fff; font-size: 11px; font-weight: 700;
+}
+.filters-panel {
+  position: absolute; top: 100%; right: 0; z-index: 30; padding-top: 10px; /* ponte: o mouse não "cai" no vão */
+  width: min(760px, calc(100vw - 32px));
+  opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.97); transform-origin: top right;
+  transition: opacity .18s ease, transform .22s ease, visibility 0s linear .22s;
+}
+.filters-panel .filters {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; width: 100%;
+  padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(6, 23, 43, .16);
+}
+.filters-panel .filters > * { opacity: 0; transform: translateY(-6px); transition: opacity .2s ease, transform .2s ease; }
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-toggle {
+  border-color: var(--consag-blue); color: var(--consag-blue); box-shadow: 0 0 0 3px rgba(48, 116, 246, .12);
+}
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-toggle .icon { transform: translateY(1px) rotate(-12deg) scale(1.1); }
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-panel {
+  opacity: 1; visibility: visible; transform: none; transition: opacity .2s ease, transform .25s cubic-bezier(.2, .9, .3, 1.2), visibility 0s;
+}
+/* os campos entram um após o outro */
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-panel .filters > * { opacity: 1; transform: none; }
+.filters-panel .filters > :nth-child(2) { transition-delay: .03s; }
+.filters-panel .filters > :nth-child(3) { transition-delay: .06s; }
+.filters-panel .filters > :nth-child(4) { transition-delay: .09s; }
+.filters-panel .filters > :nth-child(5) { transition-delay: .12s; }
+.filters-panel .filters > :nth-child(6) { transition-delay: .15s; }
+.filters-panel .filters > :nth-child(n+7) { transition-delay: .18s; }
+.filters-panel .filters-clear { grid-column: 1 / -1; }
+.filters-panel .filters-clear .btn { width: auto; }
+@media (max-width: 720px) {
+  .filters-panel .filters { grid-template-columns: 1fr; }
+  .filters-toggle-text { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filters-panel, .filters-panel .filters > *, .filters-toggle .icon { transition: none !important; }
+}
