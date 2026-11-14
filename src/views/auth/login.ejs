@@ -5,15 +5,14 @@
       <iframe src="<%= videoLogin %>" title="Vídeo institucional" tabindex="-1" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" loading="eager"></iframe>
     </div>
     <div class="tag">AG Cont Hub</div>
-    <div class="hero-body">
-      <h1>Os números do grupo, <em>em um só lugar.</em></h1>
-      <p>Balanço, DRE, capital empregado, contas a receber e a pagar, estoque, seguros, fluxo de caixa e imobilizado de todas as empresas, atualizados mensalmente a partir do SAP.</p>
-    </div>
     <div class="foot">Dashboard Contábil · CONSAG Engenharia</div>
   </section>
   <section class="login-panel">
     <div class="login-card">
-      <img class="logo logo-pos" src="/static/img/logo-consag.png" alt="CONSAG Engenharia"><img class="logo logo-neg" src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia">
+      <div class="login-intro">
+        <h1>Os números do grupo, <em>em um só lugar.</em></h1>
+        <p>Balanço, DRE, capital empregado, contas a receber e a pagar, estoque, seguros, fluxo de caixa e imobilizado de todas as empresas, atualizados mensalmente a partir do SAP.</p>
+      </div>
       <h2>Entrar</h2>
       <p class="sub">Use seu e-mail corporativo e senha.</p>
       <% if (error) { %><div class="alert alert-err"><%= error %></div><% } %>

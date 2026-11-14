@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 17,
+    data: '2026-11-14',
+    titulo: 'Nova tela de login',
+    itens: ['A apresentação do sistema passou para o lado do formulário de entrada, e o vídeo de fundo ficou sem legendas.'],
+  },
+  {
     build: 16,
     data: '2026-11-14',
     titulo: 'Avisos de atualização',

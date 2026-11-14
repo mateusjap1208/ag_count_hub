@@ -14,7 +14,7 @@ app.locals.appVersion = require('./config/versao').label;
 app.locals.redesSociais = require('./config/social');
 // Vídeo de fundo da tela de login (YouTube): mudo, em loop, sem controles, começando aos 34s
 const VIDEO_LOGIN = '-JeCqQeFdkk';
-app.locals.videoLogin = `https://www.youtube-nocookie.com/embed/${VIDEO_LOGIN}?autoplay=1&mute=1&loop=1&playlist=${VIDEO_LOGIN}&start=34&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&playsinline=1&rel=0`;
+app.locals.videoLogin = `https://www.youtube-nocookie.com/embed/${VIDEO_LOGIN}?autoplay=1&mute=1&loop=1&playlist=${VIDEO_LOGIN}&start=34&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&playsinline=1&rel=0&cc_load_policy=0`;
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1);
 app.disable('x-powered-by');

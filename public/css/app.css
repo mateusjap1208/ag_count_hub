@@ -859,3 +859,14 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .timeline-card h3 { font-size: 15px; margin: 0 0 6px; color: var(--heading); }
 .timeline-card ul { margin: 0; padding-left: 18px; color: var(--text-2); font-size: 13px; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) { .notif-bell .icon, .notif-dot::after, .notif-toast { animation: none !important; } }
+
+/* Login: texto de apresentação no topo do cartão (no lugar do logo) */
+.login-intro { margin-bottom: 36px; }
+.login-intro h1 { font-size: 30px; line-height: 1.15; font-weight: 700; color: var(--heading); }
+.login-intro h1 em { font-style: normal; color: var(--consag-blue); }
+.login-intro p { color: var(--muted); line-height: 1.6; margin-top: 12px; font-size: 13.5px; }
+/* Vídeo: maior que a área e alinhado mais para cima, cortando a faixa de baixo onde o YouTube mostra legendas */
+.login-video iframe {
+  width: calc(max(100cqw, 177.78cqh) * 1.3); height: calc(max(100cqh, 56.25cqw) * 1.3);
+  transform: translate(-50%, -42%);
+}
