@@ -1,0 +1,134 @@
+<%- include('../partials/layout-start') %>
+
+<% if (view.def.source === 'arrendamento') { %>
+  <div class="module-toolbar">
+    <% if (leaseCurrencies.length > 1) { %>
+      <div class="chips-row" role="group" aria-label="Moeda do contrato">
+        <span class="note">Moeda do contrato:</span>
+        <% leaseCurrencies.forEach(c => { %>
+          <a class="chip chip-cur <%= filter.moedaContrato === c.code ? 'active' : '' %>" href="?moedaContrato=<%= c.code %>">
+            <% if (c.flag) { %><img src="<%= c.flag %>" alt=""><% } %><%= c.code %> <span class="chip-count"><%= c.symbol %></span>
+          </a>
+        <% }) %>
+      </div>
+    <% } else { %><span></span><% } %>
+    <% if (user.role === 'admin') { %>
+      <a class="btn btn-primary" href="/arrendamento/importar"><%- include('../partials/icon', { name: 'upload' }) %>Importar arrendamento</a>
+    <% } %>
+  </div>
+<% } %>
+
+<% const excelLabel = (view.def.rowFilters || []).some(f => f.param === 'giro') ? 'Baixar Excel (Status Giro)' : 'Baixar Excel'; %>
+<% if ((view.def.rowFilters || []).length) { %>
+  <div class="module-toolbar">
+    <% view.def.rowFilters.forEach(rf => { const atual = (filter.rowFilters || {})[rf.param] || ''; %>
+      <div class="chips-row" role="group" aria-label="<%= rf.label %>">
+        <span class="note"><%= rf.label %>:</span>
+        <a class="chip <%= atual ? '' : 'active' %>" href="?<%= rf.param %>=">Todos</a>
+        <% rf.options.forEach(o => { %>
+          <a class="chip chip-giro <%= atual === o ? 'active' : '' %>" data-giro="<%= o %>" href="?<%= rf.param %>=<%= encodeURIComponent(o) %>"><span class="giro-dot" aria-hidden="true"></span><%= o %></a>
+        <% }) %>
+      </div>
+    <% }) %>
+    <a class="btn btn-primary" href="/modulos/<%= slug %>/exportar.xlsx"><%- include('../partials/icon', { name: 'download' }) %><%= excelLabel %></a>
+  </div>
+<% } %>
+
+<% if (view.empty) { %>
+  <%- include('../partials/empty', view.def.source === 'fgi0'
+    ? { heading: 'Sem FGI0 para este filtro', text: 'Suba o relatório FGI0 (saldos contábeis) da competência e moeda desejadas para gerar este relatório.' }
+    : view.def.source === 'estoque'
+      ? { heading: 'Sem estoque para este filtro', text: 'Suba o relatório ZL0190 (estoque) da competência em Upload de relatórios. O nome do arquivo deve ter a competência, ex.: "ZL0190 - ESTOQUE_10.2026.xlsx".' }
+    : view.def.source === 'arrendamento'
+      ? { heading: 'Sem arrendamento para este filtro', text: 'Importe o cronograma de arrendamento (IFRS 16) da competência selecionada.' }
+      : {}) %>
+<% } else { %>
+  <% const cur = currency || 'BRL'; %>
+  <%- include('../partials/kpis', { kpis: view.kpis, currency: cur }) %>
+
+  <% if (view.tree) { %>
+    <div class="card mt">
+      <div class="card-head">
+        <h2><%= view.def.title %></h2>
+        <div class="table-tools">
+          <span class="hint">Valores em <%= cur %></span>
+          <button class="btn btn-ghost" type="button" data-tree-toggle>Recolher tudo</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="statement tree" id="tree-table">
+          <tbody>
+            <% let gi = 0; view.tree.forEach(l => { if (l.kind === 'group') gi++; %>
+              <tr class="t-<%= l.kind %> <%= l.highlight ? 'highlight' : '' %>" <%- l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="true"` : l.kind === 'item' ? `data-parent="${gi}"` : '' %>>
+                <td><% if (l.kind === 'group') { %><span class="caret">▾</span><% } %><%= l.label %></td>
+                <td class="num <%= l.value < 0 ? 'neg' : '' %>"><%= l.kind === 'section' ? '' : fmt.currency(l.value, cur) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+
+  <% const charts = view.charts; %>
+  <div class="grid <%= charts.length === 1 && !view.statement ? '' : 'grid-2' %> mt">
+    <% if (view.statement) { %>
+      <div class="card">
+        <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
+        <div class="table-wrap">
+          <table class="statement">
+            <tbody>
+              <% view.statement.forEach(l => { %>
+                <% if (l.kind === 'section') { %>
+                  <tr class="section-row"><td colspan="2"><%= l.label %></td></tr>
+                <% } else { %>
+                <tr class="<%= l.subtotal ? 'subtotal' : '' %> <%= l.highlight ? 'highlight' : '' %>">
+                  <td><%= l.label %></td>
+                  <td class="num <%= l.value < 0 ? 'neg' : '' %>"><%= fmt.currency(l.value, cur) %></td>
+                </tr>
+                <% } %>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+    <% charts.forEach((c, i) => { %>
+      <div class="card <%= (charts.length === 3 && i === 0 && !view.statement) || (view.statement && charts.length === 3 && i === 2) ? 'span-2' : '' %>">
+        <div class="card-head"><h2><%= c.label %></h2></div>
+        <div class="chart-box <%= c.type === 'hbar' ? 'tall' : '' %>"><canvas id="chart-<%= c.id %>" aria-label="<%= c.label %>"></canvas></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="card mt" id="data-table" data-endpoint="/api/modulos/<%= slug %>/linhas" data-currency="<%= cur %>" data-columns="<%= JSON.stringify(columns) %>">
+    <div class="card-head">
+      <h2>Detalhamento <span class="hint">(<%= fmt.number(view.count) %> linhas<%= showCurrency ? ' · ' + cur : '' %>)</span></h2>
+      <div class="table-tools">
+        <label class="sr-only" for="table-search">Buscar</label>
+        <input class="input" type="search" id="table-search" placeholder="Buscar em todas as colunas…" autocomplete="off">
+        <a class="btn btn-ghost" href="/modulos/<%= slug %>/exportar.csv"><%- include('../partials/icon', { name: 'download' }) %>CSV</a>
+        <a class="btn btn-ghost" href="/modulos/<%= slug %>/exportar.xlsx"><%- include('../partials/icon', { name: 'download' }) %><%= excelLabel %></a>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <% columns.forEach(c => { %>
+            <th data-sort="<%= c.key %>" class="<%= c.type === 'number' ? 'num' : '' %>"><%= c.label %><span class="arrow"></span></th>
+          <% }) %>
+        </tr></thead>
+        <tbody><tr><td colspan="<%= columns.length %>">Carregando…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span class="info"></span>
+      <div class="btns">
+        <button class="btn btn-ghost" type="button" data-page="prev">Anterior</button>
+        <button class="btn btn-ghost" type="button" data-page="next">Próxima</button>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-end') %>

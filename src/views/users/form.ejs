@@ -1,0 +1,106 @@
+<%- include('../partials/layout-start') %>
+<%
+  const estruturas = [...new Set(catalog.centros.map(c => c.e).filter(Boolean))].sort();
+  const siglas = [...new Set(catalog.centros.map(c => c.s).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+  const empresas = Object.keys(catalog.empresas).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+  const centrosSel = Array.isArray(form.centros) ? form.centros : String(form.centros || '').split(',').filter(Boolean);
+  const isAdmin = form.role === 'admin';
+%>
+
+<p class="breadcrumb"><a href="/usuarios">← Usuários</a></p>
+<% if (error) { %><div class="alert alert-err"><%= error %></div><% } %>
+
+<form method="post" action="/usuarios<%= editing ? '/' + editing.id : '' %>" novalidate id="user-form">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head"><h2>Dados do usuário</h2><% if (editing && editing.lastLoginAt) { %><span class="hint">Último acesso: <%= fmt.dateTime(editing.lastLoginAt) %></span><% } %></div>
+      <div class="form-grid">
+        <div class="field full <%= errors.name ? 'has-error' : '' %>">
+          <label for="f-name">Nome *</label>
+          <input class="input" id="f-name" name="name" value="<%= form.name || '' %>" maxlength="120" required autocomplete="off" <%= editing ? '' : 'autofocus' %>>
+          <% if (errors.name) { %><div class="field-error"><%= errors.name %></div><% } %>
+        </div>
+        <div class="field full <%= errors.email ? 'has-error' : '' %>">
+          <label for="f-email">E-mail *</label>
+          <input class="input" id="f-email" name="email" type="email" value="<%= form.email || '' %>" maxlength="160" required autocomplete="off">
+          <% if (errors.email) { %><div class="field-error"><%= errors.email %></div><% } else { %><div class="help">Usado para entrar no sistema.</div><% } %>
+        </div>
+        <div class="field <%= errors.password ? 'has-error' : '' %>">
+          <label for="f-pwd"><%= editing ? 'Nova senha' : 'Senha *' %></label>
+          <input class="input" id="f-pwd" name="password" type="password" autocomplete="new-password" <%= editing ? '' : 'required' %>>
+          <% if (errors.password) { %><div class="field-error"><%= errors.password %></div><% } else { %><div class="help"><%= editing ? 'Deixe em branco para manter a atual. ' : '' %>Mínimo de 8 caracteres, com letras e números.</div><% } %>
+        </div>
+        <div class="field <%= errors.passwordConfirm ? 'has-error' : '' %>">
+          <label for="f-pwd2">Confirmar senha</label>
+          <input class="input" id="f-pwd2" name="passwordConfirm" type="password" autocomplete="new-password">
+          <% if (errors.passwordConfirm) { %><div class="field-error"><%= errors.passwordConfirm %></div><% } %>
+        </div>
+        <div class="field full <%= errors.role ? 'has-error' : '' %>">
+          <span class="label-like">Perfil *</span>
+          <div class="role-options">
+            <label class="role-option"><input type="radio" name="role" value="viewer" <%= isAdmin ? '' : 'checked' %>><span><strong>Consulta</strong><small>Vê os relatórios dos centros de lucro liberados</small></span></label>
+            <label class="role-option"><input type="radio" name="role" value="admin" <%= isAdmin ? 'checked' : '' %>><span><strong>Administrador</strong><small>Acesso total, uploads, cadastros e usuários</small></span></label>
+          </div>
+          <% if (errors.role) { %><div class="field-error"><%= errors.role %></div><% } %>
+        </div>
+        <div class="field full <%= errors.active ? 'has-error' : '' %>">
+          <label class="check"><input type="checkbox" name="active" <%= form.active === false ? '' : 'checked' %>> Usuário ativo (pode entrar no sistema)</label>
+          <% if (errors.active) { %><div class="field-error"><%= errors.active %></div><% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="access-card">
+      <div class="card-head"><h2>Acesso aos dados</h2><span class="hint" id="admin-note" <%- isAdmin ? '' : 'hidden' %>>Administradores acessam tudo</span></div>
+      <div id="access-body" <%- isAdmin ? 'hidden' : '' %>>
+        <label class="check"><input type="checkbox" name="todosCentros" id="f-todos" <%= form.todosCentros ? 'checked' : '' %>> Todos os centros de lucro (todas as empresas)</label>
+        <div id="picker-wrap" class="mt" <%- form.todosCentros ? 'hidden' : '' %>>
+          <input type="hidden" name="centros" id="f-centros" value="<%= centrosSel.join(',') %>">
+          <div class="picker-quick">
+            <div>
+              <label for="q-estr">Adicionar por estrutura</label>
+              <div class="quick-row"><select class="select" id="q-estr"><option value="">Selecione…</option><% estruturas.forEach(e => { %><option><%= e %></option><% }) %></select><button class="btn btn-ghost" type="button" data-add="estrutura">Adicionar</button></div>
+            </div>
+            <div>
+              <label for="q-sigla">Adicionar por sigla da obra</label>
+              <div class="quick-row"><select class="select" id="q-sigla"><option value="">Selecione…</option><% siglas.forEach(s => { %><option><%= s %></option><% }) %></select><button class="btn btn-ghost" type="button" data-add="sigla">Adicionar</button></div>
+            </div>
+            <div>
+              <label for="q-emp">Adicionar por empresa</label>
+              <div class="quick-row"><select class="select" id="q-emp"><option value="">Selecione…</option><% empresas.forEach(c => { %><option value="<%= c %>"><%= fmt.company({ code: c, name: catalog.empresas[c] }) %></option><% }) %></select><button class="btn btn-ghost" type="button" data-add="empresa">Adicionar</button></div>
+            </div>
+          </div>
+          <div class="field mt">
+            <label for="q-busca">Buscar centro de lucro</label>
+            <input class="input" id="q-busca" type="search" placeholder="Código, sigla ou estrutura…" autocomplete="off">
+            <ul class="picker-results" id="picker-results" aria-live="polite"></ul>
+          </div>
+          <div class="picker-selected <%= errors.centros ? 'has-error' : '' %>">
+            <div class="picker-head"><strong id="sel-count">0 centro(s) selecionado(s)</strong><button class="btn btn-ghost btn-sm" type="button" id="sel-clear">Limpar seleção</button></div>
+            <div class="chips-row" id="sel-chips"></div>
+            <% if (errors.centros) { %><div class="field-error"><%= errors.centros %></div><% } %>
+          </div>
+          <div class="picker-companies"><span class="label-like">Empresas liberadas</span><div id="sel-companies" class="note">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt form-actions obra-actions">
+    <a class="btn btn-ghost" href="/usuarios">Cancelar</a>
+    <button class="btn btn-primary" type="submit"><%= editing ? 'Salvar alterações' : 'Cadastrar usuário' %></button>
+  </div>
+</form>
+
+<% if (editing && editing.id !== user.id) { %>
+  <form method="post" action="/usuarios/<%= editing.id %>/excluir" class="danger-zone card mt" data-confirm="Excluir o usuário <%= editing.name %>? Esta ação não pode ser desfeita.">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <span class="note">Excluir remove o acesso definitivamente. Para bloquear temporariamente, desmarque "Usuário ativo".</span>
+    <button class="btn btn-danger-outline" type="submit"><%- include('../partials/icon', { name: 'trash' }) %>Excluir usuário</button>
+  </form>
+<% } %>
+
+<script type="application/json" id="centros-data"><%- JSON.stringify(catalog).replace(/</g, '\\u003c') %></script>
+<%- include('../partials/layout-end') %>

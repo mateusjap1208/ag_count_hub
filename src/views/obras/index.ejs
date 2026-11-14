@@ -1,0 +1,103 @@
+<%- include('../partials/layout-start') %>
+<%
+  const qs = (over) => {
+    const p = { ...filtros, ...over };
+    return '?' + Object.entries(p).filter(([, v]) => v !== '' && v != null).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  };
+  const sortLink = (key) => qs({ sort: key, dir: filtros.sort === key && filtros.dir === 'asc' ? 'desc' : 'asc', page: 1 });
+  const arrow = (key) => (filtros.sort === key ? (filtros.dir === 'asc' ? '▲' : '▼') : '');
+  const total = estruturas.reduce((a, e) => a + e.total, 0);
+%>
+
+<% if (flash && flash.ok) { %><div class="alert alert-ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.error) { %><div class="alert alert-err"><%= flash.error %></div><% } %>
+<% if (flash && flash.import) { const r = flash.import; %>
+  <div class="alert alert-ok">
+    <strong>Planilha importada:</strong> <%= r.fileName %> · <%= fmt.number(r.total) %> obra(s):
+    <%= fmt.number(r.novas) %> nova(s) e <%= fmt.number(r.atualizadas) %> atualizada(s).
+    <% if (r.duplicadas) { %><br><%= fmt.number(r.duplicadas) %> linha(s) com centro de lucro repetido: valeu a última linha do arquivo.<% } %>
+    <% if (r.invalidas.length) { %><br><%= r.invalidas.length %> linha(s) ignorada(s):<ul><% r.invalidas.forEach(m => { %><li><%= m %></li><% }) %></ul><% } %>
+  </div>
+<% } %>
+<% if (importError) { %><div class="alert alert-err"><strong>Não foi possível importar.</strong> <%= importError %></div><% } %>
+
+<div class="chips-row">
+  <a class="chip <%= filtros.estrutura ? '' : 'active' %>" href="<%= qs({ estrutura: '', page: 1 }) %>">Todas <span class="chip-count"><%= fmt.number(total) %></span></a>
+  <% estruturas.forEach(e => { %>
+    <a class="chip <%= filtros.estrutura === e.nome ? 'active' : '' %>" href="<%= qs({ estrutura: e.nome, page: 1 }) %>"><%= e.nome %> <span class="chip-count"><%= fmt.number(e.total) %></span></a>
+  <% }) %>
+</div>
+
+<div class="card mt">
+  <div class="card-head">
+    <h2>Obras <span class="hint">(<%= fmt.number(result.total) %>)</span></h2>
+    <div class="table-tools">
+      <form method="get" action="/obras" class="obra-search">
+        <% if (filtros.estrutura) { %><input type="hidden" name="estrutura" value="<%= filtros.estrutura %>"><% } %>
+        <label class="sr-only" for="obra-q">Buscar</label>
+        <input class="input" type="search" id="obra-q" name="q" value="<%= filtros.q %>" placeholder="Centro de lucro, sigla ou estrutura…" autocomplete="off">
+        <label class="sr-only" for="obra-sit">Situação</label>
+        <select class="select" id="obra-sit" name="situacao" data-autosubmit>
+          <option value="" <%= filtros.situacao === '' ? 'selected' : '' %>>Todas as situações</option>
+          <option value="ativas" <%= filtros.situacao === 'ativas' ? 'selected' : '' %>>Ativas</option>
+          <option value="inativas" <%= filtros.situacao === 'inativas' ? 'selected' : '' %>>Inativas</option>
+        </select>
+        <button class="btn btn-ghost" type="submit"><%- include('../partials/icon', { name: 'search' }) %>Buscar</button>
+      </form>
+      <a class="btn btn-primary" href="/obras/nova<%= filtros.estrutura ? '?estrutura=' + encodeURIComponent(filtros.estrutura) : '' %>">+ Nova obra</a>
+    </div>
+  </div>
+
+  <% if (!result.total) { %>
+    <p class="note">Nenhuma obra encontrada<%= filtros.q ? ` para "${filtros.q}"` : '' %>.</p>
+  <% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th><a class="th-link" href="<%= sortLink('centroLucro') %>">Centro de lucro <span class="arrow"><%= arrow('centroLucro') %></span></a></th>
+        <th><a class="th-link" href="<%= sortLink('siglaGerencial') %>">Sigla gerencial <span class="arrow"><%= arrow('siglaGerencial') %></span></a></th>
+        <th><a class="th-link" href="<%= sortLink('siglaObra') %>">Sigla da obra <span class="arrow"><%= arrow('siglaObra') %></span></a></th>
+        <th><a class="th-link" href="<%= sortLink('estrutura') %>">Estrutura <span class="arrow"><%= arrow('estrutura') %></span></a></th>
+        <th>Situação</th>
+        <th><a class="th-link" href="<%= sortLink('updatedAt') %>">Atualizada em <span class="arrow"><%= arrow('updatedAt') %></span></a></th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        <% result.rows.forEach(o => { %>
+          <tr>
+            <td><strong><%= o.centroLucro %></strong></td>
+            <td><%= o.siglaGerencial || '—' %></td>
+            <td><%= o.siglaObra %></td>
+            <td><%= o.estrutura %></td>
+            <td><span class="badge <%= o.ativa === false ? 'missing' : 'ok' %>"><%= o.ativa === false ? 'Inativa' : 'Ativa' %></span></td>
+            <td title="<%= o.updatedBy %>"><%= fmt.dateTime(o.updatedAt) %></td>
+            <td class="row-actions">
+              <a class="btn btn-ghost btn-sm" href="/obras/<%= encodeURIComponent(o.centroLucro) %>/editar">Editar</a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <span class="info"><%= fmt.number((result.page - 1) * result.size + 1) %>–<%= fmt.number(Math.min(result.page * result.size, result.total)) %> de <%= fmt.number(result.total) %> · página <%= result.page %> de <%= result.pages %></span>
+    <div class="btns">
+      <% if (result.page > 1) { %><a class="btn btn-ghost" href="<%= qs({ page: result.page - 1 }) %>">Anterior</a><% } %>
+      <% if (result.page < result.pages) { %><a class="btn btn-ghost" href="<%= qs({ page: result.page + 1 }) %>">Próxima</a><% } %>
+    </div>
+  </div>
+  <% } %>
+</div>
+
+<div class="card mt">
+  <div class="card-head"><h2>Importar planilha de obras</h2><a class="btn btn-ghost" href="/obras/modelo.txt"><%- include('../partials/icon', { name: 'download' }) %>Baixar modelo</a></div>
+  <p class="note">Colunas: <code>CENTRO_LUCRO</code>, <code>SIGLA_GERENCIAL</code>, <code>SIGLA_OBRA</code> e <code>ESTRUTURA</code>, em Excel (.xlsx) ou texto (.txt/.csv). Obras existentes são atualizadas e as novas, incluídas. Nenhuma obra é excluída pela importação.</p>
+  <form class="param-upload" method="post" action="/obras/importar" enctype="multipart/form-data" data-busy>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label class="sr-only" for="obra-file">Arquivo de obras</label>
+    <input class="input" type="file" name="file" id="obra-file" accept=".xlsx,.txt,.csv" required>
+    <button class="btn btn-primary" type="submit"><%- include('../partials/icon', { name: 'upload' }) %>Importar</button>
+  </form>
+</div>
+
+<%- include('../partials/layout-end') %>

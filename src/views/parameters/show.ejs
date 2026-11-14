@@ -1,0 +1,55 @@
+<%- include('../partials/layout-start') %>
+
+<p class="breadcrumb"><a href="/parametros">← Parâmetros</a></p>
+
+<% if (!meta) { %>
+  <div class="card empty">
+    <%- include('../partials/icon', { name: 'file' }) %>
+    <h2>Tabela ainda não carregada</h2>
+    <p><%= def.description %></p>
+    <a class="btn btn-primary" href="/parametros"><%- include('../partials/icon', { name: 'upload' }) %>Importar</a>
+  </div>
+<% } else { %>
+  <div class="card">
+    <p class="note"><%= def.description %></p>
+    <p class="param-meta">
+      <%- include('../partials/icon', { name: 'file' }) %><%= meta.fileName %> · <%= fmt.number(meta.rows) %> registros ·
+      atualizado em <%= fmt.dateTime(meta.updatedAt) %> por <%= meta.uploadedBy %>
+    </p>
+    <% if (checks.length) { %>
+      <div class="filter-chips">
+        <a class="chip <%= filtro ? '' : 'active' %>" href="/parametros/<%= def.id %>">Todos</a>
+        <% checks.forEach(c => { %>
+          <a class="chip <%= filtro === c.id ? 'active' : '' %> <%= c.level %>" href="/parametros/<%= def.id %>?filtro=<%= c.id %>"><%= c.text %></a>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="card mt" id="data-table" data-endpoint="/api/parametros/<%= def.id %>/linhas" data-extra="<%= filtro ? 'filtro=' + filtro : '' %>" data-columns="<%= JSON.stringify(columns) %>">
+    <div class="card-head">
+      <h2>Registros</h2>
+      <div class="table-tools">
+        <label class="sr-only" for="table-search">Buscar</label>
+        <input class="input" type="search" id="table-search" placeholder="Buscar código, descrição…" autocomplete="off">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <% columns.forEach(c => { %><th data-sort="<%= c.key %>"><%= c.label %><span class="arrow"></span></th><% }) %>
+        </tr></thead>
+        <tbody><tr><td colspan="<%= columns.length %>">Carregando…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span class="info"></span>
+      <div class="btns">
+        <button class="btn btn-ghost" type="button" data-page="prev">Anterior</button>
+        <button class="btn btn-ghost" type="button" data-page="next">Próxima</button>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-end') %>

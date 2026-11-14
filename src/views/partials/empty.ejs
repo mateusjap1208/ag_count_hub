@@ -1,0 +1,8 @@
+<div class="card empty">
+  <%- include('icon', { name: 'file' }) %>
+  <h2><%= locals.heading || 'Sem dados para este filtro' %></h2>
+  <p><%= locals.text || 'Ainda não há relatório carregado para a empresa e o período selecionados.' %></p>
+  <% if (user.role === 'admin') { %>
+    <a class="btn btn-primary" href="/upload"><%- include('icon', { name: 'upload' }) %>Subir relatório</a>
+  <% } %>
+</div>

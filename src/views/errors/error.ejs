@@ -1,0 +1,11 @@
+<%- include('../partials/head', { title: 'Erro ' + status }) %>
+<div class="error-page">
+  <div>
+    <img src="/static/img/logo-consag.png" alt="CONSAG Engenharia" class="error-logo logo-pos"><img src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia" class="error-logo logo-neg">
+    <div class="code"><%= status %></div>
+    <p class="error-msg"><%= message %></p>
+    <a class="btn btn-primary" href="<%= locals.user ? '/' : '/login' %>"><%= locals.user ? 'Voltar ao início' : 'Ir para o login' %></a>
+  </div>
+</div>
+</body>
+</html>

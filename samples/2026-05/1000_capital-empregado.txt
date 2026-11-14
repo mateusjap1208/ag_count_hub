@@ -1,0 +1,7 @@
+Conta;Descricao;Componente;Valor
+1.1.02;Clientes;Clientes;47.306.851,59
+1.1.03;Estoques;Estoques;13.749.827,96
+1.1.04;Adiantamentos a fornecedores;Adiantamentos;5.589.687,22
+2.1.01;Fornecedores;Fornecedores;-30.444.257,70
+1.2.02;Imobilizado;Imobilizado;54.654.883,15
+1.2.03;Intangível;Intangível;3.107.205,52

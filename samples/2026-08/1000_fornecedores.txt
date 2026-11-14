@@ -1,0 +1,121 @@
+Codigo	Nome	Obra	Documento	Vencimento	Valor
+F00040	Distribuidora de Combustível Exemplo 40	Obra 404 - Edificação	DOC-100000	10/08/2026	492.862,97
+F00004	Distribuidora de Combustível Exemplo 04	Obra 505 - Metrô	DOC-100001	14/11/2026	819.867,60
+F00027	Transportadora Exemplo 27	Obra 606 - Barragem	DOC-100002	27/04/2026	49.371,54
+F00036	Fornecedora de Aço Exemplo 36	Obra 101 - Rodovia	DOC-100003	18/12/2026	614.386,48
+F00034	Distribuidora de Combustível Exemplo 34	Obra 404 - Edificação	DOC-100004	25/02/2026	897.545,90
+F00021	Transportadora Exemplo 21	Obra 101 - Rodovia	DOC-100005	13/06/2026	813.706,22
+F00010	Distribuidora de Combustível Exemplo 10	Obra 404 - Edificação	DOC-100006	29/09/2026	237.519,73
+F00025	Concreteira Exemplo 25	Obra 404 - Edificação	DOC-100007	21/09/2026	43.624,53
+F00033	Transportadora Exemplo 33	Obra 404 - Edificação	DOC-100008	28/08/2026	787.237,00
+F00018	Fornecedora de Aço Exemplo 18	Obra 404 - Edificação	DOC-100009	04/09/2026	755.403,53
+F00018	Fornecedora de Aço Exemplo 18	Obra 404 - Edificação	DOC-100010	07/09/2026	34.503,07
+F00040	Distribuidora de Combustível Exemplo 40	Obra 303 - Ponte	DOC-100011	14/09/2026	67.940,34
+F00019	Concreteira Exemplo 19	Obra 303 - Ponte	DOC-100012	21/09/2026	621.449,04
+F00010	Distribuidora de Combustível Exemplo 10	Obra 404 - Edificação	DOC-100013	17/08/2026	279.540,75
+F00023	Subempreiteira Exemplo 23	Obra 404 - Edificação	DOC-100014	05/05/2026	711.610,42
+F00020	Locadora de Equipamentos Exemplo 20	Obra 404 - Edificação	DOC-100015	30/09/2026	139.220,80
+F00005	Subempreiteira Exemplo 05	Obra 202 - Saneamento	DOC-100016	14/09/2026	88.888,19
+F00023	Subempreiteira Exemplo 23	Obra 505 - Metrô	DOC-100017	17/09/2026	465.727,99
+F00005	Subempreiteira Exemplo 05	Obra 303 - Ponte	DOC-100018	04/05/2026	621.454,34
+F00009	Transportadora Exemplo 09	Obra 202 - Saneamento	DOC-100019	26/09/2026	140.310,24
+F00006	Fornecedora de Aço Exemplo 06	Obra 505 - Metrô	DOC-100020	22/11/2026	162.497,13
+F00027	Transportadora Exemplo 27	Obra 404 - Edificação	DOC-100021	04/12/2026	810.731,12
+F00025	Concreteira Exemplo 25	Obra 101 - Rodovia	DOC-100022	07/04/2026	456.385,73
+F00040	Distribuidora de Combustível Exemplo 40	Obra 202 - Saneamento	DOC-100023	11/08/2026	565.694,31
+F00027	Transportadora Exemplo 27	Obra 202 - Saneamento	DOC-100024	17/04/2026	543.682,59
+F00025	Concreteira Exemplo 25	Obra 101 - Rodovia	DOC-100025	03/03/2026	159.763,48
+F00007	Concreteira Exemplo 07	Obra 303 - Ponte	DOC-100026	10/09/2026	584.257,07
+F00035	Subempreiteira Exemplo 35	Obra 303 - Ponte	DOC-100027	17/09/2026	445.606,74
+F00027	Transportadora Exemplo 27	Obra 303 - Ponte	DOC-100028	30/05/2026	529.868,16
+F00007	Concreteira Exemplo 07	Obra 505 - Metrô	DOC-100029	13/08/2026	62.020,92
+F00004	Distribuidora de Combustível Exemplo 04	Obra 101 - Rodovia	DOC-100030	10/09/2026	818.799,90
+F00022	Distribuidora de Combustível Exemplo 22	Obra 404 - Edificação	DOC-100031	08/12/2026	439.262,09
+F00022	Distribuidora de Combustível Exemplo 22	Obra 101 - Rodovia	DOC-100032	17/05/2026	55.762,93
+F00038	Locadora de Equipamentos Exemplo 38	Obra 606 - Barragem	DOC-100033	01/03/2026	386.788,03
+F00013	Concreteira Exemplo 13	Obra 303 - Ponte	DOC-100034	03/11/2026	813.132,25
+F00028	Distribuidora de Combustível Exemplo 28	Obra 303 - Ponte	DOC-100035	29/10/2026	159.167,54
+F00013	Concreteira Exemplo 13	Obra 606 - Barragem	DOC-100036	28/05/2026	534.986,51
+F00035	Subempreiteira Exemplo 35	Obra 606 - Barragem	DOC-100037	28/06/2026	267.693,84
+F00027	Transportadora Exemplo 27	Obra 404 - Edificação	DOC-100038	08/03/2026	371.161,48
+F00024	Fornecedora de Aço Exemplo 24	Obra 606 - Barragem	DOC-100039	13/05/2026	249.716,95
+F00016	Distribuidora de Combustível Exemplo 16	Obra 303 - Ponte	DOC-100040	22/08/2026	39.941,20
+F00006	Fornecedora de Aço Exemplo 06	Obra 505 - Metrô	DOC-100041	29/10/2026	848.945,00
+F00001	Concreteira Exemplo 01	Obra 101 - Rodovia	DOC-100042	20/09/2026	77.898,35
+F00027	Transportadora Exemplo 27	Obra 101 - Rodovia	DOC-100043	04/10/2026	494.520,31
+F00011	Subempreiteira Exemplo 11	Obra 404 - Edificação	DOC-100044	20/10/2026	589.071,79
+F00020	Locadora de Equipamentos Exemplo 20	Obra 606 - Barragem	DOC-100045	15/05/2026	333.614,68
+F00034	Distribuidora de Combustível Exemplo 34	Obra 606 - Barragem	DOC-100046	28/04/2026	215.947,78
+F00028	Distribuidora de Combustível Exemplo 28	Obra 101 - Rodovia	DOC-100047	05/03/2026	493.171,57
+F00021	Transportadora Exemplo 21	Obra 505 - Metrô	DOC-100048	23/05/2026	396.903,71
+F00004	Distribuidora de Combustível Exemplo 04	Obra 505 - Metrô	DOC-100049	21/12/2026	375.315,26
+F00004	Distribuidora de Combustível Exemplo 04	Obra 101 - Rodovia	DOC-100050	07/08/2026	581.692,02
+F00020	Locadora de Equipamentos Exemplo 20	Obra 404 - Edificação	DOC-100051	27/08/2026	819.408,16
+F00022	Distribuidora de Combustível Exemplo 22	Obra 404 - Edificação	DOC-100052	25/12/2026	803.500,15
+F00019	Concreteira Exemplo 19	Obra 606 - Barragem	DOC-100053	07/12/2026	595.832,87
+F00035	Subempreiteira Exemplo 35	Obra 606 - Barragem	DOC-100054	14/06/2026	495.931,83
+F00003	Transportadora Exemplo 03	Obra 202 - Saneamento	DOC-100055	23/10/2026	138.865,16
+F00009	Transportadora Exemplo 09	Obra 606 - Barragem	DOC-100056	24/02/2026	296.228,69
+F00023	Subempreiteira Exemplo 23	Obra 505 - Metrô	DOC-100057	14/09/2026	712.552,04
+F00021	Transportadora Exemplo 21	Obra 101 - Rodovia	DOC-100058	13/10/2026	295.001,29
+F00002	Locadora de Equipamentos Exemplo 02	Obra 101 - Rodovia	DOC-100059	10/12/2026	800.877,43
+F00024	Fornecedora de Aço Exemplo 24	Obra 101 - Rodovia	DOC-100060	14/03/2026	472.978,15
+F00014	Locadora de Equipamentos Exemplo 14	Obra 505 - Metrô	DOC-100061	23/10/2026	775.748,49
+F00025	Concreteira Exemplo 25	Obra 202 - Saneamento	DOC-100062	19/09/2026	499.621,83
+F00012	Fornecedora de Aço Exemplo 12	Obra 404 - Edificação	DOC-100063	23/03/2026	240.032,58
+F00034	Distribuidora de Combustível Exemplo 34	Obra 606 - Barragem	DOC-100064	08/07/2026	342.216,32
+F00040	Distribuidora de Combustível Exemplo 40	Obra 404 - Edificação	DOC-100065	05/05/2026	857.078,17
+F00002	Locadora de Equipamentos Exemplo 02	Obra 202 - Saneamento	DOC-100066	09/07/2026	390.011,25
+F00024	Fornecedora de Aço Exemplo 24	Obra 101 - Rodovia	DOC-100067	05/06/2026	614.428,17
+F00010	Distribuidora de Combustível Exemplo 10	Obra 101 - Rodovia	DOC-100068	05/10/2026	711.529,03
+F00017	Subempreiteira Exemplo 17	Obra 202 - Saneamento	DOC-100069	03/09/2026	866.840,79
+F00031	Concreteira Exemplo 31	Obra 101 - Rodovia	DOC-100070	18/03/2026	592.013,09
+F00022	Distribuidora de Combustível Exemplo 22	Obra 303 - Ponte	DOC-100071	03/04/2026	298.836,02
+F00019	Concreteira Exemplo 19	Obra 505 - Metrô	DOC-100072	28/11/2026	812.531,38
+F00024	Fornecedora de Aço Exemplo 24	Obra 101 - Rodovia	DOC-100073	19/10/2026	513.845,81
+F00001	Concreteira Exemplo 01	Obra 101 - Rodovia	DOC-100074	14/02/2026	340.262,30
+F00033	Transportadora Exemplo 33	Obra 505 - Metrô	DOC-100075	09/04/2026	102.226,98
+F00017	Subempreiteira Exemplo 17	Obra 404 - Edificação	DOC-100076	28/04/2026	506.291,60
+F00037	Concreteira Exemplo 37	Obra 202 - Saneamento	DOC-100077	02/12/2026	527.959,18
+F00029	Subempreiteira Exemplo 29	Obra 606 - Barragem	DOC-100078	02/11/2026	660.652,51
+F00035	Subempreiteira Exemplo 35	Obra 505 - Metrô	DOC-100079	02/09/2026	660.359,10
+F00002	Locadora de Equipamentos Exemplo 02	Obra 303 - Ponte	DOC-100080	02/11/2026	394.658,28
+F00033	Transportadora Exemplo 33	Obra 202 - Saneamento	DOC-100081	28/02/2026	291.658,76
+F00014	Locadora de Equipamentos Exemplo 14	Obra 202 - Saneamento	DOC-100082	11/12/2026	155.620,81
+F00023	Subempreiteira Exemplo 23	Obra 606 - Barragem	DOC-100083	24/07/2026	420.382,43
+F00012	Fornecedora de Aço Exemplo 12	Obra 202 - Saneamento	DOC-100084	19/10/2026	349.131,52
+F00009	Transportadora Exemplo 09	Obra 404 - Edificação	DOC-100085	21/08/2026	523.176,77
+F00035	Subempreiteira Exemplo 35	Obra 404 - Edificação	DOC-100086	17/03/2026	387.015,50
+F00006	Fornecedora de Aço Exemplo 06	Obra 303 - Ponte	DOC-100087	12/09/2026	315.663,54
+F00001	Concreteira Exemplo 01	Obra 303 - Ponte	DOC-100088	28/07/2026	730.168,64
+F00007	Concreteira Exemplo 07	Obra 606 - Barragem	DOC-100089	22/12/2026	405.057,20
+F00013	Concreteira Exemplo 13	Obra 202 - Saneamento	DOC-100090	05/03/2026	17.562,38
+F00025	Concreteira Exemplo 25	Obra 505 - Metrô	DOC-100091	04/10/2026	210.282,92
+F00005	Subempreiteira Exemplo 05	Obra 101 - Rodovia	DOC-100092	01/12/2026	171.065,14
+F00022	Distribuidora de Combustível Exemplo 22	Obra 101 - Rodovia	DOC-100093	02/09/2026	898.206,40
+F00033	Transportadora Exemplo 33	Obra 303 - Ponte	DOC-100094	20/09/2026	458.195,46
+F00031	Concreteira Exemplo 31	Obra 101 - Rodovia	DOC-100095	10/10/2026	733.908,29
+F00031	Concreteira Exemplo 31	Obra 202 - Saneamento	DOC-100096	12/08/2026	836.801,39
+F00004	Distribuidora de Combustível Exemplo 04	Obra 606 - Barragem	DOC-100097	11/08/2026	537.764,98
+F00027	Transportadora Exemplo 27	Obra 606 - Barragem	DOC-100098	15/07/2026	854.767,45
+F00040	Distribuidora de Combustível Exemplo 40	Obra 606 - Barragem	DOC-100099	15/02/2026	453.997,10
+F00017	Subempreiteira Exemplo 17	Obra 101 - Rodovia	DOC-100100	26/11/2026	429.495,85
+F00040	Distribuidora de Combustível Exemplo 40	Obra 202 - Saneamento	DOC-100101	03/07/2026	318.379,11
+F00021	Transportadora Exemplo 21	Obra 505 - Metrô	DOC-100102	23/09/2026	293.905,74
+F00021	Transportadora Exemplo 21	Obra 303 - Ponte	DOC-100103	09/09/2026	678.531,16
+F00016	Distribuidora de Combustível Exemplo 16	Obra 505 - Metrô	DOC-100104	27/11/2026	878.355,32
+F00021	Transportadora Exemplo 21	Obra 303 - Ponte	DOC-100105	25/12/2026	867.699,36
+F00023	Subempreiteira Exemplo 23	Obra 101 - Rodovia	DOC-100106	07/11/2026	549.029,60
+F00015	Transportadora Exemplo 15	Obra 606 - Barragem	DOC-100107	03/12/2026	313.736,73
+F00001	Concreteira Exemplo 01	Obra 101 - Rodovia	DOC-100108	12/08/2026	153.262,89
+F00030	Fornecedora de Aço Exemplo 30	Obra 101 - Rodovia	DOC-100109	13/08/2026	108.185,20
+F00030	Fornecedora de Aço Exemplo 30	Obra 404 - Edificação	DOC-100110	17/11/2026	253.794,05
+F00027	Transportadora Exemplo 27	Obra 606 - Barragem	DOC-100111	28/07/2026	592.492,98
+F00005	Subempreiteira Exemplo 05	Obra 404 - Edificação	DOC-100112	13/10/2026	237.394,20
+F00021	Transportadora Exemplo 21	Obra 101 - Rodovia	DOC-100113	18/07/2026	713.543,28
+F00035	Subempreiteira Exemplo 35	Obra 202 - Saneamento	DOC-100114	13/09/2026	816.476,19
+F00002	Locadora de Equipamentos Exemplo 02	Obra 404 - Edificação	DOC-100115	07/10/2026	770.382,11
+F00017	Subempreiteira Exemplo 17	Obra 202 - Saneamento	DOC-100116	21/12/2026	795.502,67
+F00026	Locadora de Equipamentos Exemplo 26	Obra 404 - Edificação	DOC-100117	19/04/2026	602.377,69
+F00020	Locadora de Equipamentos Exemplo 20	Obra 101 - Rodovia	DOC-100118	27/04/2026	360.069,45
+F00020	Locadora de Equipamentos Exemplo 20	Obra 505 - Metrô	DOC-100119	28/09/2026	622.584,21

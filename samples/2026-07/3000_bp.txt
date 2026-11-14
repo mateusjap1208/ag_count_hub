@@ -1,0 +1,22 @@
+Relatório BP - Empresa 3000 - 2026-07 (DADOS FICTÍCIOS)
+--------------------------------------------------------------------------------
+|Conta|Descrição|Grupo|Saldo|
+--------------------------------------------------------------------------------
+|1.1.01|Caixa e equivalentes|Ativo Circulante|6.364.026,46|
+|1.1.02|Clientes|Ativo Circulante|16.279.706,72|
+|1.1.03|Estoques|Ativo Circulante|5.135.277,08|
+|1.1.04|Adiantamentos a fornecedores|Ativo Circulante|2.250.009,75|
+|1.1.05|Impostos a recuperar|Ativo Circulante|1.714.254,24|
+|1.2.01|Depósitos judiciais|Ativo Não Circulante|1.449.346,77|
+|1.2.02|Imobilizado|Ativo Não Circulante|19.816.997,43|
+|1.2.03|Intangível|Ativo Não Circulante|1.135.150,52|
+|2.1.01|Fornecedores|Passivo Circulante|10.930.141,40|
+|2.1.02|Salários e encargos|Passivo Circulante|3.356.630,72|
+|2.1.03|Empréstimos e financiamentos CP|Passivo Circulante|4.418.618,89|
+|2.1.04|Adiantamentos de clientes|Passivo Circulante|3.066.903,68|
+|2.1.05|Impostos a recolher|Passivo Circulante|1.764.069,47|
+|2.2.01|Empréstimos e financiamentos LP|Passivo Não Circulante|10.443.752,75|
+|2.2.02|Provisões para contingências|Passivo Não Circulante|2.104.089,69|
+|2.3.01|Capital social|Patrimônio Líquido|14.000.000,00|
+|2.3.02|Reservas e lucros acumulados|Patrimônio Líquido|4.060.562,37|
+--------------------------------------------------------------------------------

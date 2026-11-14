@@ -1,0 +1,94 @@
+<%- include('../partials/layout-start') %>
+
+<p class="breadcrumb"><a href="/modulos/arrendamento">← Arrendamento (IFRS 16)</a></p>
+
+<% if (result && result.removed) { %>
+  <div class="alert alert-ok">Carga de arrendamento de <%= fmt.periodFull(result.removed) %> removida.</div>
+<% } else if (result) { %>
+  <div class="alert alert-ok">
+    <strong>Arrendamento importado:</strong> <%= result.fileName %><br>
+    Competência <strong><%= fmt.periodFull(result.period) %></strong> ·
+    <%= fmt.number(result.contratos) %> contrato(s) ativos em <%= fmt.number(result.empresas) %> empresa(s)
+    (o arquivo tem <%= fmt.number(result.contratosArquivo) %> contratos, de <%= fmt.period(result.months.min) %> a <%= fmt.period(result.months.max) %>).
+    <ul>
+      <% result.totais.forEach(t => { %>
+        <li><strong><%= t.moeda %></strong>: <%= fmt.number(t.contratos) %> contrato(s) · direito de uso <%= fmt.currency(t.direitoUso, t.moeda) %> · passivo <%= fmt.currency(t.passivo, t.moeda) %></li>
+      <% }) %>
+    </ul>
+    <a class="btn btn-primary mt" href="/modulos/arrendamento">Ver relatório de arrendamento</a>
+  </div>
+<% } %>
+<% if (error) { %><div class="alert alert-err"><strong>Não foi possível importar.</strong> <%= error %></div><% } %>
+
+<div class="grid grid-3">
+  <div class="card span-2">
+    <div class="card-head"><h2>Importar cronograma de arrendamento</h2><span class="hint">Excel (.xlsx) ou texto (.txt)</span></div>
+    <p class="note">Relatório de contratos IFRS 16 do SAP (RE-FX), com uma linha por contrato e mês. O sistema guarda a <strong>fotografia da competência</strong>: saldos do direito de uso e do passivo, passivo circulante (próximos 12 meses, pelo próprio cronograma) e valores acumulados no ano. Uma nova carga da mesma competência substitui a anterior.</p>
+    <form method="post" action="/arrendamento/importar" enctype="multipart/form-data" data-busy data-competencia-form class="mt">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-grid">
+        <div class="field">
+          <label for="l-period">Competência</label>
+          <input class="input" type="month" id="l-period" name="period" value="<%= form.period || '' %>" data-competencia>
+          <div class="help" id="l-period-help">Lida automaticamente do nome do arquivo (ex.: ARRENDAMENTO_10.2026.xlsx).</div>
+        </div>
+        <div class="field full">
+          <label class="dropzone" id="dropzone" for="u-file">
+            <input type="file" name="file" id="u-file" accept=".xlsx,.txt,.csv" required>
+            <%- include('../partials/icon', { name: 'upload' }) %>
+            <strong>Arraste o arquivo aqui ou clique para selecionar</strong>
+            <span>Excel (.xlsx) ou texto (.txt/.csv) · arquivos grandes podem levar até 1 minuto</span>
+            <div class="file-name" id="file-name"></div>
+          </label>
+        </div>
+      </div>
+      <div class="mt form-actions">
+        <button class="btn btn-primary" type="submit"><%- include('../partials/icon', { name: 'upload' }) %>Importar arrendamento</button>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Colunas utilizadas</h2></div>
+    <div class="layout-cols">
+      <% ['Contrato avaliado','Regra de avaliação','Ano civil','Período','Carteira inicial','Depreciação','Carteira final','Carteira inicial_1','Compensação/Parcela','Juros','Carteira final_2','Moeda','Taxa de juros','Empresa','Centro de lucro','Denominação do contrato','Início de vigência','Fim da validade','Denom.tipo contrato'].forEach((c, i) => { %>
+        <code class="<%= [0,13,6,10].includes(i) ? 'req' : '' %>"><%= c %></code>
+      <% }) %>
+    </div>
+    <p class="note mt">"Carteira inicial/final" = direito de uso; "Carteira inicial_1/final_2" = passivo de arrendamento. Colunas com prefixo "RECEISASSETCN." também são reconhecidas.</p>
+  </div>
+</div>
+
+<div class="card mt">
+  <div class="card-head"><h2>Cargas de arrendamento</h2><span class="hint"><%= history.length %> competência(s)</span></div>
+  <% if (!history.length) { %>
+    <p class="note">Nenhuma carga ainda.</p>
+  <% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Competência</th><th>Arquivo</th><th class="num">Empresas</th><th>Moedas</th><th class="num">Linhas</th><th>Enviado por</th><th>Data</th><th></th></tr></thead>
+      <tbody>
+        <% history.forEach(h => { %>
+          <tr>
+            <td><%= fmt.period(h.period) %></td>
+            <td><%= h.fileName %></td>
+            <td class="num"><%= fmt.number(h.empresas) %></td>
+            <td><%= h.moedas %></td>
+            <td class="num"><%= fmt.number(h.linhas) %></td>
+            <td><%= h.uploadedBy %></td>
+            <td><%= fmt.dateTime(h.uploadedAt) %></td>
+            <td>
+              <form method="post" action="/arrendamento/remover" data-confirm="Remover a carga de arrendamento de <%= fmt.period(h.period) %>?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="batch" value="<%= h.batch %>">
+                <button class="btn btn-danger" type="submit" title="Remover carga"><%- include('../partials/icon', { name: 'trash' }) %></button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/layout-end') %>

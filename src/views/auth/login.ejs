@@ -1,0 +1,34 @@
+<%- include('../partials/head', { title: 'Entrar' }) %>
+<div class="login">
+  <section class="login-hero">
+    <div class="tag">AG Cont Hub</div>
+    <div class="hero-body">
+      <h1>Os números do grupo, <em>em um só lugar.</em></h1>
+      <p>Balanço, DRE, capital empregado, contas a receber e a pagar, estoque, seguros, fluxo de caixa e imobilizado de todas as empresas, atualizados mensalmente a partir do SAP.</p>
+    </div>
+    <div class="foot">Dashboard Contábil · CONSAG Engenharia</div>
+  </section>
+  <section class="login-panel">
+    <div class="login-card">
+      <img class="logo logo-pos" src="/static/img/logo-consag.png" alt="CONSAG Engenharia"><img class="logo logo-neg" src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia">
+      <h2>Entrar</h2>
+      <p class="sub">Use seu e-mail corporativo e senha.</p>
+      <% if (error) { %><div class="alert alert-err"><%= error %></div><% } %>
+      <form method="post" action="/login" id="login-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input class="input" type="email" id="email" name="email" value="<%= email %>" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Senha</label>
+          <input class="input" type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Entrar</button>
+      </form>
+    </div>
+  </section>
+</div>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

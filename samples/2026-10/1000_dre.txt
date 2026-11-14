@@ -1,0 +1,14 @@
+Conta;Descricao;Grupo;Valor
+3.1.01;Receita de obras públicas;Receita Bruta;32.660.306,12
+3.1.02;Receita de obras privadas;Receita Bruta;13.997.274,05
+3.2.01;ISS sobre faturamento;Deduções da Receita;1.866.303,21-
+3.2.02;PIS e COFINS;Deduções da Receita;1.703.001,68-
+4.1.01;Custo de materiais aplicados;Custos;14.182.750,33-
+4.1.02;Custo de mão de obra direta;Custos;11.791.531,43-
+4.1.03;Custo de equipamentos e subempreiteiros;Custos;7.691.331,47-
+5.1.01;Despesas administrativas;Despesas Operacionais;2.799.454,81-
+5.1.02;Despesas comerciais;Despesas Operacionais;559.890,96-
+5.1.03;Depreciação e amortização;Despesas Operacionais;839.836,44-
+6.1.01;Receitas financeiras;Resultado Financeiro;373.260,64
+6.1.02;Despesas financeiras;Resultado Financeiro;979.809,18-
+7.1.01;IR e CSLL correntes;IR e CSLL;1.569.756,64-

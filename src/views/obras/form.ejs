@@ -1,0 +1,52 @@
+<%- include('../partials/layout-start') %>
+
+<p class="breadcrumb"><a href="/obras">← Cadastro de obras</a></p>
+<% if (error) { %><div class="alert alert-err"><%= error %></div><% } %>
+
+<div class="card obra-form">
+  <div class="card-head"><h2><%= original ? 'Editar obra' : 'Nova obra' %></h2>
+    <% if (original && obra.updatedAt) { %><span class="hint">Última alteração: <%= fmt.dateTime(obra.updatedAt) %> · <%= obra.updatedBy %></span><% } %>
+  </div>
+  <form method="post" action="/obras<%= original ? '/' + encodeURIComponent(original) : '' %>" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-grid">
+      <div class="field <%= errors.centroLucro ? 'has-error' : '' %>">
+        <label for="o-centro">Centro de lucro *</label>
+        <input class="input" id="o-centro" name="centroLucro" value="<%= obra.centroLucro || '' %>" maxlength="30" required autocomplete="off" <%- errors.centroLucro ? 'aria-invalid="true" aria-describedby="e-centro"' : '' %> <%= original ? '' : 'autofocus' %>>
+        <% if (errors.centroLucro) { %><div class="field-error" id="e-centro"><%= errors.centroLucro %></div><% } else if (original) { %><div class="help">Alterar o código renomeia a obra.</div><% } %>
+      </div>
+      <div class="field <%= errors.estrutura ? 'has-error' : '' %>">
+        <label for="o-estrutura">Estrutura *</label>
+        <input class="input" id="o-estrutura" name="estrutura" list="estruturas-list" value="<%= obra.estrutura || '' %>" maxlength="60" required autocomplete="off" <%- errors.estrutura ? 'aria-invalid="true" aria-describedby="e-estrutura"' : '' %>>
+        <datalist id="estruturas-list"><% estruturas.forEach(e => { %><option value="<%= e.nome %>"><% }) %></datalist>
+        <% if (errors.estrutura) { %><div class="field-error" id="e-estrutura"><%= errors.estrutura %></div><% } else { %><div class="help">Escolha uma existente ou digite uma nova.</div><% } %>
+      </div>
+      <div class="field <%= errors.siglaGerencial ? 'has-error' : '' %>">
+        <label for="o-sg">Sigla gerencial</label>
+        <input class="input" id="o-sg" name="siglaGerencial" value="<%= obra.siglaGerencial || '' %>" maxlength="30" autocomplete="off" <%- errors.siglaGerencial ? 'aria-invalid="true" aria-describedby="e-sg"' : '' %>>
+        <% if (errors.siglaGerencial) { %><div class="field-error" id="e-sg"><%= errors.siglaGerencial %></div><% } %>
+      </div>
+      <div class="field <%= errors.siglaObra ? 'has-error' : '' %>">
+        <label for="o-so">Sigla da obra *</label>
+        <input class="input" id="o-so" name="siglaObra" value="<%= obra.siglaObra || '' %>" maxlength="30" required autocomplete="off" <%- errors.siglaObra ? 'aria-invalid="true" aria-describedby="e-so"' : '' %>>
+        <% if (errors.siglaObra) { %><div class="field-error" id="e-so"><%= errors.siglaObra %></div><% } %>
+      </div>
+      <div class="field full">
+        <label class="check"><input type="checkbox" name="ativa" <%= obra.ativa === false ? '' : 'checked' %>> Obra ativa</label>
+      </div>
+    </div>
+    <div class="mt form-actions obra-actions">
+      <a class="btn btn-ghost" href="/obras">Cancelar</a>
+      <button class="btn btn-primary" type="submit"><%= original ? 'Salvar alterações' : 'Cadastrar obra' %></button>
+    </div>
+  </form>
+  <% if (original) { %>
+    <form method="post" action="/obras/<%= encodeURIComponent(original) %>/excluir" class="danger-zone" data-confirm="Excluir a obra <%= original %>? Esta ação não pode ser desfeita.">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <span class="note">Excluir remove a obra do cadastro. Para manter o histórico, prefira desmarcar "Obra ativa".</span>
+      <button class="btn btn-danger-outline" type="submit"><%- include('../partials/icon', { name: 'trash' }) %>Excluir obra</button>
+    </form>
+  <% } %>
+</div>
+
+<%- include('../partials/layout-end') %>

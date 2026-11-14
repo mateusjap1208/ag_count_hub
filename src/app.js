@@ -1,0 +1,78 @@
+const path = require('node:path');
+const express = require('express');
+const session = require('express-session');
+const helmet = require('helmet');
+const compression = require('compression');
+const config = require('./config');
+const routes = require('./routes');
+
+const app = express();
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      'default-src': ["'self'"],
+      'script-src': ["'self'"],
+      'style-src': ["'self'"],
+      'img-src': ["'self'", 'data:'],
+      'font-src': ["'self'"],
+    },
+  },
+}));
+app.use(compression());
+
+// Arquivos estáticos com cache (fontes e libs mudam só em novas versões)
+const staticOpts = { maxAge: config.isProd ? '7d' : 0 };
+app.use('/static', express.static(path.join(config.root, 'public'), staticOpts));
+app.use('/vendor/chart.js', express.static(path.join(config.root, 'node_modules/chart.js/dist'), { maxAge: '30d' }));
+app.use('/vendor/flags', express.static(path.join(config.root, 'node_modules/flag-icons/flags/1x1'), { maxAge: '30d' }));
+app.use('/vendor/montserrat', express.static(path.join(config.root, 'node_modules/@fontsource/montserrat/files'), { maxAge: '30d' }));
+
+app.use(express.urlencoded({ extended: false, limit: '100kb' }));
+
+app.use(session({
+  name: 'agch.sid',
+  secret: config.sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  rolling: true,
+  cookie: { httpOnly: true, sameSite: 'lax', secure: config.isProd, maxAge: 8 * 60 * 60 * 1000 },
+  // Com MongoDB as sessões sobrevivem a reinícios do servidor e funcionam com várias instâncias
+  ...(config.storageDriver === 'mongo' ? { store: mongoSessionStore() } : {}),
+}));
+
+function mongoSessionStore() {
+  const { MongoStore } = require('connect-mongo');
+  const repos = require('./repositories');
+  return MongoStore.create({
+    clientPromise: repos.db().then(() => repos.client),
+    dbName: repos.dbName,
+    collectionName: 'sessions',
+    ttl: 8 * 60 * 60,
+    touchAfter: 10 * 60,
+  });
+}
+
+app.use(routes);
+
+// 404
+app.use((req, res) => {
+  res.status(404).render('errors/error', { status: 404, message: 'Página não encontrada.', user: req.session?.user });
+});
+
+// Erros
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  if (status >= 500) console.error(err);
+  const message = status >= 500 ? 'Ocorreu um erro inesperado. Tente novamente.' : err.message;
+  if (req.path.startsWith('/api/')) return res.status(status).json({ error: message });
+  res.status(status).render('errors/error', { status, message, user: req.session?.user });
+});
+
+module.exports = app;

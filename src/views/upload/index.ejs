@@ -1,0 +1,162 @@
+<%- include('../partials/layout-start', { hideFilters: true }) %>
+
+<% if (result && result.ok && result.removed) { %>
+  <div class="alert alert-ok">Carga removida com sucesso.</div>
+<% } else if (result && result.ok && result.fgi0) { const r = result.fgi0; %>
+  <div class="alert alert-ok">
+    <strong>FGI0 importado:</strong> <%= r.fileName %><br>
+    Competência <strong><%= fmt.periodFull(r.period) %></strong> ·
+    <strong><%= r.currencyType === 'grupo' ? 'Moeda do grupo' : 'Moeda da empresa' %></strong>
+    (<%= r.currencies.map(c => c.cur + (r.currencies.length > 1 ? ': ' + c.n : '')).join(' · ') %>) ·
+    <%= fmt.number(r.companies) %> empresa(s) · <%= fmt.number(r.rows) %> linhas de saldo.<br>
+    BP, DRE e Capital Empregado gerados. <%= fmt.number(r.ambiguas) %> linha(s) com classe Custo × Despesa resolvida(s) pela área funcional.
+    <% if (r.ignoradas && r.ignoradas.linhas) { %>
+      <br>Desconsideradas as contas iniciadas por <%= r.ignoradas.prefixos.join(' e ') %>: <%= fmt.number(r.ignoradas.contas) %> conta(s), <%= fmt.number(r.ignoradas.linhas) %> linha(s), saldo líquido <%= fmt.number(Math.round(r.ignoradas.saldo)) %>.
+    <% } %>
+    <% if (r.herdadas && r.herdadas.contas) { %>
+      <br><strong><%= fmt.number(r.herdadas.contas) %> conta(s) sem cadastro classificada(s) pela conta do grupo de contas semelhantes</strong> (ex.: <%= r.herdadas.top.slice(0, 1).map(x => x.conta + ' → grupo ' + x.contaGrupo).join('') %>). Maiores saldos:
+      <ul><% r.herdadas.top.forEach(x => { %><li><%= x.conta %> → grupo <%= x.contaGrupo %> (contas <%= x.prefixo %>…) · <%= x.classe %>: <%= fmt.number(Math.round(x.saldo)) %></li><% }) %></ul>
+    <% } %>
+    <% if (r.naoClassificadas.contas) { %>
+      <br><strong><%= fmt.number(r.naoClassificadas.contas) %> conta(s) sem cadastro nem conta semelhante</strong>, lançadas no grupo "A classificar" do BP (contas 1, 2 e 3) ou da DRE (contas 4 e 5). Maiores saldos:
+      <ul><% r.naoClassificadas.top.forEach(x => { %><li><%= x.conta %><%= x.descricao ? ' - ' + x.descricao : '' %>: <%= fmt.number(Math.round(x.saldo)) %></li><% }) %></ul>
+    <% } %>
+    <div class="mt"><a class="btn btn-primary" href="/modulos/bp">Ver Balanço Patrimonial</a> <a class="btn btn-ghost" href="/modulos/dre">Ver DRE</a> <a class="btn btn-ghost" href="/modulos/capital-empregado">Ver Capital Empregado</a></div>
+  </div>
+<% } else if (result && result.ok) { %>
+  <div class="alert alert-ok">
+    <strong>Arquivo importado:</strong> <%= result.record.fileName %> ·
+    <%= fmt.number(result.record.rows) %> linha(s) · <%= fmt.periodFull(result.record.period) %>.
+    <% if (result.warnings.length) { %>
+      <br><%= result.warnings.length %> aviso(s) — linhas ignoradas:
+      <ul><% result.warnings.slice(0, 10).forEach(w => { %><li><%= w %></li><% }) %></ul>
+    <% } %>
+  </div>
+<% } %>
+<% if (error) { %><div class="alert alert-err"><strong>Não foi possível importar.</strong> <%= error %></div><% } %>
+
+<% const selModule = form.module || 'fgi0'; %>
+<div class="grid grid-3">
+  <div class="card span-2">
+    <div class="card-head"><h2>Subir relatório</h2><span class="hint">Excel (.xlsx) ou texto (.txt)</span></div>
+    <p class="note" data-show-for="fgi0">O FGI0 gera <strong>BP, DRE e Capital Empregado</strong> de todas as empresas do arquivo. A moeda é lida do nome do arquivo (ex.: <em>FGI0 - Moeda da empresa 31.10.2026.xlsx</em>). Uma nova carga substitui a anterior da mesma competência e moeda.</p>
+    <p class="note" data-show-for="estoque">O ZL0190 gera a posição de <strong>Estoque</strong> de todas as empresas do arquivo, nas moedas do grupo e da empresa, com a análise de giro. Ex.: <em>ZL0190 - ESTOQUE_10.2026.xlsx</em>.</p>
+    <p class="note" data-show-for="arrendamento">Cronograma de contratos <strong>IFRS 16</strong>: grava a fotografia da competência. Ex.: <em>ARRENDAMENTO_10.2026.xlsx</em>.</p>
+    <p class="note" data-show-for="manual">Uma nova carga substitui a anterior do mesmo relatório, empresa e competência.</p>
+    <form method="post" action="/upload" enctype="multipart/form-data" id="upload-form" data-competencia-form>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="u-module">Relatório</label>
+          <select class="select" name="module" id="u-module" required>
+            <% uploadModules.forEach(m => { %>
+              <option value="<%= m.slug %>" <%= selModule === m.slug ? 'selected' : '' %>><%= m.title %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="u-period">Competência *</label>
+          <input class="input" type="month" name="period" id="u-period" value="<%= form.period || '' %>" data-competencia>
+          <div class="help" id="u-period-help">Lida automaticamente do nome do arquivo (ex.: _10.2026).</div>
+        </div>
+        <div class="field" data-show-for="fgi0">
+          <label for="u-ctype">Moeda do relatório</label>
+          <select class="select" name="currencyType" id="u-ctype">
+            <option value="">Detectar pelo nome do arquivo</option>
+            <option value="grupo" <%= form.currencyType === 'grupo' ? 'selected' : '' %>>Moeda do grupo de empresas</option>
+            <option value="empresa" <%= form.currencyType === 'empresa' ? 'selected' : '' %>>Moeda da empresa</option>
+          </select>
+        </div>
+        <div class="field" data-show-for="manual">
+          <label for="u-company">Empresa</label>
+          <select class="select" name="company" id="u-company">
+            <option value="" disabled <%= form.company ? '' : 'selected' %>>Selecione…</option>
+            <% allCompanies.forEach(c => { %>
+              <option value="<%= c.code %>" <%= form.company === c.code ? 'selected' : '' %>><%= fmt.company(c) %></option>
+            <% }) %>
+            <option value="__new__" <%= form.company === '__new__' ? 'selected' : '' %>>+ Cadastrar nova empresa</option>
+          </select>
+        </div>
+        <div class="field hidden" id="new-company-code">
+          <label for="u-ncode">Código da empresa</label>
+          <input class="input" name="newCompanyCode" id="u-ncode" maxlength="20" placeholder="Ex.: 1000">
+        </div>
+        <div class="field hidden" id="new-company-name">
+          <label for="u-nname">Nome da empresa</label>
+          <input class="input" name="newCompanyName" id="u-nname" maxlength="120" placeholder="Razão social ou nome curto">
+        </div>
+        <div class="field full">
+          <label class="dropzone" id="dropzone" for="u-file">
+            <input type="file" name="file" id="u-file" accept=".xlsx,.txt,.csv,text/plain" required>
+            <%- include('../partials/icon', { name: 'upload' }) %>
+            <strong>Arraste o arquivo aqui ou clique para selecionar</strong>
+            <span>Excel (.xlsx) ou texto (.txt/.csv delimitado por TAB, ";" ou "|") · UTF-8 ou ANSI</span>
+            <div class="file-name" id="file-name"></div>
+          </label>
+        </div>
+      </div>
+      <div class="mt form-actions">
+        <button class="btn btn-primary" type="submit" id="upload-btn"><%- include('../partials/icon', { name: 'upload' }) %>Importar arquivo</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Layout esperado</h2></div>
+    <% layouts.forEach(l => { %>
+      <div class="layout-info <%= selModule === l.slug ? '' : 'hidden' %>" data-layout="<%= l.slug %>">
+        <p class="note">Colunas de <strong><%= l.title %></strong>. Em destaque, as obrigatórias:</p>
+        <div class="layout-cols">
+          <% l.columns.forEach(c => { %><code class="<%= c.required ? 'req' : '' %>" title="<%= c.label %>"><%= c.key %></code><% }) %>
+        </div>
+        <a class="btn btn-ghost mt" href="/upload/modelo/<%= l.slug %>.txt"><%- include('../partials/icon', { name: 'download' }) %>Baixar modelo</a>
+      </div>
+    <% }) %>
+    <p class="note mt">
+      Números no padrão brasileiro (1.234,56) ou SAP (1.234,56-). Datas em DD/MM/AAAA, DD.MM.AAAA ou AAAAMMDD. No Excel, use a primeira aba.
+    </p>
+  </div>
+</div>
+
+<div class="card mt">
+  <div class="card-head"><h2>Histórico de cargas</h2><span class="hint"><%= uploads.length %> carga(s)</span></div>
+  <% if (!uploads.length) { %>
+    <p class="note">Nenhuma carga realizada ainda.</p>
+  <% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Competência</th><th>Relatório</th><th>Empresa</th><th>Moeda</th><th>Arquivo</th><th class="num">Linhas</th><th>Enviado por</th><th>Data</th><th></th></tr></thead>
+      <tbody>
+        <% uploads.forEach(u => { %>
+          <tr>
+            <td><%= fmt.period(u.period) %></td>
+            <td><%= u.moduleName %></td>
+            <td><%= u.companyName %></td>
+            <td><%= u.moeda || 'BRL' %></td>
+            <td><%= u.fileName %><% if (u.warnings) { %> <span class="badge missing" title="Linhas ignoradas na importação"><%= u.warnings %> aviso(s)</span><% } %></td>
+            <td class="num"><%= fmt.number(u.rows) %></td>
+            <td><%= u.uploadedBy %></td>
+            <td><%= fmt.dateTime(u.uploadedAt) %></td>
+            <td>
+              <form method="post" action="/upload/remover" data-confirm="Remover a carga de <%= u.moduleName %> · <%= u.companyName %> · <%= fmt.period(u.period) %>?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <% if (u.kind === 'fgi0') { %>
+                  <input type="hidden" name="batch" value="<%= u.batch %>">
+                <% } else { %>
+                  <input type="hidden" name="module" value="<%= u.module %>">
+                  <input type="hidden" name="period" value="<%= u.period %>">
+                  <input type="hidden" name="company" value="<%= u.company %>">
+                <% } %>
+                <button class="btn btn-danger" type="submit" title="Remover carga"><%- include('../partials/icon', { name: 'trash' }) %></button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/layout-end') %>

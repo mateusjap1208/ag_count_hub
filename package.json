@@ -1,0 +1,37 @@
+{
+  "name": "ag-cont-hub",
+  "version": "0.1.0",
+  "description": "AG Cont Hub - Dashboard contábil do grupo CONSAG (Node.js + Express, arquitetura MVC)",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node scripts/seed.js",
+    "samples": "node scripts/generate-samples.js",
+    "user:create": "node scripts/create-user.js",
+    "params:import": "node scripts/import-params.js",
+    "mongo:migrate": "node scripts/migrate-to-mongo.js",
+    "mongo:check": "node scripts/migrate-to-mongo.js --check"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "@fontsource/montserrat": "^5.3.0",
+    "bcryptjs": "^3.0.3",
+    "chart.js": "^4.6.1",
+    "compression": "^1.8.2",
+    "connect-mongo": "^6.0.0",
+    "currency-symbol-map": "^5.1.0",
+    "ejs": "^7.0.2",
+    "exceljs": "^4.4.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
+    "express-session": "^1.19.0",
+    "flag-icons": "^7.6.0",
+    "helmet": "^8.3.0",
+    "mongodb": "^7.9.0",
+    "multer": "^2.5.0"
+  }
+}

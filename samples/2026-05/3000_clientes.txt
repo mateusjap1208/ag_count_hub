@@ -1,0 +1,61 @@
+Codigo;Nome;Obra;Documento;Vencimento;Valor
+C00014;Incorporadora Exemplo 14;Obra 606 - Barragem;NF-100000;10/12/2025;281.484,72
+C00018;Governo Estadual Exemplo 18;Obra 101 - Rodovia;NF-100001;23/08/2026;236.362,23
+C00001;Prefeitura Exemplo 01;Obra 303 - Ponte;NF-100002;21/07/2026;56.596,17
+C00015;Concessionária Exemplo 15;Obra 404 - Edificação;NF-100003;03/09/2026;191.347,41
+C00016;Prefeitura Exemplo 16;Obra 202 - Saneamento;NF-100004;17/06/2026;229.660,25
+C00003;Governo Estadual Exemplo 03;Obra 101 - Rodovia;NF-100005;17/01/2026;309.849,66
+C00011;Prefeitura Exemplo 11;Obra 404 - Edificação;NF-100006;22/06/2026;31.926,00
+C00019;Incorporadora Exemplo 19;Obra 606 - Barragem;NF-100007;14/07/2026;17.563,80
+C00016;Prefeitura Exemplo 16;Obra 303 - Ponte;NF-100008;17/06/2026;153.107,16
+C00010;Concessionária Exemplo 10;Obra 303 - Ponte;NF-100009;19/08/2026;37.406,42
+C00009;Incorporadora Exemplo 09;Obra 505 - Metrô;NF-100010;15/01/2026;29.598,00
+C00016;Prefeitura Exemplo 16;Obra 404 - Edificação;NF-100011;25/08/2026;71.089,53
+C00014;Incorporadora Exemplo 14;Obra 101 - Rodovia;NF-100012;12/02/2026;218.594,52
+C00009;Incorporadora Exemplo 09;Obra 101 - Rodovia;NF-100013;11/09/2026;14.730,10
+C00003;Governo Estadual Exemplo 03;Obra 505 - Metrô;NF-100014;05/01/2026;78.800,78
+C00003;Governo Estadual Exemplo 03;Obra 101 - Rodovia;NF-100015;08/05/2026;88.902,62
+C00003;Governo Estadual Exemplo 03;Obra 101 - Rodovia;NF-100016;26/09/2026;128.754,42
+C00010;Concessionária Exemplo 10;Obra 505 - Metrô;NF-100017;11/06/2026;139.986,43
+C00015;Concessionária Exemplo 15;Obra 606 - Barragem;NF-100018;29/06/2026;213.946,80
+C00014;Incorporadora Exemplo 14;Obra 202 - Saneamento;NF-100019;11/09/2026;112.306,36
+C00008;Governo Estadual Exemplo 08;Obra 404 - Edificação;NF-100020;29/01/2026;168.263,34
+C00006;Prefeitura Exemplo 06;Obra 404 - Edificação;NF-100021;26/06/2026;305.396,49
+C00005;Concessionária Exemplo 05;Obra 606 - Barragem;NF-100022;20/08/2026;248.126,14
+C00012;Companhia de Saneamento Exemplo 12;Obra 303 - Ponte;NF-100023;28/06/2026;210.094,00
+C00013;Governo Estadual Exemplo 13;Obra 404 - Edificação;NF-100024;04/06/2026;122.004,70
+C00002;Companhia de Saneamento Exemplo 02;Obra 606 - Barragem;NF-100025;02/07/2026;184.075,65
+C00001;Prefeitura Exemplo 01;Obra 404 - Edificação;NF-100026;26/11/2025;276.469,09
+C00001;Prefeitura Exemplo 01;Obra 404 - Edificação;NF-100027;19/02/2026;247.994,53
+C00007;Companhia de Saneamento Exemplo 07;Obra 606 - Barragem;NF-100028;05/08/2026;19.365,04
+C00005;Concessionária Exemplo 05;Obra 202 - Saneamento;NF-100029;14/09/2026;33.542,13
+C00013;Governo Estadual Exemplo 13;Obra 606 - Barragem;NF-100030;23/06/2026;17.038,87
+C00018;Governo Estadual Exemplo 18;Obra 101 - Rodovia;NF-100031;20/08/2026;270.661,08
+C00002;Companhia de Saneamento Exemplo 02;Obra 101 - Rodovia;NF-100032;27/03/2026;231.503,49
+C00006;Prefeitura Exemplo 06;Obra 606 - Barragem;NF-100033;05/06/2026;178.250,76
+C00008;Governo Estadual Exemplo 08;Obra 505 - Metrô;NF-100034;26/07/2026;130.312,94
+C00012;Companhia de Saneamento Exemplo 12;Obra 606 - Barragem;NF-100035;20/06/2026;281.401,30
+C00012;Companhia de Saneamento Exemplo 12;Obra 404 - Edificação;NF-100036;21/04/2026;74.622,05
+C00012;Companhia de Saneamento Exemplo 12;Obra 202 - Saneamento;NF-100037;27/02/2026;8.444,79
+C00007;Companhia de Saneamento Exemplo 07;Obra 404 - Edificação;NF-100038;24/06/2026;62.749,01
+C00013;Governo Estadual Exemplo 13;Obra 404 - Edificação;NF-100039;09/06/2026;140.786,49
+C00001;Prefeitura Exemplo 01;Obra 303 - Ponte;NF-100040;26/06/2026;34.951,38
+C00012;Companhia de Saneamento Exemplo 12;Obra 606 - Barragem;NF-100041;26/12/2025;197.806,41
+C00019;Incorporadora Exemplo 19;Obra 202 - Saneamento;NF-100042;06/08/2026;46.869,39
+C00005;Concessionária Exemplo 05;Obra 101 - Rodovia;NF-100043;20/02/2026;72.963,45
+C00014;Incorporadora Exemplo 14;Obra 202 - Saneamento;NF-100044;24/06/2026;108.854,59
+C00009;Incorporadora Exemplo 09;Obra 101 - Rodovia;NF-100045;16/05/2026;149.323,63
+C00014;Incorporadora Exemplo 14;Obra 505 - Metrô;NF-100046;06/09/2026;99.734,73
+C00008;Governo Estadual Exemplo 08;Obra 101 - Rodovia;NF-100047;22/07/2026;177.681,08
+C00001;Prefeitura Exemplo 01;Obra 303 - Ponte;NF-100048;18/01/2026;148.138,72
+C00006;Prefeitura Exemplo 06;Obra 606 - Barragem;NF-100049;29/07/2026;102.229,39
+C00002;Companhia de Saneamento Exemplo 02;Obra 606 - Barragem;NF-100050;10/06/2026;90.115,73
+C00003;Governo Estadual Exemplo 03;Obra 303 - Ponte;NF-100051;22/06/2026;211.230,68
+C00018;Governo Estadual Exemplo 18;Obra 101 - Rodovia;NF-100052;25/03/2026;124.601,36
+C00018;Governo Estadual Exemplo 18;Obra 505 - Metrô;NF-100053;17/07/2026;64.305,49
+C00017;Companhia de Saneamento Exemplo 17;Obra 505 - Metrô;NF-100054;26/07/2026;66.109,02
+C00011;Prefeitura Exemplo 11;Obra 505 - Metrô;NF-100055;20/03/2026;47.686,89
+C00006;Prefeitura Exemplo 06;Obra 606 - Barragem;NF-100056;08/03/2026;163.777,20
+C00016;Prefeitura Exemplo 16;Obra 606 - Barragem;NF-100057;18/09/2026;201.282,11
+C00011;Prefeitura Exemplo 11;Obra 404 - Edificação;NF-100058;29/08/2026;112.380,60
+C00008;Governo Estadual Exemplo 08;Obra 101 - Rodovia;NF-100059;05/09/2026;70.273,30

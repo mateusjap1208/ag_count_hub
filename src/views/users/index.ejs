@@ -1,0 +1,55 @@
+<%- include('../partials/layout-start') %>
+
+<% if (flash && flash.ok) { %><div class="alert alert-ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.error) { %><div class="alert alert-err"><%= flash.error %></div><% } %>
+
+<div class="card">
+  <div class="card-head">
+    <h2>Usuários <span class="hint">(<%= users.length %>)</span></h2>
+    <div class="table-tools">
+      <form method="get" action="/usuarios" class="obra-search">
+        <label class="sr-only" for="u-q">Buscar</label>
+        <input class="input" type="search" id="u-q" name="q" value="<%= q %>" placeholder="Nome ou e-mail…" autocomplete="off">
+        <button class="btn btn-ghost" type="submit"><%- include('../partials/icon', { name: 'search' }) %>Buscar</button>
+      </form>
+      <a class="btn btn-primary" href="/usuarios/novo">+ Novo usuário</a>
+    </div>
+  </div>
+  <% if (!users.length) { %>
+    <p class="note">Nenhum usuário encontrado.</p>
+  <% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Acesso</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead>
+      <tbody>
+        <% users.forEach(u => { %>
+          <tr>
+            <td><div class="user-cell"><span class="avatar avatar-sm"><%= u.name.trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() %></span><strong><%= u.name %></strong><% if (u.id === user.id) { %> <span class="badge">você</span><% } %></div></td>
+            <td><%= u.email %></td>
+            <td><span class="badge <%= u.role === 'admin' ? 'ok' : '' %>"><%= ROLES[u.role] %></span></td>
+            <td>
+              <% if (u.role === 'admin' || u.todosCentros) { %>Todos os centros de lucro
+              <% } else { %><%= u.centros.length %> centro(s) de lucro <span class="note-inline"><%= u.centros.slice(0, 4).join(', ') %><%= u.centros.length > 4 ? '…' : '' %></span><% } %>
+            </td>
+            <td><span class="badge <%= u.active ? 'ok' : 'missing' %>"><%= u.active ? 'Ativo' : 'Inativo' %></span></td>
+            <td><%= u.lastLoginAt ? fmt.dateTime(u.lastLoginAt) : 'Nunca' %></td>
+            <td class="row-actions"><a class="btn btn-ghost btn-sm" href="/usuarios/<%= u.id %>/editar">Editar</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<div class="card mt">
+  <div class="card-head"><h2>Como funcionam as permissões</h2></div>
+  <ul class="perm-help">
+    <li><strong>Administrador:</strong> acesso total, inclusive uploads, parâmetros, obras e usuários.</li>
+    <li><strong>Consulta:</strong> vê somente os relatórios. Pode ter acesso a <em>todos</em> os centros de lucro ou a uma lista de centros.</li>
+    <li>Com lista de centros, o usuário enxerga apenas os dados desses centros de lucro e as <strong>empresas</strong> onde eles aparecem. Filtros, gráficos, tabelas, exportação CSV e indicadores respeitam essa restrição.</li>
+    <li>Alterações de perfil, centros ou situação valem no próximo clique do usuário, sem precisar sair do sistema.</li>
+  </ul>
+</div>
+
+<%- include('../partials/layout-end') %>

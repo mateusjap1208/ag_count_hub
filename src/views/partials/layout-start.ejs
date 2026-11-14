@@ -1,0 +1,128 @@
+<%- include('head', { title }) %>
+<div class="app">
+<%
+  const navItem = (href, icon, label, active) =>
+    `<a href="${href}" class="nav-item${active ? ' active' : ''}"${active ? ' aria-current="page"' : ''}>` +
+    `<span class="nav-icon">${include('icon', { name: icon })}</span><span class="nav-text">${label}</span></a>`;
+%>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-mini" aria-hidden="true"><%- include('icon', { name: 'menu' }) %></span>
+      <img class="brand-logo logo-pos" src="/static/img/logo-consag.png" alt="CONSAG Engenharia">
+      <img class="brand-logo logo-neg" src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia">
+      <div class="brand-text"><strong>AG Cont Hub</strong><span>Dashboard Contábil</span></div>
+    </div>
+    <nav class="nav" aria-label="Menu principal">
+      <%- navItem('/', 'home', 'Visão Geral', currentPath === '/') %>
+      <div class="nav-label">Relatórios</div>
+      <% menu.forEach(m => { %>
+        <%- navItem('/modulos/' + m.slug, m.icon, m.menu, currentPath === '/modulos/' + m.slug) %>
+      <% }) %>
+      <% if (user.role === 'admin') { %>
+        <div class="nav-label">Dados</div>
+        <%- navItem('/upload', 'upload', 'Upload de relatórios', currentPath === '/upload') %>
+        <%- navItem('/obras', 'hardhat', 'Obras', currentPath.startsWith('/obras')) %>
+        <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
+        <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
+      <% } %>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user">
+        <div class="avatar"><%= (user.name || user.email).trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() %></div>
+        <div class="user-info"><strong><%= user.name || user.email %></strong><span><%= user.role === 'admin' ? 'Administrador' : (user.todosCentros ? 'Consulta' : 'Consulta · ' + user.centros.length + ' centro(s)') %></span></div>
+      </div>
+      <button class="nav-item theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro/escuro">
+        <span class="nav-icon"><%- include('icon', { name: 'moon' }) %><%- include('icon', { name: 'sun' }) %></span>
+        <span class="nav-text" data-theme-label>Tema escuro</span>
+      </button>
+      <form method="post" action="/logout">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="nav-item nav-logout" type="submit"><span class="nav-icon"><%- include('icon', { name: 'logout' }) %></span><span class="nav-text">Sair</span></button>
+      </form>
+      <p class="sidebar-tagline">Dashboard Contábil · CONSAG Engenharia</p>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-toggle" type="button" id="menu-toggle" aria-label="Abrir menu"><%- include('icon', { name: 'menu' }) %></button>
+      <div>
+        <h1><%= title %></h1>
+        <% if (locals.hideFilters) { %>
+          <div class="subtitle"><%= locals.subtitle || 'Administração de dados' %></div>
+        <% } else { %>
+          <div class="subtitle"><%= companyName %> · <%= filter.periodo ? fmt.periodFull(filter.periodo) : 'sem dados carregados' %></div>
+        <% } %>
+      </div>
+      <div class="spacer"></div>
+      <% if (typeof hideFilters === 'undefined' || !hideFilters) { %>
+      <form class="filters" method="get" id="filters">
+        <div>
+          <label for="f-estrutura">Estrutura</label>
+          <select class="select" name="estrutura" id="f-estrutura" data-autosubmit>
+            <option value="" <%= filter.estrutura ? '' : 'selected' %>>Todas as estruturas</option>
+            <% filterOpts.estruturas.forEach(e => { %>
+              <option value="<%= e %>" <%= filter.estrutura === e ? 'selected' : '' %>><%= e %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div>
+          <label for="f-sigla">Sigla</label>
+          <select class="select" name="sigla" id="f-sigla" data-autosubmit title="Sigla da obra (cadastro de obras)">
+            <option value="" <%= filter.sigla ? '' : 'selected' %>>Todas as siglas</option>
+            <% filterOpts.siglas.forEach(s => { %>
+              <option value="<%= s %>" <%= filter.sigla === s ? 'selected' : '' %>><%= s %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div>
+          <label for="f-empresa">Empresa</label>
+          <select class="select" name="empresa" id="f-empresa" data-autosubmit>
+            <option value="all" <%= filter.empresa === 'all' ? 'selected' : '' %>><%= filter.estrutura || filter.sigla ? `Todas as empresas (${companies.length})` : 'Consolidado do grupo' %></option>
+            <% companies.forEach(c => { %>
+              <option value="<%= c.code %>" <%= filter.empresa === c.code ? 'selected' : '' %>><%= fmt.company(c) %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div>
+          <label for="f-centro">Centro de lucro</label>
+          <select class="select" name="centro" id="f-centro" data-autosubmit>
+            <option value="" <%= filter.centro ? '' : 'selected' %>>Todos os centros (<%= fmt.number(filterOpts.centros.length) %>)</option>
+            <% filterOpts.centros.forEach(c => { %>
+              <option value="<%= c.code %>" <%= filter.centro === c.code ? 'selected' : '' %>><%= c.code %><%= c.siglaObra && c.siglaObra !== c.code ? ' · ' + c.siglaObra : '' %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div>
+          <label for="f-periodo">Competência</label>
+          <select class="select" name="periodo" id="f-periodo" data-autosubmit <%= periods.length ? '' : 'disabled' %>>
+            <% if (!periods.length) { %><option>—</option><% } %>
+            <% periods.forEach(p => { %>
+              <option value="<%= p %>" <%= filter.periodo === p ? 'selected' : '' %>><%= fmt.periodFull(p) %></option>
+            <% }) %>
+          </select>
+        </div>
+        <% if (currencyOptions.length) { %>
+        <div>
+          <label for="f-moeda">Moeda</label>
+          <select class="select" name="moeda" id="f-moeda" data-autosubmit data-enhance="currency" title="Moeda dos relatórios gerados pelo FGI0 (BP, DRE e Capital Empregado)">
+            <% [['grupo', 'Moeda do grupo'], ['empresa', 'Moeda da empresa']].forEach(([type, groupLabel]) => {
+                 const opts = currencyOptions.filter(o => o.type === type);
+                 if (!opts.length) return; %>
+              <optgroup label="<%= groupLabel %>">
+                <% opts.forEach(o => { %>
+                  <option value="<%= o.value %>" data-symbol="<%= o.symbol %>" data-flag="<%= o.flag || '' %>" data-code="<%= o.currency %>" data-count="<%= o.count %>" data-group="<%= groupLabel %>" <%= filter.moeda === o.value ? 'selected' : '' %>><%= o.symbol %> · <%= o.currency %> (<%= o.count %> empresa<%= o.count > 1 ? 's' : '' %>)</option>
+                <% }) %>
+              </optgroup>
+            <% }) %>
+          </select>
+        </div>
+        <% } %>
+        <noscript><button class="btn btn-primary" type="submit">Aplicar</button></noscript>
+        <% if (hasObraFilter) { %>
+          <div class="filters-clear"><a class="btn btn-ghost" href="?estrutura=&sigla=&empresa=all&centro=">Limpar filtros</a></div>
+        <% } %>
+      </form>
+      <% } %>
+    </header>
+    <main class="content">

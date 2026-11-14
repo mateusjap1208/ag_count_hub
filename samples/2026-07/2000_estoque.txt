@@ -1,0 +1,41 @@
+Material;Descricao;Categoria;Deposito;Unidade;Quantidade;Valor_Total
+MAT00000;Cimento CP-II 50kg;Cimentos;Obra 101 - Rodovia;SC;508;46.264,05
+MAT00001;Cimento CP-II 50kg;Cimentos;Obra 202 - Saneamento;SC;1.156;128.940,48
+MAT00002;Cimento CP-II 50kg;Cimentos;Obra 303 - Ponte;SC;290;27.537,19
+MAT00003;Cimento CP-II 50kg;Cimentos;Obra 404 - Edificação;SC;1.481;10.318,73
+MAT00010;Aço CA-50 10mm;Aço;Obra 101 - Rodovia;KG;1.265;66.339,84
+MAT00011;Aço CA-50 10mm;Aço;Obra 202 - Saneamento;KG;111;7.467,05
+MAT00012;Aço CA-50 10mm;Aço;Obra 303 - Ponte;KG;239;11.442,90
+MAT00013;Aço CA-50 10mm;Aço;Obra 404 - Edificação;KG;477;8.639,51
+MAT00020;Brita 1;Agregados;Obra 101 - Rodovia;M3;1.030;57.939,48
+MAT00021;Brita 1;Agregados;Obra 202 - Saneamento;M3;567;10.718,91
+MAT00022;Brita 1;Agregados;Obra 303 - Ponte;M3;558;5.232,54
+MAT00023;Brita 1;Agregados;Obra 404 - Edificação;M3;7;169,58
+MAT00030;Areia média;Agregados;Obra 101 - Rodovia;M3;1.458;78.737,60
+MAT00031;Areia média;Agregados;Obra 202 - Saneamento;M3;326;23.207,31
+MAT00032;Areia média;Agregados;Obra 303 - Ponte;M3;1.687;153.249,01
+MAT00033;Areia média;Agregados;Obra 404 - Edificação;M3;219;4.623,16
+MAT00040;Óleo diesel S10;Combustíveis;Obra 101 - Rodovia;L;1.723;21.073,74
+MAT00041;Óleo diesel S10;Combustíveis;Obra 202 - Saneamento;L;630;45.752,62
+MAT00042;Óleo diesel S10;Combustíveis;Obra 303 - Ponte;L;484;7.235,89
+MAT00043;Óleo diesel S10;Combustíveis;Obra 404 - Edificação;L;863;49.230,23
+MAT00050;Tubo PEAD 200mm;Tubulações;Obra 101 - Rodovia;M;1.720;83.216,90
+MAT00051;Tubo PEAD 200mm;Tubulações;Obra 202 - Saneamento;M;1.427;58.012,44
+MAT00052;Tubo PEAD 200mm;Tubulações;Obra 303 - Ponte;M;1.102;18.772,28
+MAT00053;Tubo PEAD 200mm;Tubulações;Obra 404 - Edificação;M;1.099;79.346,83
+MAT00060;Asfalto CAP 50/70;Asfalto;Obra 101 - Rodovia;T;1.786;152.075,54
+MAT00061;Asfalto CAP 50/70;Asfalto;Obra 202 - Saneamento;T;1.235;59.016,40
+MAT00062;Asfalto CAP 50/70;Asfalto;Obra 303 - Ponte;T;863;99.132,70
+MAT00063;Asfalto CAP 50/70;Asfalto;Obra 404 - Edificação;T;311;36.998,44
+MAT00070;EPI - Capacete;EPI;Obra 101 - Rodovia;UN;746;43.438,84
+MAT00071;EPI - Capacete;EPI;Obra 202 - Saneamento;UN;1.602;45.905,86
+MAT00072;EPI - Capacete;EPI;Obra 303 - Ponte;UN;1.367;64.123,03
+MAT00073;EPI - Capacete;EPI;Obra 404 - Edificação;UN;1.728;74.732,06
+MAT00080;Madeira para forma;Madeira;Obra 101 - Rodovia;M3;1.234;126.519,87
+MAT00081;Madeira para forma;Madeira;Obra 202 - Saneamento;M3;18;1.494,28
+MAT00082;Madeira para forma;Madeira;Obra 303 - Ponte;M3;1.763;192.075,37
+MAT00083;Madeira para forma;Madeira;Obra 404 - Edificação;M3;906;6.042,36
+MAT00090;Peças de reposição;Manutenção;Obra 101 - Rodovia;UN;793;21.250,74
+MAT00091;Peças de reposição;Manutenção;Obra 202 - Saneamento;UN;1.774;17.174,70
+MAT00092;Peças de reposição;Manutenção;Obra 303 - Ponte;UN;1.108;15.782,66
+MAT00093;Peças de reposição;Manutenção;Obra 404 - Edificação;UN;338;3.289,97

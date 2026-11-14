@@ -1,0 +1,10 @@
+<% const cur = locals.currency || 'BRL'; %>
+<div class="grid kpi-grid">
+  <% kpis.forEach(k => { %>
+    <div class="card kpi <%= k.tone || '' %>">
+      <div class="label"><%= k.label %></div>
+      <div class="value" title="<%= fmt.value(k.value, k.format, cur) %>"><%= fmt.kpi(k.value, k.format, cur) %></div>
+      <div class="meta"><%= k.format === 'currency' ? fmt.value(k.value, k.format, cur) : '' %><%= k.hint ? (k.format === 'currency' ? ' · ' : '') + k.hint : '' %></div>
+    </div>
+  <% }) %>
+</div>

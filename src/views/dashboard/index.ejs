@@ -1,0 +1,62 @@
+<%- include('../partials/layout-start') %>
+
+<% if (!periods.length) { %>
+  <%- include('../partials/empty', { heading: 'Nenhum relatório carregado ainda', text: 'Suba os arquivos .txt exportados do SAP para começar a visualizar os dados.' }) %>
+<% } else { %>
+
+  <% if (highlights.length) { %>
+  <div class="grid grid-4">
+    <% highlights.forEach(k => { %>
+      <a class="card kpi <%= k.tone || '' %>" href="/modulos/<%= k.module %>">
+        <div class="label"><%= k.label %></div>
+        <div class="value" title="<%= fmt.value(k.value, k.format, k.currency) %>"><%= fmt.kpi(k.value, k.format, k.currency) %></div>
+        <div class="meta"><%= fmt.value(k.value, k.format, k.currency) %></div>
+      </a>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <div class="grid grid-3 mt">
+    <div class="card span-2">
+      <div class="card-head"><h2>Receita líquida x Lucro líquido</h2><span class="hint">Últimos 12 períodos (DRE)</span></div>
+      <div class="chart-box"><canvas id="chart-trend" aria-label="Evolução de receita e lucro"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Balanço por grupo</h2><span class="hint">BP</span></div>
+      <div class="chart-box"><canvas id="chart-bp" aria-label="Balanço por grupo"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mt">
+    <div class="card">
+      <div class="card-head"><h2>Aging · contas a receber</h2><a class="hint" href="/modulos/clientes">Ver clientes →</a></div>
+      <div class="chart-box"><canvas id="chart-ar" aria-label="Aging contas a receber"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Aging · contas a pagar</h2><a class="hint" href="/modulos/fornecedores">Ver fornecedores →</a></div>
+      <div class="chart-box"><canvas id="chart-ap" aria-label="Aging contas a pagar"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card mt">
+    <div class="card-head">
+      <h2>Status da carga · <%= fmt.periodFull(filter.periodo) %></h2>
+      <span class="hint"><%= totalCompanies %> empresa(s) cadastrada(s)</span>
+    </div>
+    <div class="status-grid">
+      <% status.forEach(s => { %>
+        <a class="status-item <%= s.companies ? '' : 'off' %>" href="/modulos/<%= s.slug %>">
+          <%- include('../partials/icon', { name: s.icon }) %>
+          <span class="name"><%= s.title %></span>
+          <% if (s.companies) { %>
+            <span class="badge ok" title="<%= fmt.number(s.rows) %> linhas"><%= s.companies %>/<%= totalCompanies %></span>
+          <% } else { %>
+            <span class="badge missing">Pendente</span>
+          <% } %>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-end') %>

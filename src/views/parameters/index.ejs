@@ -1,0 +1,72 @@
+<%- include('../partials/layout-start') %>
+
+<% if (result) { %>
+  <div class="alert alert-ok">
+    <strong>Arquivo importado:</strong> <%= result.fileName %>
+    <ul><% result.items.forEach(i => { %><li><%= i.title %>: <%= fmt.number(i.rows) %> registro(s)<% if (i.skipped) { %> · <%= fmt.number(i.skipped) %> linha(s) incompleta(s) ignorada(s)<% } %></li><% }) %></ul>
+  </div>
+<% } %>
+<% if (error) { %><div class="alert alert-err"><strong>Não foi possível importar.</strong> <%= error %></div><% } %>
+
+<div class="grid grid-3">
+  <div class="card kpi">
+    <div class="label">Tabelas carregadas</div>
+    <div class="value"><%= loaded %> de <%= total %></div>
+    <div class="meta"><%= storage === 'mongo' ? 'Armazenadas no MongoDB Atlas · cache em memória' : 'Cache local (arquivos JSON)' %></div>
+  </div>
+  <div class="card kpi <%= checks.some(c => c.level === 'warn') ? 'warn' : 'pos' %>">
+    <div class="label">Pontos de atenção</div>
+    <div class="value"><%= checks.filter(c => c.level === 'warn').length %></div>
+    <div class="meta">Inconsistências que afetam a classificação</div>
+  </div>
+  <div class="card kpi">
+    <div class="label">Informativos</div>
+    <div class="value"><%= checks.filter(c => c.level === 'info').length %></div>
+    <div class="meta">Diferenças esperadas ou a revisar</div>
+  </div>
+</div>
+
+<% if (checks.length) { %>
+<div class="card mt">
+  <div class="card-head"><h2>Checagens de consistência</h2><span class="hint">Clique para ver as linhas</span></div>
+  <ul class="check-list">
+    <% checks.forEach(c => { %>
+      <li class="<%= c.level %>">
+        <span class="badge <%= c.level === 'warn' ? 'missing' : '' %>"><%= c.level === 'warn' ? 'Atenção' : 'Info' %></span>
+        <a href="/parametros/<%= c.param %>?filtro=<%= c.id %>"><strong><%= c.title %>:</strong> <%= c.text %></a>
+      </li>
+    <% }) %>
+  </ul>
+</div>
+<% } %>
+
+<% groups.forEach(g => { %>
+  <h2 class="section-title"><%= g.name %></h2>
+  <div class="grid grid-2">
+    <% g.tables.forEach(t => { %>
+      <div class="card param-card">
+        <div class="card-head">
+          <h2><%= t.title %></h2>
+          <% if (t.meta) { %><span class="badge ok"><%= fmt.number(t.meta.rows) %> registros</span><% } else { %><span class="badge missing">Não carregado</span><% } %>
+        </div>
+        <p class="note"><%= t.description %></p>
+        <% if (t.meta) { %>
+          <p class="param-meta">
+            <%- include('../partials/icon', { name: 'file' }) %><%= t.meta.fileName %><% if (t.meta.sheet && t.meta.sheet !== 'arquivo') { %> · aba "<%= t.meta.sheet %>"<% } %><br>
+            <%- include('../partials/icon', { name: 'clock' }) %><%= fmt.dateTime(t.meta.updatedAt) %> · <%= t.meta.uploadedBy %>
+          </p>
+        <% } %>
+        <form class="param-upload" method="post" action="/parametros/<%= t.id %>" enctype="multipart/form-data" data-busy>
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <label class="sr-only" for="f-<%= t.id %>">Arquivo para <%= t.title %></label>
+          <input class="input" type="file" name="file" id="f-<%= t.id %>" accept="<%= t.type === 'custom' ? '.xlsx' : '.xlsx,.txt,.csv' %>" required>
+          <button class="btn btn-primary" type="submit"><%- include('../partials/icon', { name: 'upload' }) %><%= t.meta ? 'Atualizar' : 'Importar' %></button>
+          <% if (t.meta) { %><a class="btn btn-ghost" href="/parametros/<%= t.id %>"><%- include('../partials/icon', { name: 'search' }) %>Consultar</a><% } %>
+        </form>
+        <% if (t.id.startsWith('bpc-')) { %><p class="note mt">O arquivo BPC BP_DRE atualiza as duas estruturas (DRE e Balanço) de uma vez.</p><% } %>
+      </div>
+    <% }) %>
+  </div>
+<% }) %>
+
+<%- include('../partials/layout-end') %>

@@ -1,0 +1,31 @@
+Bem;Descricao;Classe;Data_Aquisicao;Valor_Aquisicao;Depreciacao_Acumulada
+IM000001;Escavadeira hidráulica 01;Máquinas pesadas;20/03/2020;1.411.700,65;886.923,11-
+IM000002;Trator de esteira 02;Máquinas pesadas;12/08/2018;1.823.272,24;1.438.083,49-
+IM000003;Caminhão-caçamba 03;Veículos;30/06/2025;2.065.289,06;206.565,63-
+IM000004;Veículo leve 04;Veículos;12/05/2022;130.613,03;54.041,21-
+IM000005;Usina de asfalto 05;Equipamentos;19/08/2019;304.817,91;209.403,61-
+IM000006;Betoneira 06;Equipamentos;05/07/2024;2.096.478,88;416.639,39-
+IM000007;Galpão de apoio 07;Edificações;28/06/2024;355.244,62;71.234,51-
+IM000008;Servidores e notebooks 08;Informática;13/06/2025;1.460.792,65;152.977,26-
+IM000009;Escavadeira hidráulica 09;Máquinas pesadas;11/11/2020;1.331.666,83;750.509,38-
+IM000010;Trator de esteira 10;Máquinas pesadas;23/08/2020;1.859.832,03;1.088.667,07-
+IM000011;Caminhão-caçamba 11;Veículos;22/04/2019;782.054,36;562.622,11-
+IM000012;Veículo leve 12;Veículos;31/01/2019;1.890.426,31;1.401.922,69-
+IM000013;Usina de asfalto 13;Equipamentos;10/09/2021;1.539.004,55;739.463,11-
+IM000014;Betoneira 14;Equipamentos;27/10/2022;839.114,10;308.583,84-
+IM000015;Galpão de apoio 15;Edificações;01/05/2021;109.896,08;56.795,39-
+IM000016;Servidores e notebooks 16;Informática;05/12/2020;1.520.636,98;846.892,12-
+IM000017;Escavadeira hidráulica 17;Máquinas pesadas;17/10/2022;624.816,21;231.451,74-
+IM000018;Trator de esteira 18;Máquinas pesadas;16/04/2019;1.460.144,10;1.053.048,88-
+IM000019;Caminhão-caçamba 19;Veículos;18/04/2023;951.636,50;304.688,84-
+IM000020;Veículo leve 20;Veículos;20/10/2020;883.482,69;503.144,91-
+IM000021;Usina de asfalto 21;Equipamentos;29/11/2022;97.611,88;34.994,95-
+IM000022;Betoneira 22;Equipamentos;05/10/2018;1.409.949,55;1.091.171,21-
+IM000023;Galpão de apoio 23;Edificações;14/03/2024;1.046.878,23;240.468,76-
+IM000024;Servidores e notebooks 24;Informática;30/01/2019;451.878,40;335.269,55-
+IM000025;Escavadeira hidráulica 25;Máquinas pesadas;01/11/2024;2.053.223,38;340.647,97-
+IM000026;Trator de esteira 26;Máquinas pesadas;28/12/2022;1.115.438,31;391.162,32-
+IM000027;Caminhão-caçamba 27;Veículos;17/01/2020;517.506,55;334.080,86-
+IM000028;Veículo leve 28;Veículos;24/08/2019;787.017,89;539.420,24-
+IM000029;Usina de asfalto 29;Equipamentos;21/02/2022;1.449.101,21;631.246,61-
+IM000030;Betoneira 30;Equipamentos;13/05/2021;1.659.570,53;852.041,84-

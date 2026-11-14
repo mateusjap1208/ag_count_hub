@@ -1,0 +1,19 @@
+Apolice;Seguradora;Tipo;Obra;Inicio;Vencimento;Importancia_Segurada;Premio
+AP-3000-002;Seguradora Exemplo A;Seguro Garantia;Obra 101 - Rodovia;29/10/2025;10/08/2026;11.177.967,26;119.835,85
+AP-3000-012;Seguradora Exemplo B;Risco de Engenharia;Obra 101 - Rodovia;19/02/2025;23/03/2027;13.319.459,11;80.920,08
+AP-3000-022;Seguradora Exemplo C;Responsabilidade Civil;Obra 101 - Rodovia;12/06/2025;07/06/2027;11.572.286,28;96.492,26
+AP-3000-102;Seguradora Exemplo B;Seguro Garantia;Obra 202 - Saneamento;17/08/2025;14/07/2026;19.454.499,32;216.389,06
+AP-3000-112;Seguradora Exemplo C;Risco de Engenharia;Obra 202 - Saneamento;21/12/2024;24/09/2026;11.394.274,14;64.247,41
+AP-3000-122;Seguradora Exemplo D;Responsabilidade Civil;Obra 202 - Saneamento;13/01/2026;31/08/2027;6.235.716,44;51.468,49
+AP-3000-202;Seguradora Exemplo C;Seguro Garantia;Obra 303 - Ponte;26/11/2025;22/03/2027;16.832.068,48;101.063,64
+AP-3000-212;Seguradora Exemplo D;Risco de Engenharia;Obra 303 - Ponte;08/01/2025;24/08/2027;4.337.255,77;44.115,64
+AP-3000-222;Seguradora Exemplo E;Responsabilidade Civil;Obra 303 - Ponte;19/04/2026;23/08/2026;1.181.710,98;11.883,80
+AP-3000-302;Seguradora Exemplo D;Seguro Garantia;Obra 404 - Edificação;21/07/2025;29/08/2027;3.393.412,80;17.221,37
+AP-3000-312;Seguradora Exemplo E;Risco de Engenharia;Obra 404 - Edificação;20/07/2025;16/07/2026;9.400.077,06;68.581,18
+AP-3000-322;Seguradora Exemplo A;Responsabilidade Civil;Obra 404 - Edificação;12/02/2026;10/08/2026;19.123.437,80;87.039,85
+AP-3000-402;Seguradora Exemplo E;Seguro Garantia;Obra 505 - Metrô;29/12/2025;17/04/2027;15.251.555,56;64.712,32
+AP-3000-412;Seguradora Exemplo A;Risco de Engenharia;Obra 505 - Metrô;13/03/2025;24/05/2027;14.550.090,61;115.899,71
+AP-3000-422;Seguradora Exemplo B;Responsabilidade Civil;Obra 505 - Metrô;20/11/2025;07/09/2026;18.248.478,45;165.683,21
+AP-3000-502;Seguradora Exemplo A;Seguro Garantia;Obra 606 - Barragem;30/04/2025;14/03/2027;20.411.945,25;231.681,95
+AP-3000-512;Seguradora Exemplo B;Risco de Engenharia;Obra 606 - Barragem;19/08/2025;08/08/2026;14.985.300,49;71.738,27
+AP-3000-522;Seguradora Exemplo C;Responsabilidade Civil;Obra 606 - Barragem;07/10/2025;11/05/2027;8.169.444,64;39.196,10

@@ -1,0 +1,19 @@
+    </main>
+  </div>
+</div>
+
+<!-- Aviso: arquivo sem competência no nome (uploads) -->
+<dialog class="modal" id="competencia-dialog" aria-labelledby="cd-title" aria-describedby="cd-text">
+  <div class="modal-icon" aria-hidden="true"><%- include('icon', { name: 'clock' }) %></div>
+  <h2 id="cd-title">Competência não encontrada no nome do arquivo</h2>
+  <p id="cd-text">O nome do arquivo <strong data-cd-file></strong> precisa ter a competência (mês e ano), por exemplo <code>ZL0190 - ESTOQUE_10.2026.xlsx</code> ou <code>FGI0 - Moeda da empresa 31.10.2026.xlsx</code>.</p>
+  <p class="note">Renomeie o arquivo ou informe a competência no campo destacado.</p>
+  <form method="dialog" class="modal-actions"><button class="btn btn-primary" value="ok" autofocus>Informar a competência</button></form>
+</dialog>
+<% if (typeof chartData !== 'undefined' && chartData) { %>
+<script type="application/json" id="page-data"><%- JSON.stringify(chartData).replace(/</g, '\\u003c') %></script>
+<script src="/vendor/chart.js/chart.umd.min.js"></script>
+<% } %>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
