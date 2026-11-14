@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 24,
+    data: '2026-11-14',
+    titulo: 'Olho à direita do valor',
+    itens: ['No BP, na DRE, no Capital Empregado e em Adiantamentos, o olho das contas fica à direita do número, com os valores alinhados.'],
+  },
+  {
     build: 23,
     data: '2026-11-14',
     titulo: 'Tema no topo da tela',

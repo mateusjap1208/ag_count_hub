@@ -1024,3 +1024,8 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 :root[data-theme="dark"] .tema-svg .tema-estrelas { opacity: 1; transform: scale(1); transition-delay: .2s; }
 :root[data-theme="dark"] .theme-btn:hover .tema-lua { transform: rotate(-18deg); }
 @media (prefers-reduced-motion: reduce) { .tema-svg * { transition: opacity .2s ease !important; } }
+/* Olho à direita do valor */
+.eye-btn { margin-right: 0; margin-left: 8px; }
+/* Números alinhados: todas as colunas de valor da demonstração reservam o espaço do olho à direita */
+.statement.tree td.num { position: relative; padding-right: 46px; }
+.statement.tree td.num .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); margin: 0; }

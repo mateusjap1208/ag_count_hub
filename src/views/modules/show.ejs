@@ -146,7 +146,7 @@
                 <% if (l.kind === 'section') { %>
                   <td colspan="<%= comparando ? periodos.length + 2 : 1 %>"></td>
                 <% } else { %>
-                  <% (comparando ? l.values : [l.value]).forEach((v, ci) => { %><td class="num <%= v < 0 ? 'neg' : '' %>"><% if (ci === 0 && l.lista.length) { %><button class="eye-btn" type="button" aria-label="Ver as <%= l.lista.length %> contas contábeis de <%= l.label %>" data-eye><svg class="eye" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="eye-lid-closed" d="M3 12c2.5 3 5.5 4.5 9 4.5s6.5-1.5 9-4.5M6 15.2l-1.4 1.9M12 16.5v2.3M18 15.2l1.4 1.9"/><g class="eye-open"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle class="eye-pupil" cx="12" cy="12" r="3"/></g></svg></button><template class="eye-data">
+                  <% (comparando ? l.values : [l.value]).forEach((v, ci) => { %><td class="num <%= v < 0 ? 'neg' : '' %>"><%= cel(v) %><% if (ci === 0 && l.lista.length) { %><button class="eye-btn" type="button" aria-label="Ver as <%= l.lista.length %> contas contábeis de <%= l.label %>" data-eye><svg class="eye" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="eye-lid-closed" d="M3 12c2.5 3 5.5 4.5 9 4.5s6.5-1.5 9-4.5M6 15.2l-1.4 1.9M12 16.5v2.3M18 15.2l1.4 1.9"/><g class="eye-open"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle class="eye-pupil" cx="12" cy="12" r="3"/></g></svg></button><template class="eye-data">
                     <div class="pop-head"><strong><%= l.label %></strong><span><%= l.lista.length %> conta<%= l.lista.length > 1 ? 's' : '' %> contábe<%= l.lista.length > 1 ? 'is' : 'l' %></span></div>
                     <div class="pop-scroll"><table class="pop-table">
                       <% if (comparando) { %><thead><tr><th>Conta</th><% periodos.forEach(p => { %><th class="num"><%= dataFim(p) %></th><% }) %></tr></thead><% } %>
@@ -157,7 +157,7 @@
                       </tbody>
                       <tfoot><tr><td>Total</td><% (comparando ? l.values : [l.value]).forEach(tv => { %><td class="num"><%= cel(tv) %></td><% }) %></tr></tfoot>
                     </table></div>
-                  </template><% } %><%= cel(v) %></td><% }) %>
+                  </template><% } %></td><% }) %>
                   <% if (comparando) { const d = variacao(l); %>
                     <td class="num var <%= d == null ? '' : d < 0 ? 'neg' : 'pos' %>"><%= d == null ? '—' : fmt.currency(d, cur) %></td>
                     <td class="num var"><%= pct(l) %></td>
