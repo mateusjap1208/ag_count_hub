@@ -19,7 +19,7 @@
 
 <% if ((locals.novidades && locals.novidades.pendente) && currentPath !== '/novidades') { %>
 <!-- Aviso de nova versão publicada (some ao clicar em "Entendi") -->
-<aside class="notif-toast" id="notif-toast" role="status" aria-live="polite">
+<aside class="notif-toast" id="notif-toast" role="status" aria-live="polite" data-versao="<%= locals.novidades.atual %>">
   <div class="notif-head">
     <span class="notif-icon" aria-hidden="true"><%- include('icon', { name: 'sparkle' }) %></span>
     <div>

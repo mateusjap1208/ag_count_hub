@@ -82,6 +82,8 @@ async function read(buffer, fileName) {
           tipoMaterial: str(r[map.tipoMaterial]) || 'Não informado',
           grupoMercadorias: str(r[map.grupoMercadorias]),
           classe: classe ? `${classe}${classes.get(classe) ? ' · ' + classes.get(classe) : ''}` : 'Não informada',
+          // Classe de avaliação "Materiais de Terceiros" (T025) = estoque de terceiros; o resto é da empresa
+          posse: /terceiros/i.test(classes.get(classe) || '') ? 'Estoque de terceiros' : 'Estoque próprio',
           centro: str(r[map.centro]),
           deposito: str(r[map.deposito]),
           unidade: str(r[map.unidade]),

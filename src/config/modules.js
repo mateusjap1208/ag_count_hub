@@ -37,6 +37,7 @@ const sumKeys = (map = {}, predicate) =>
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const { fagll03 } = require('./fagll03');
 const seguros = require('./seguros');
+const adiantamentos = require('./adiantamentos');
 const ratio = (a, b) => (b ? a / b : null);
 const g = (s, key) => (s.breakdowns && s.breakdowns[key]) || {};
 
@@ -233,7 +234,7 @@ const modules = [
       { key: 'parcelasAno', label: 'Parcelas no ano', type: 'number', format: 'currency' },
     ],
     breakdowns: [
-      { id: 'tipo', label: 'Passivo por tipo de contrato', field: 'tipo', value: 'passivoFinal', chart: 'bar' },
+      { id: 'tipo', label: 'Passivo por tipo de contrato', field: 'tipo', value: 'passivoFinal', chart: 'doughnut' },
       { id: 'tipoDU', label: 'Direito de uso por tipo de contrato', field: 'tipo', value: 'ativoFinal', chart: 'doughnut' },
       { id: 'vencimento', label: 'Passivo por ano de término do contrato', field: 'anoFim', value: 'passivoFinal', chart: 'bar', sortKeys: true },
       { id: 'centroTop', label: 'Maiores passivos por centro de lucro', field: 'centroLucro', value: 'passivoFinal', chart: 'hbar', top: 10 },
@@ -281,36 +282,7 @@ const modules = [
     },
   },
   fagll03('clientes'),
-  {
-    slug: 'adiantamentos',
-    menu: 'Adiantamentos',
-    title: 'Adiantamentos',
-    icon: 'arrow',
-    columns: [
-      { key: 'codigo', label: 'Código', type: 'string', required: true, aliases: ['cod', 'cod_parceiro'] },
-      { key: 'nome', label: 'Favorecido', type: 'string', required: true, aliases: ['favorecido', 'parceiro', 'razao_social'] },
-      { key: 'tipo', label: 'Tipo', type: 'string', required: true, aliases: ['categoria', 'natureza'] },
-      { key: 'obra', label: 'Obra', type: 'string', aliases: ['contrato', 'centro_custo', 'projeto'] },
-      { key: 'data', label: 'Data', type: 'date', required: true, aliases: ['data_lancamento', 'dt_lanc', 'data_documento'] },
-      { key: 'valor', label: 'Valor', type: 'number', format: 'currency', required: true, aliases: ['saldo', 'montante'] },
-    ],
-    breakdowns: [
-      { id: 'tipo', label: 'Saldo por tipo', field: 'tipo', value: 'valor', chart: 'doughnut' },
-      { id: 'aging', label: 'Antiguidade', aging: { dateField: 'data', scheme: 'age' }, value: 'valor', chart: 'bar' },
-      { id: 'top', label: 'Maiores saldos', field: 'nome', value: 'valor', chart: 'hbar', top: 10 },
-    ],
-    kpis: (s) => {
-      const ag = g(s, 'aging');
-      const total = s.totals?.valor?.sum ?? 0;
-      const antigo = (ag['181-365 dias'] || 0) + (ag['> 365 dias'] || 0);
-      return [
-        { label: 'Total adiantado', value: total, format: 'currency' },
-        { label: 'Acima de 180 dias', value: antigo, format: 'currency', tone: antigo > 0 ? 'neg' : undefined },
-        { label: 'Lançamentos', value: s.count, format: 'number' },
-        { label: 'Tipos', value: Object.keys(g(s, 'tipo')).length, format: 'number' },
-      ];
-    },
-  },
+  adiantamentos,
   /* ------------------------------------------------------------------
    * Estoque: ZL0190 (SAP), posição por centro × depósito × material.
    * Moedas como no FGI0 (grupo = M2/USD; empresa = MI). Análise de giro pelo último movimento.
@@ -323,11 +295,16 @@ const modules = [
     source: 'estoque',
     currencyMode: 'grupo-empresa',
     // Filtro próprio da tela (recalcula indicadores e tabela só com os itens do status escolhido)
-    rowFilters: [{ param: 'giro', field: 'statusGiro', label: 'Status Giro', options: ['Saudável', 'Atenção', 'Baixo Giro', 'Obsoleto', 'Sem dados'] }],
+    rowFilters: [
+      // Estoque próprio (da empresa, o que compõe o BP) × estoque de terceiros (classe "Materiais de Terceiros")
+      { param: 'posse', field: 'posse', label: 'Propriedade', options: ['Estoque próprio', 'Estoque de terceiros'] },
+      { param: 'giro', field: 'statusGiro', label: 'Status Giro', options: ['Saudável', 'Atenção', 'Baixo Giro', 'Obsoleto', 'Sem dados'] },
+    ],
     sumFields: ['entradas', 'saidas'],
     columns: [
       { key: 'material', label: 'Material', type: 'string' },
       { key: 'descricao', label: 'Descrição', type: 'string' },
+      { key: 'posse', label: 'Propriedade', type: 'string' },
       { key: 'statusGiro', label: 'Status Giro', type: 'badge' },
       { key: 'diasSemMov', label: 'Dias sem mov.', type: 'number', format: 'number' },
       { key: 'ultimoMovimento', label: 'Último movimento', type: 'date' },
@@ -341,6 +318,7 @@ const modules = [
       { key: 'valor', label: 'Valor total', type: 'number', format: 'currency' },
     ],
     breakdowns: [
+      { id: 'posse', label: 'Estoque próprio × estoque de terceiros', field: 'posse', value: 'valor', chart: 'doughnut', order: ['Estoque próprio', 'Estoque de terceiros'] },
       { id: 'giro', label: 'Valor por status de giro', field: 'statusGiro', value: 'valor', chart: 'bar', order: ['Saudável', 'Atenção', 'Baixo Giro', 'Obsoleto', 'Sem dados'] },
       { id: 'classe', label: 'Maiores classes de avaliação', field: 'classe', value: 'valor', chart: 'hbar', top: 10 },
       { id: 'tipo', label: 'Valor por tipo de material', field: 'tipoMaterial', value: 'valor', chart: 'doughnut', top: 8 },
@@ -352,8 +330,11 @@ const modules = [
       const gg = g(s, 'giro');
       const total = t('valor');
       const semGiro = (gg['Baixo Giro'] || 0) + (gg.Obsoleto || 0);
+      const posse = g(s, 'posse');
       return [
-        { label: 'Valor em estoque', value: total, format: 'currency' },
+        { label: 'Valor em estoque', value: total, format: 'currency', hint: 'Próprio + terceiros' },
+        { label: 'Estoque próprio', value: posse['Estoque próprio'] || 0, format: 'currency', hint: 'Pertence à empresa' },
+        { label: 'Estoque de terceiros', value: posse['Estoque de terceiros'] || 0, format: 'currency', hint: 'Classe "Materiais de Terceiros"' },
         { label: 'Itens obsoletos', value: gg.Obsoleto || 0, format: 'currency', tone: gg.Obsoleto ? 'neg' : undefined, hint: 'Sem movimento há mais de 365 dias' },
         { label: 'Sem giro > 180 dias', value: semGiro, format: 'currency', tone: semGiro ? 'warn' : undefined, hint: `${total ? ((semGiro / total) * 100).toFixed(1).replace('.', ',') : '0,0'}% do estoque` },
         { label: 'Entradas no período', value: t('entradas'), format: 'currency' },

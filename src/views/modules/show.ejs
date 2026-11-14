@@ -202,6 +202,34 @@
     <% }) %>
   </div>
 
+  <% if (view.contratosSeguro) { const cs = view.contratosSeguro; %>
+    <div class="card mt timeline-seguro" id="timeline-seguro" data-moeda="<%= cur %>">
+      <div class="card-head">
+        <h2>Linha do tempo por contrato</h2>
+        <span class="hint">Evolução mensal da apropriação do prêmio</span>
+      </div>
+      <% if (!cs.length) { %>
+        <p class="hint">Nenhum contrato com saldo a apropriar ou apropriação no ano nesta seleção.</p>
+      <% } else { %>
+        <div class="tl-picker">
+          <label for="tl-contrato">Contrato</label>
+          <select class="select" id="tl-contrato">
+            <% cs.forEach((c, i) => { %>
+              <option value="<%= c.empresa %>|<%= c.contrato %>" <%= i === 0 ? 'selected' : '' %>><%= c.contrato %> · <%= c.denominacao %> · <%= c.empresa %> · a apropriar <%= fmt.currency(c.aApropriar, cur) %></option>
+            <% }) %>
+          </select>
+          <span class="hint"><%= fmt.number(cs.length) %> contratos com saldo ou apropriação no ano, do maior saldo para o menor</span>
+        </div>
+        <div class="tl-body" aria-live="polite">
+          <div class="tl-resumo" data-tl-resumo></div>
+          <div class="tl-barra" data-tl-barra></div>
+          <div class="chart-box"><canvas id="chart-tl" aria-label="Apropriação mensal do contrato"></canvas></div>
+          <div class="table-wrap tl-tabela"><table><thead><tr><th>Mês</th><th class="num">Apropriado no mês</th><th class="num">Acumulado</th><th class="num">Saldo a apropriar</th><th class="num">% apropriado</th></tr></thead><tbody data-tl-linhas></tbody></table></div>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+
   <div class="card mt" id="data-table" data-endpoint="/api/modulos/<%= slug %>/linhas" data-currency="<%= cur %>" data-columns="<%= JSON.stringify(columns) %>">
     <div class="card-head">
       <h2>Detalhamento <span class="hint">(<%= fmt.number(view.count) %> linhas<%= showCurrency ? ' · ' + cur : '' %>)</span></h2>

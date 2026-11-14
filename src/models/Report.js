@@ -153,10 +153,17 @@ async function importFgi0({ buffer, fileName, user, period: periodIn, currencyTy
   const built = await fgi0.buildReports(data.rows);
   const batch = `fgi0:${period}:${currencyType}`;
   const uploadedBy = user?.name || user?.email || 'sistema';
+  // Classificação N4 do Plano de Contas (conta do razão ou do grupo), para módulos derivados do BP (Adiantamentos)
+  const plano = await Parameter.all('plano-contas').catch(() => []);
+  const n4Conta = new Map();
+  for (const p of plano) { if (!n4Conta.has(String(p.conta))) n4Conta.set(String(p.conta), p.n4); }
+  for (const p of plano) { if (!n4Conta.has(String(p.contaGrupo))) n4Conta.set(String(p.contaGrupo), p.n4); }
+  const planoN4 = (c) => n4Conta.get(String(c)) || '';
   const items = [];
   for (const [company, comp] of built.byCompany) {
     for (const slug of FGI0_MODULES) {
-      const rows = slug === 'bp' ? comp.bp : slug === 'dre' ? comp.dre : comp.ce;
+      const def0 = getModule(slug);
+      const rows = def0.fromBp ? def0.fromBp(comp.bp, planoN4) : slug === 'bp' ? comp.bp : slug === 'dre' ? comp.dre : comp.ce;
       if (!rows.length) continue;
       const def = getModule(slug);
       items.push({

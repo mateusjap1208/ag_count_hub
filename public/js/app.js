@@ -67,6 +67,48 @@
     window.addEventListener('resize', ajustar);
   }
 
+  /* ---------- Som de aviso quando chega uma nova versão ----------
+     Toca uma vez por versão neste navegador (não repete a cada troca de tela). O navegador só libera som
+     depois de alguma interação: se estiver bloqueado, toca no primeiro clique ou tecla da pessoa. */
+  const toastVersao = document.getElementById('notif-toast');
+  if (toastVersao && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const versao = toastVersao.dataset.versao || '';
+    let jaTocou = false;
+    try { jaTocou = localStorage.getItem('agch.somVersao') === versao; } catch { /* armazenamento indisponível */ }
+    const tocar = async () => {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return false;
+      const ctx = new Ctx();
+      if (ctx.state === 'suspended') { try { await ctx.resume(); } catch { /* bloqueado */ } }
+      if (ctx.state !== 'running') { ctx.close(); return false; }
+      // "Plim" suave: duas notas curtas (Mi e Lá), volume baixo
+      [[659.25, 0], [880, 0.14]].forEach(([freq, atraso]) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.value = freq;
+        const t = ctx.currentTime + atraso;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.12, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+        o.connect(g).connect(ctx.destination);
+        o.start(t);
+        o.stop(t + 0.5);
+      });
+      setTimeout(() => ctx.close(), 900);
+      try { localStorage.setItem('agch.somVersao', versao); } catch { /* sem armazenamento: pode tocar de novo */ }
+      return true;
+    };
+    if (!jaTocou) {
+      tocar().then((ok) => {
+        if (ok) return;
+        const naInteracao = () => { tocar(); window.removeEventListener('pointerdown', naInteracao); window.removeEventListener('keydown', naInteracao); };
+        window.addEventListener('pointerdown', naInteracao, { once: true });
+        window.addEventListener('keydown', naInteracao, { once: true });
+      });
+    }
+  }
+
   /* ---------- Aviso de nova versão: "Entendi" marca como visto sem recarregar a página ---------- */
   const notifForm = $('[data-notif-form]');
   if (notifForm) {
@@ -259,6 +301,71 @@
       grid = { color: cssVar('--chart-grid') || '#EEF1F6' };
     };
 
+    /* ---- Visual moderno: degradês suaves (mesma cor, da forte para a clara), cantos arredondados,
+       animação de entrada em cascata e tooltips limpos. As cores continuam fortes o bastante para ler. ---- */
+    const reduzMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const rgba = (hex, a) => {
+      const h = hex.replace('#', '');
+      const n = parseInt(h.length === 3 ? h.split('').map((x) => x + x).join('') : h, 16);
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+    };
+    /** Degradê na direção da barra (vertical: de cima para baixo; horizontal: da direita para a esquerda) */
+    const degrade = (cor, horizontal = false, de = 1, ate = 0.45) => (ctx) => {
+      const { chart } = ctx;
+      const area = chart.chartArea;
+      if (!area) return cor;
+      const g = horizontal
+        ? chart.ctx.createLinearGradient(area.right, 0, area.left, 0)
+        : chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+      g.addColorStop(0, rgba(cor, de));
+      g.addColorStop(1, rgba(cor, ate));
+      return g;
+    };
+    /** Preenchimento de área (linha): cor translúcida que some até a base */
+    const area = (cor) => (ctx) => {
+      const { chart } = ctx;
+      const a = chart.chartArea;
+      if (!a) return rgba(cor, 0.15);
+      const g = chart.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+      g.addColorStop(0, rgba(cor, 0.32));
+      g.addColorStop(1, rgba(cor, 0.02));
+      return g;
+    };
+    const entrada = (passo = 70) => (reduzMovimento ? false : {
+      duration: 900,
+      easing: 'easeOutQuart',
+      delay: (ctx) => (ctx.type === 'data' && ctx.mode === 'default' ? ctx.dataIndex * passo : 0),
+    });
+    Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(6, 23, 43, .92)';
+    Chart.defaults.plugins.tooltip.padding = 10;
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
+    Chart.defaults.plugins.tooltip.boxPadding = 4;
+    Chart.defaults.plugins.tooltip.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+
+    /** Total no centro do gráfico de rosca */
+    const centroRosca = {
+      id: 'centroRosca',
+      afterDraw(chart, _args, opts) {
+        if (!opts || !opts.texto) return;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data.length) return;
+        const { x, y } = meta.data[0];
+        const c = chart.ctx;
+        c.save();
+        c.textAlign = 'center';
+        c.fillStyle = cssVar('--chart-text') || '#283344';
+        c.font = "500 11px 'Montserrat', system-ui, sans-serif";
+        c.globalAlpha = 0.75;
+        c.fillText(opts.rotulo || 'Total', x, y - 9);
+        c.globalAlpha = 1;
+        c.font = "700 15px 'Montserrat', system-ui, sans-serif";
+        c.fillText(opts.texto, x, y + 11);
+        c.restore();
+      },
+    };
+
     function render(id, c) {
       const el = document.getElementById(id);
       if (!el || !c || !c.labels || !c.labels.length) {
@@ -268,45 +375,72 @@
       const isCount = !!c.isCount;
       const code = c.currency || data.currency || 'BRL';
       const money = (v) => moneyFmt(code).format(v);
-      const valueAxis = { grid, ticks: { callback: (v) => (isCount ? num.format(v) : moneyFmt(code, true).format(v)) } };
+      const curto = (v) => (isCount ? num.format(v) : moneyFmt(code, true).format(v));
+      const valueAxis = { grid, border: { display: false }, ticks: { callback: curto } };
       const tooltip = isCount ? tooltipCount : tooltipMoneyIn(code);
 
+      // Rosca: fatias com espaço entre si, cantos arredondados e o total no centro
       if (c.type === 'doughnut') {
+        const valores = c.values.map(Math.abs);
+        const total = valores.reduce((a, v) => a + v, 0);
         return new Chart(el, {
           type: 'doughnut',
-          data: { labels: c.labels, datasets: [{ data: c.values.map(Math.abs), backgroundColor: PALETTE, borderWidth: 2, borderColor: cssVar('--surface') || '#fff' }] },
+          plugins: [centroRosca],
+          data: { labels: c.labels, datasets: [{ data: valores, backgroundColor: PALETTE.map((p) => rgba(p, 0.92)), hoverBackgroundColor: PALETTE, borderWidth: 0, borderRadius: 6, spacing: 3, hoverOffset: 10 }] },
           options: {
-            cutout: '62%',
+            cutout: '68%',
+            animation: reduzMovimento ? false : { animateRotate: true, animateScale: true, duration: 1000, easing: 'easeOutQuart' },
+            layout: { padding: 8 },
             plugins: {
               legend: { position: 'right' },
-              tooltip: { callbacks: { label: (x) => ` ${x.label}: ${isCount ? num.format(x.parsed) : money(x.parsed)}` } },
+              tooltip: { callbacks: { label: (x) => ` ${x.label}: ${isCount ? num.format(x.parsed) : money(x.parsed)} (${total ? ((x.parsed / total) * 100).toFixed(1).replace('.', ',') : '0'}%)` } },
+              centroRosca: { texto: curto(total) },
             },
           },
         });
       }
-      if (c.type === 'line') {
+      // Área: evolução no tempo (movimento diário, fluxo mensal)
+      if (c.type === 'line' || c.type === 'area') {
+        const cor = PALETTE[0];
         return new Chart(el, {
-          type: 'bar',
+          type: 'line',
           data: {
-            labels: c.labels.map(fmtDate),
-            datasets: [{ label: 'Movimento', data: c.values, backgroundColor: c.values.map((v) => (v < 0 ? NEG : PALETTE[0])), borderRadius: 3 }],
+            labels: c.type === 'line' ? c.labels.map(fmtDate) : c.labels,
+            datasets: [{
+              label: c.label || 'Valor', data: c.values, fill: true, tension: 0.4,
+              borderColor: cor, borderWidth: 2.5, backgroundColor: area(cor),
+              pointRadius: c.values.length > 24 ? 0 : 3, pointHoverRadius: 6, pointBackgroundColor: cssVar('--surface') || '#fff', pointBorderColor: cor, pointBorderWidth: 2,
+            }],
           },
-          options: { plugins: { legend: { display: false }, tooltip }, scales: { x: { grid: { display: false } }, y: valueAxis } },
+          options: {
+            interaction: { mode: 'index', intersect: false },
+            animation: reduzMovimento ? false : { duration: 1100, easing: 'easeOutQuart' },
+            plugins: { legend: { display: false }, tooltip },
+            scales: { x: { grid: { display: false }, border: { display: false } }, y: valueAxis },
+          },
         });
       }
+      // Barras: degradê da própria cor, cantos arredondados, entrada em cascata
       const horizontal = c.type === 'hbar';
+      const corDe = (v, i) => (v < 0 ? NEG : (horizontal ? PALETTE[0] : PALETTE[i % PALETTE.length]));
       return new Chart(el, {
         type: 'bar',
         data: {
           labels: c.labels,
-          datasets: [{ data: c.values, backgroundColor: c.values.map((v, i) => (v < 0 ? NEG : (horizontal ? PALETTE[0] : PALETTE[i % PALETTE.length]))), borderRadius: 5, maxBarThickness: 46 }],
+          datasets: [{
+            data: c.values,
+            backgroundColor: (ctx) => degrade(corDe(c.values[ctx.dataIndex] ?? 0, ctx.dataIndex), horizontal)(ctx),
+            hoverBackgroundColor: (ctx) => corDe(c.values[ctx.dataIndex] ?? 0, ctx.dataIndex),
+            borderRadius: 8, borderSkipped: false, maxBarThickness: horizontal ? 22 : 46,
+          }],
         },
         options: {
           indexAxis: horizontal ? 'y' : 'x',
+          animation: entrada(horizontal ? 60 : 80),
           plugins: { legend: { display: false }, tooltip },
           scales: horizontal
-            ? { x: valueAxis, y: { grid: { display: false }, ticks: { callback(v) { const l = this.getLabelForValue(v); return l.length > 28 ? l.slice(0, 27) + '…' : l; } } } }
-            : { x: { grid: { display: false } }, y: valueAxis },
+            ? { x: valueAxis, y: { grid: { display: false }, border: { display: false }, ticks: { callback(v) { const l = this.getLabelForValue(v); return l.length > 28 ? l.slice(0, 27) + '…' : l; } } } }
+            : { x: { grid: { display: false }, border: { display: false } }, y: valueAxis },
         },
       });
     }
@@ -320,19 +454,32 @@
     if (data.trend) {
       const el = $('#chart-trend');
       if (el && data.trend.labels.length) {
+        // Receita em área com degradê; lucro em linha por cima (pontos verdes/vermelhos conforme o sinal)
+        const poucos = data.trend.labels.length < 3;
         new Chart(el, {
-          type: 'bar',
+          type: 'line',
           data: {
             labels: data.trend.labels,
             datasets: [
-              { type: 'bar', label: 'Receita líquida', data: data.trend.receita, backgroundColor: PALETTE[0], borderRadius: 5, maxBarThickness: 40, order: 2 },
-              { type: 'line', label: 'Lucro líquido', data: data.trend.lucro, borderColor: PALETTE[1], backgroundColor: PALETTE[1], tension: .35, pointRadius: 4, order: 1 },
+              {
+                type: poucos ? 'bar' : 'line', label: 'Receita líquida', data: data.trend.receita, order: 2,
+                fill: true, tension: 0.4, borderColor: PALETTE[0], borderWidth: 2.5,
+                backgroundColor: poucos ? degrade(PALETTE[0]) : area(PALETTE[0]), borderRadius: 8, maxBarThickness: 56,
+                pointRadius: 3, pointHoverRadius: 6, pointBackgroundColor: cssVar('--surface') || '#fff', pointBorderColor: PALETTE[0], pointBorderWidth: 2,
+              },
+              {
+                type: 'line', label: 'Lucro líquido', data: data.trend.lucro, order: 1, tension: 0.4,
+                borderColor: PALETTE[1], borderWidth: 2.5, borderDash: [6, 4],
+                pointRadius: 5, pointHoverRadius: 7,
+                pointBackgroundColor: data.trend.lucro.map((v) => (v < 0 ? NEG : '#009360')), pointBorderColor: cssVar('--surface') || '#fff', pointBorderWidth: 2,
+              },
             ],
           },
           options: {
             interaction: { mode: 'index', intersect: false },
+            animation: reduzMovimento ? false : { duration: 1100, easing: 'easeOutQuart' },
             plugins: { legend: { position: 'bottom' }, tooltip: tooltipMoneyIn(data.currency) },
-            scales: { x: { grid: { display: false } }, y: { grid, ticks: { callback: (v) => moneyFmt(data.currency, true).format(v) } } },
+            scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid, border: { display: false }, ticks: { callback: (v) => moneyFmt(data.currency, true).format(v) } } },
           },
         });
       } else if (el) el.parentElement.innerHTML = '<p class="note">Sem dados de DRE carregados.</p>';
@@ -347,6 +494,105 @@
       Object.values(Chart.instances).forEach((ch) => ch.destroy());
       drawCharts();
     });
+  }
+
+  /* ---------- Seguros e Garantias: linha do tempo de apropriação por contrato ---------- */
+  const tlCard = $('#timeline-seguro');
+  const tlSelect = $('#tl-contrato');
+  if (tlCard && tlSelect) {
+    const moeda = tlCard.dataset.moeda || 'BRL';
+    const money = (v) => moneyFmt(moeda).format(v);
+    const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const rotulo = (k) => { const [y, m] = k.split('-'); return `${MES[+m - 1]}/${y.slice(2)}`; };
+    const resumo = $('[data-tl-resumo]', tlCard);
+    const barra = $('[data-tl-barra]', tlCard);
+    const corpo = $('[data-tl-linhas]', tlCard);
+    let grafico = null;
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+    const desenhar = (tl) => {
+      // Resumo do contrato
+      resumo.replaceChildren(
+        ...[
+          ['Contrato', `${tl.contrato} · ${tl.denominacao}`],
+          ['Seguradora', tl.seguradora],
+          ['Vigência', `${fmtDate(tl.inicio)} a ${fmtDate(tl.fim)}`],
+          ['Prêmio total', money(tl.premio)],
+          [`Apropriado até ${rotulo(tl.competencia)}`, `${money(tl.acumuladoAteCompetencia)} (${String(tl.pctAteCompetencia).replace('.', ',')}%)`],
+          ['A apropriar', money(tl.premio - tl.acumuladoAteCompetencia)],
+        ].map(([k, v]) => { const d = el('div', 'tl-item'); d.append(el('span', null, k), el('strong', null, v)); return d; }),
+      );
+      // Barra de progresso do contrato, com a competência marcada
+      const pct = Math.max(0, Math.min(100, tl.pctAteCompetencia));
+      const trilho = el('div', 'tl-trilho');
+      const feito = el('div', 'tl-feito');
+      feito.style.setProperty('--tl-pct', `${pct}%`);
+      const marca = el('div', 'tl-marca', `${String(pct).replace('.', ',')}% em ${rotulo(tl.competencia)}`);
+      marca.style.setProperty('--tl-pct', `${pct}%`);
+      trilho.append(feito, marca);
+      const pontas = el('div', 'tl-pontas');
+      pontas.append(el('span', null, rotulo(tl.meses[0].mes)), el('span', null, rotulo(tl.meses[tl.meses.length - 1].mes)));
+      barra.replaceChildren(trilho, pontas);
+      // Tabela mês a mês (a competência destacada)
+      corpo.replaceChildren(...tl.meses.map((x) => {
+        const tr = el('tr', `tl-${x.fase}`);
+        tr.append(el('td', null, rotulo(x.mes) + (x.fase === 'atual' ? ' · competência' : '')), el('td', 'num', money(x.apropriado)), el('td', 'num', money(x.acumulado)), el('td', 'num', money(x.saldo)), el('td', 'num', `${String(x.pct).replace('.', ',')}%`));
+        return tr;
+      }));
+      corpo.querySelector('.tl-atual')?.scrollIntoView({ block: 'nearest' });
+      // Gráfico: barras do mês (realizado mais forte, futuro mais claro) + linha do acumulado em %
+      if (!window.Chart) return;
+      grafico?.destroy();
+      const azul = '#3074F6';
+      grafico = new Chart($('#chart-tl'), {
+        data: {
+          labels: tl.meses.map((x) => rotulo(x.mes)),
+          datasets: [
+            {
+              type: 'bar', label: 'Apropriado no mês', data: tl.meses.map((x) => x.apropriado), yAxisID: 'y', order: 2,
+              backgroundColor: tl.meses.map((x) => (x.fase === 'futuro' ? 'rgba(48, 116, 246, .28)' : x.fase === 'atual' ? '#06172B' : 'rgba(48, 116, 246, .85)')),
+              borderRadius: 6, maxBarThickness: 28,
+            },
+            {
+              type: 'line', label: '% apropriado (acumulado)', data: tl.meses.map((x) => x.pct), yAxisID: 'pct', order: 1,
+              borderColor: '#00A1D4', borderWidth: 2.5, tension: 0.35, pointRadius: 0, pointHoverRadius: 5, fill: false,
+            },
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          animation: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 900, easing: 'easeOutQuart' },
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: (c) => (c.dataset.yAxisID === 'pct' ? ` ${c.dataset.label}: ${String(c.parsed.y).replace('.', ',')}%` : ` ${c.dataset.label}: ${money(c.parsed.y)}`) } },
+          },
+          scales: {
+            x: { grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 14 } },
+            y: { border: { display: false }, ticks: { callback: (v) => moneyFmt(moeda, true).format(v) } },
+            pct: { position: 'right', min: 0, max: 100, grid: { display: false }, border: { display: false }, ticks: { callback: (v) => `${v}%` } },
+          },
+        },
+      });
+    };
+
+    const carregar = async () => {
+      const [empresa, contrato] = tlSelect.value.split('|');
+      tlCard.classList.add('carregando');
+      try {
+        const r = await fetch(`/api/seguros/linha-do-tempo?empresa=${encodeURIComponent(empresa)}&contrato=${encodeURIComponent(contrato)}`, { headers: { Accept: 'application/json' } });
+        if (r.status === 401) { window.location.href = '/login'; return; }
+        const tl = await r.json();
+        if (!r.ok) throw new Error(tl.error || 'Erro ao carregar');
+        desenhar(tl);
+      } catch (e) {
+        resumo.replaceChildren(el('p', 'note', e.message));
+      } finally {
+        tlCard.classList.remove('carregando');
+      }
+    };
+    tlSelect.addEventListener('change', carregar);
+    carregar();
   }
 
   /* ---------- Demonstração em árvore: recolher/expandir grupos ---------- */

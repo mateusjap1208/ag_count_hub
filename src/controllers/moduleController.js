@@ -1,4 +1,5 @@
 const Report = require('../models/Report');
+const segurosTimeline = require('../services/segurosTimeline');
 const { sessionScope } = require('../middlewares/locals');
 
 /**
@@ -62,6 +63,7 @@ exports.show = async (req, res, next) => {
     const comparar = (req.session.comparar[def.slug] || []).filter((p) => p !== scope.period);
     const view = await Report.getModuleView(req.params.slug, scope, { comparar });
     if (def.slug === 'arrendamento' && !view.empty) view.contaArrendamento = await detalheContaArrendamento(scope).catch(() => null);
+    if (def.slug === 'seguros-garantias' && !view.empty) view.contratosSeguro = segurosTimeline.contratos(await Report.getAllRows(def.slug, scope));
     const columns = [
       ...(scope.company === Report.ALL ? [{ key: 'empresa', label: 'Empresa', type: 'string' }] : []),
       ...view.def.columns.map(({ key, label, type, format }) => ({ key, label, type, format })),
@@ -166,4 +168,19 @@ exports.exportCsv = async (req, res, next) => {
     res.set('Content-Disposition', `attachment; filename="${def.slug}_${scope.period || 'sem-periodo'}${moeda}.csv"`);
     res.send(`﻿${lines.join('\r\n')}`);
   } catch (e) { next(e); }
+};
+
+/** API JSON: linha do tempo mensal de apropriação de um contrato de Seguros e Garantias */
+exports.seguroTimeline = async (req, res, next) => {
+  try {
+    const { scope } = await withModuleCurrency('seguros-garantias', sessionScope(req));
+    if (!scope.period) return res.status(404).json({ error: 'Sem competência carregada.' });
+    const empresa = String(req.query.empresa || '');
+    const contrato = String(req.query.contrato || '');
+    const linhas = (await Report.getAllRows('seguros-garantias', { ...scope, rowFilters: {} }))
+      .filter((r) => String(r.contrato) === contrato && (!empresa || String(r.empresa) === empresa));
+    const tl = segurosTimeline.linhaDoTempo(linhas, scope.period);
+    if (!tl) return res.status(404).json({ error: 'Contrato não encontrado nesta competência.' });
+    return res.json({ ...tl, moeda: scope.moedaContrato });
+  } catch (e) { return next(e); }
 };
