@@ -58,6 +58,7 @@ router.post('/logout', csrfToken, verifyCsrf, auth.logout);
 router.use(requireAuth, csrfToken);
 
 router.get('/api/modulos/:slug/linhas', modules.rows);
+router.get('/api/seguros/linha-do-tempo', modules.seguroTimeline);
 router.get('/modulos/:slug/exportar.csv', modules.exportCsv);
 router.get('/modulos/:slug/exportar.xlsx', modules.exportXlsx);
 router.get('/api/parametros/conta/:conta', parameters.classify);

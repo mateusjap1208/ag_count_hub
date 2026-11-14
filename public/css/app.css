@@ -972,3 +972,60 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .main { display: flex; flex-direction: column; min-height: 100vh; }
 .main > .content { flex: 1 0 auto; width: 100%; }
 .ticker { margin-top: auto; }
+
+/* Seguros: linha do tempo de apropriação por contrato */
+.tl-picker { display: grid; gap: 6px; margin-bottom: 16px; }
+.tl-picker label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.tl-picker .select { width: 100%; max-width: 760px; }
+.timeline-seguro.carregando .tl-body { opacity: .5; transition: opacity .2s ease; }
+.tl-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 18px; margin-bottom: 18px; }
+.tl-item span { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.tl-item strong { display: block; color: var(--heading); font-size: 13.5px; margin-top: 2px; }
+.tl-barra { margin: 8px 0 22px; padding-top: 26px; }
+.tl-trilho { position: relative; height: 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+.tl-feito { position: absolute; inset: 0 auto 0 0; width: var(--tl-pct, 0%); border-radius: 999px; background: linear-gradient(90deg, #00A1D4, #3074F6); transition: width .9s cubic-bezier(.2, .9, .3, 1); }
+.tl-marca { position: absolute; left: var(--tl-pct, 0%); bottom: 16px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 700; color: var(--consag-blue); }
+.tl-marca::after { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: 14px; background: var(--consag-blue); transform: translateX(-50%); }
+.tl-pontas { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+.tl-tabela { max-height: 320px; overflow: auto; margin-top: 16px; }
+.tl-tabela tr.tl-futuro td { color: var(--muted); }
+.tl-tabela tr.tl-atual td { background: var(--blue-soft); font-weight: 700; color: var(--heading); }
+.login-intro .tag { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--consag-cyan); font-weight: 700; margin-bottom: 12px; }
+.login-hero { justify-content: flex-end; }
+
+/* Faixa de avisos como card flutuante, com o mesmo respiro e cantos do menu lateral */
+.ticker {
+  bottom: 12px; margin: 0 12px 12px 12px; height: 40px;
+  border-top: 0; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(6, 23, 43, .18), 0 0 0 1px rgba(48, 116, 246, .35);
+}
+.ticker-label { border-radius: 18px 0 0 18px; }
+:root[data-theme="dark"] .ticker { box-shadow: 0 10px 30px rgba(0, 0, 0, .4), 0 0 0 1px #1B2E4A; }
+
+/* =========================================================================
+ * Tema no topo (ao lado do sino): sol no tema claro, lua no tema escuro.
+ * Ao trocar, o sol gira e encolhe enquanto a lua entra girando (e o contrário).
+ * ========================================================================= */
+.theme-btn {
+  position: relative; width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0; padding: 0; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: #F5A400;
+  transition: color .3s ease, border-color .2s ease, background-color .3s ease;
+}
+.theme-btn:hover, .theme-btn:focus-visible { border-color: var(--consag-blue); outline: none; }
+.tema-svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.tema-svg .tema-sol, .tema-svg .tema-lua, .tema-svg .tema-estrelas { transform-origin: 12px 12px; transition: transform .55s cubic-bezier(.3, 1.4, .5, 1), opacity .35s ease; }
+.tema-svg .tema-sol circle { fill: currentColor; fill-opacity: .25; }
+.tema-svg .tema-lua { opacity: 0; transform: rotate(-90deg) scale(.3); fill: currentColor; fill-opacity: .2; }
+.tema-svg .tema-estrelas { opacity: 0; transform: scale(0); }
+.theme-btn:hover .tema-sol { transform: rotate(45deg); }
+:root[data-theme="dark"] .theme-btn { color: #9EC3FF; }
+:root[data-theme="dark"] .tema-svg .tema-sol { opacity: 0; transform: rotate(120deg) scale(.3); }
+:root[data-theme="dark"] .tema-svg .tema-lua { opacity: 1; transform: none; }
+:root[data-theme="dark"] .tema-svg .tema-estrelas { opacity: 1; transform: scale(1); transition-delay: .2s; }
+:root[data-theme="dark"] .theme-btn:hover .tema-lua { transform: rotate(-18deg); }
+@media (prefers-reduced-motion: reduce) { .tema-svg * { transition: opacity .2s ease !important; } }
+/* Olho à direita do valor */
+.eye-btn { margin-right: 0; margin-left: 8px; }
+/* Números alinhados: todas as colunas de valor da demonstração reservam o espaço do olho à direita */
+.statement.tree td.num { position: relative; padding-right: 46px; }
+.statement.tree td.num .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); margin: 0; }

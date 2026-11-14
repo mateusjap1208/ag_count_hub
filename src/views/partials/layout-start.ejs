@@ -36,10 +36,6 @@
         <div class="avatar"><%= (user.name || user.email).trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() %></div>
         <div class="user-info"><strong><%= user.name || user.email %></strong><span><%= user.role === 'admin' ? 'Administrador' : (user.todosCentros ? 'Consulta' : 'Consulta · ' + user.centros.length + ' centro(s)') %></span></div>
       </div>
-      <button class="nav-item theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro/escuro">
-        <span class="nav-icon"><%- include('icon', { name: 'moon' }) %><%- include('icon', { name: 'sun' }) %></span>
-        <span class="nav-text" data-theme-label>Tema escuro</span>
-      </button>
       <form method="post" action="/logout">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button class="nav-item nav-logout" type="submit"><span class="nav-icon"><%- include('icon', { name: 'logout' }) %></span><span class="nav-text">Sair</span></button>
@@ -61,6 +57,13 @@
         <% } %>
       </div>
       <div class="spacer"></div>
+      <button class="theme-btn" type="button" id="theme-toggle" title="Mudar para o tema escuro" aria-label="Mudar para o tema escuro" aria-pressed="false">
+        <svg class="tema-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <g class="tema-sol"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></g>
+          <path class="tema-lua" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>
+          <g class="tema-estrelas"><path d="M17.5 3.5v2M16.5 4.5h2"/><path d="M20.5 8v1.4M19.8 8.7h1.4"/></g>
+        </svg>
+      </button>
       <a class="notif-bell <%= (locals.novidades && locals.novidades.pendente) ? 'has-new' : '' %>" href="/novidades" title="<%= (locals.novidades && locals.novidades.pendente) ? 'Nova atualização: ' + locals.novidades.atual : 'Novidades do sistema' %>" aria-label="Novidades<%= (locals.novidades && locals.novidades.pendente) ? ' (nova atualização)' : '' %>">
         <%- include('icon', { name: 'bell' }) %>
         <% if ((locals.novidades && locals.novidades.pendente)) { %><span class="notif-dot" aria-hidden="true"></span><% } %>

@@ -6,6 +6,36 @@
  */
 module.exports = [
   {
+    build: 24,
+    data: '2026-11-14',
+    titulo: 'Olho à direita do valor',
+    itens: ['No BP, na DRE, no Capital Empregado e em Adiantamentos, o olho das contas fica à direita do número, com os valores alinhados.'],
+  },
+  {
+    build: 23,
+    data: '2026-11-14',
+    titulo: 'Tema no topo da tela',
+    itens: ['O botão de tema claro/escuro foi para o topo, ao lado do sino: sol no tema claro e lua no tema escuro, com animação na troca.'],
+  },
+  {
+    build: 22,
+    data: '2026-11-14',
+    titulo: 'Faixa de avisos repaginada',
+    itens: ['A faixa de avisos do rodapé virou um card com cantos arredondados, alinhado com o menu.'],
+  },
+  {
+    build: 21,
+    data: '2026-11-14',
+    titulo: 'Adiantamentos, estoque próprio e gráficos novos',
+    itens: [
+      'Adiantamentos agora vêm do FGI0: adiantamentos e antecipações a fornecedores e subempreiteiros, e adiantamentos a funcionários.',
+      'Estoque separado em estoque próprio e estoque de terceiros (classe "Materiais de Terceiros"), com filtro e cards.',
+      'Seguros e Garantias: linha do tempo de cada contrato, mês a mês, com o quanto já foi apropriado.',
+      'Gráficos com degradê, animações, rosca com total no centro e áreas para evolução no tempo.',
+      'Som de aviso quando chega uma nova versão e tela de login com o título "AG Cont Hub" acima do texto.',
+    ],
+  },
+  {
     build: 20,
     data: '2026-11-14',
     titulo: 'Cards de Clientes',

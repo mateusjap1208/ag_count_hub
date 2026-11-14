@@ -102,7 +102,7 @@ module.exports = {
   ],
   breakdowns: [
     {
-      id: 'fluxo', label: 'Fluxo mensal de apropriação', chart: 'bar', sortKeys: true,
+      id: 'fluxo', label: 'Fluxo mensal de apropriação', chart: 'area', sortKeys: true,
       labelFn: (k) => { const [y, m] = k.split('-'); return `${MESES[+m - 1].slice(0, 3).toLowerCase()}/${y.slice(2)}`; },
       // Janela: janeiro do ano da competência até 12 meses depois dela
       spread: (r, period) => {
