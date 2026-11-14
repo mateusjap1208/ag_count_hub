@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 39,
+    data: '2026-11-14',
+    titulo: 'Alça em todos os cards',
+    itens: ['Na Visão Geral, gráficos e o Status da carga também podem ser reorganizados, num grupo só.'],
+  },
+  {
     build: 38,
     data: '2026-11-14',
     titulo: 'Fluxo de apropriação em linha do tempo',
