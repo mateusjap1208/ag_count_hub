@@ -56,7 +56,90 @@
   if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
 
   /* ---------- Filtros (empresa / período) ---------- */
-  $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => el.form.submit()));
+  /* ---------- Carregamento de página: esqueleto com brilho (shimmer) enquanto a próxima página chega ----------
+     As páginas são montadas no servidor; entre o clique e a resposta, a área de conteúdo mostra o
+     "desenho" de cards, gráficos e tabela, para deixar claro que está carregando. */
+  const conteudo = $('.main > .content');
+  const bloco = (cls) => { const d = document.createElement('div'); d.className = `sk ${cls}`; return d; };
+  const mostrarCarregando = (titulo) => {
+    if (!conteudo || document.body.classList.contains('carregando-pagina')) return;
+    const sk = document.createElement('div');
+    sk.className = 'skeleton-page';
+    sk.setAttribute('role', 'status');
+    sk.setAttribute('aria-live', 'polite');
+    const aviso = document.createElement('span');
+    aviso.className = 'sr-only';
+    aviso.textContent = `Carregando${titulo ? ' ' + titulo : ''}…`;
+    const kpis = bloco('sk-grid');
+    for (let i = 0; i < 4; i += 1) {
+      const c = bloco('sk-card');
+      c.append(bloco('sk-line sk-w40'), bloco('sk-line sk-big sk-w70'), bloco('sk-line sk-w55'));
+      kpis.append(c);
+    }
+    const graficos = bloco('sk-duo');
+    for (let i = 0; i < 2; i += 1) {
+      const c = bloco('sk-card sk-chart');
+      c.append(bloco('sk-line sk-w40'));
+      const barras = bloco('sk-bars');
+      [62, 85, 48, 92, 70, 55, 78].forEach((h) => { const b = bloco('sk-bar'); b.style.setProperty('--h', `${h}%`); barras.append(b); });
+      c.append(barras);
+      graficos.append(c);
+    }
+    const tabela = bloco('sk-card sk-table');
+    tabela.append(bloco('sk-line sk-w30'));
+    for (let i = 0; i < 6; i += 1) {
+      const linha = bloco('sk-row');
+      linha.append(bloco('sk-line sk-w35'), bloco('sk-line sk-w20'), bloco('sk-line sk-w15'));
+      tabela.append(linha);
+    }
+    sk.append(aviso, kpis, graficos, tabela);
+    conteudo.prepend(sk);
+    // Título do topo já mostra a página de destino
+    const h1 = $('.topbar h1');
+    const sub = $('.topbar .subtitle');
+    if (titulo && h1) h1.textContent = titulo;
+    if (sub) sub.textContent = 'Carregando…';
+    document.body.classList.add('carregando-pagina');
+    window.scrollTo({ top: 0 });
+  };
+  const esconderCarregando = () => {
+    document.body.classList.remove('carregando-pagina');
+    $$('.skeleton-page').forEach((e) => e.remove());
+  };
+  // Voltar/avançar do navegador pode restaurar a página do cache: tira o esqueleto
+  window.addEventListener('pageshow', (e) => { if (e.persisted) esconderCarregando(); });
+
+  /** Link interno que realmente troca de página (não abre aba, não baixa arquivo, não é âncora) */
+  const navegaNaMesmaAba = (a, e) => {
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false;
+    if (a.target && a.target !== '_self') return false;
+    if (a.hasAttribute('download') || a.dataset.semCarregando !== undefined) return false;
+    const href = a.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+    let url;
+    try { url = new URL(href, location.href); } catch { return false; }
+    if (url.origin !== location.origin) return false;
+    if (/\/(exportar|modelo)|\.(csv|xlsx|txt)$/i.test(url.pathname)) return false; // downloads
+    if (url.pathname === location.pathname && url.search === location.search && url.hash) return false;
+    return true;
+  };
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!navegaNaMesmaAba(a, e)) return;
+    // Destaca já no menu o item clicado
+    if (a.classList.contains('nav-item')) {
+      $$('.sidebar .nav-item.active').forEach((x) => x.classList.remove('active'));
+      a.classList.add('active');
+    }
+    mostrarCarregando(a.textContent.trim());
+  });
+  // Formulários de consulta (GET), como filtros e "Comparar"
+  document.addEventListener('submit', (e) => {
+    const f = e.target;
+    if (!e.defaultPrevented && (f.method || 'get').toLowerCase() === 'get' && !f.target) mostrarCarregando();
+  });
+
+  $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => { mostrarCarregando(); el.form.submit(); }));
 
   /* ---------- Faixa de avisos do rodapé: velocidade constante, qualquer que seja o tamanho do texto ---------- */
   const ticker = $('[data-ticker]');
