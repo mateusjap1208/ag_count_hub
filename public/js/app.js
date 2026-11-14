@@ -56,6 +56,20 @@
   /* ---------- Filtros (empresa / período) ---------- */
   $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => el.form.submit()));
 
+  /* ---------- Painel de filtros: abre ao passar o mouse (CSS); o clique fixa/solta, Esc e clique fora fecham ---------- */
+  const fWrap = document.getElementById('filters-wrap');
+  const fBtn = document.getElementById('filters-toggle');
+  if (fWrap && fBtn) {
+    const sync = () => fBtn.setAttribute('aria-expanded', String(fWrap.matches(':hover, :focus-within, .open')));
+    const close = () => { fWrap.classList.remove('open'); if (fWrap.contains(document.activeElement)) document.activeElement.blur(); sync(); };
+    fBtn.addEventListener('click', () => {
+      if (fWrap.classList.contains('open')) close(); else { fWrap.classList.add('open'); sync(); }
+    });
+    ['mouseenter', 'mouseleave', 'focusin', 'focusout'].forEach((ev) => fWrap.addEventListener(ev, () => setTimeout(sync)));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fWrap.matches(':focus-within, .open')) close(); });
+    document.addEventListener('click', (e) => { if (!fWrap.contains(e.target)) close(); });
+  }
+
   /* ---------- Seletor de moeda com ícones (substitui visualmente o <select> nativo) ---------- */
   function enhanceCurrency(sel) {
     const wrap = document.createElement('div');

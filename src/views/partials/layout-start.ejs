@@ -59,7 +59,16 @@
         <% } %>
       </div>
       <div class="spacer"></div>
-      <% if (typeof hideFilters === 'undefined' || !hideFilters) { %>
+      <% if (typeof hideFilters === 'undefined' || !hideFilters) {
+           // Filtros de obra/empresa em uso (mostrados no selo do botão)
+           const filtrosAtivos = [filter.estrutura, filter.sigla, filter.empresa && filter.empresa !== 'all', filter.centro].filter(Boolean).length; %>
+      <div class="filters-wrap" id="filters-wrap">
+        <button class="filters-toggle" type="button" id="filters-toggle" aria-controls="filters-panel" aria-expanded="false" title="Filtros">
+          <%- include('icon', { name: 'filter' }) %>
+          <span class="filters-toggle-text">Filtros</span>
+          <% if (filtrosAtivos) { %><span class="filters-badge" aria-label="<%= filtrosAtivos %> filtro(s) ativo(s)"><%= filtrosAtivos %></span><% } %>
+        </button>
+        <div class="filters-panel" id="filters-panel">
       <form class="filters" method="get" id="filters">
         <div>
           <label for="f-estrutura">Estrutura</label>
@@ -130,6 +139,8 @@
           <div class="filters-clear"><a class="btn btn-ghost" href="?estrutura=&sigla=&empresa=all&centro=">Limpar filtros</a></div>
         <% } %>
       </form>
+        </div>
+      </div>
       <% } %>
     </header>
     <main class="content">

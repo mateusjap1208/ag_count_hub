@@ -692,3 +692,58 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
 .about-devs { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
 .about-dev { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 180px; padding: 20px 16px; border: 1px solid var(--border); border-radius: 12px; }
 .about-avatar { width: 56px; height: 56px; font-size: 18px; }
+
+/* =========================================================================
+ * Filtros recolhidos num botão (ícone de funil) à direita do título.
+ * Ao passar o mouse (ou focar/tocar) o painel expande com animação.
+ * O painel fica aberto enquanto um campo dele estiver em uso (foco ou lista de moeda aberta).
+ * ========================================================================= */
+.topbar .spacer { display: block; flex: 1; }
+.filters-wrap { position: relative; margin-left: auto; }
+.filters-toggle {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);
+  font: inherit; font-size: 13px; font-weight: 600;
+  transition: border-color .2s ease, color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.filters-toggle .icon { width: 18px; height: 18px; transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+.filters-badge {
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center;
+  background: var(--consag-blue); color: #fff; font-size: 11px; font-weight: 700;
+}
+.filters-panel {
+  position: absolute; top: 100%; right: 0; z-index: 30; padding-top: 10px; /* ponte: o mouse não "cai" no vão */
+  width: min(760px, calc(100vw - 32px));
+  opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.97); transform-origin: top right;
+  transition: opacity .18s ease, transform .22s ease, visibility 0s linear .22s;
+}
+.filters-panel .filters {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; width: 100%;
+  padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(6, 23, 43, .16);
+}
+.filters-panel .filters > * { opacity: 0; transform: translateY(-6px); transition: opacity .2s ease, transform .2s ease; }
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-toggle {
+  border-color: var(--consag-blue); color: var(--consag-blue); box-shadow: 0 0 0 3px rgba(48, 116, 246, .12);
+}
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-toggle .icon { transform: translateY(1px) rotate(-12deg) scale(1.1); }
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-panel {
+  opacity: 1; visibility: visible; transform: none; transition: opacity .2s ease, transform .25s cubic-bezier(.2, .9, .3, 1.2), visibility 0s;
+}
+/* os campos entram um após o outro */
+.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-panel .filters > * { opacity: 1; transform: none; }
+.filters-panel .filters > :nth-child(2) { transition-delay: .03s; }
+.filters-panel .filters > :nth-child(3) { transition-delay: .06s; }
+.filters-panel .filters > :nth-child(4) { transition-delay: .09s; }
+.filters-panel .filters > :nth-child(5) { transition-delay: .12s; }
+.filters-panel .filters > :nth-child(6) { transition-delay: .15s; }
+.filters-panel .filters > :nth-child(n+7) { transition-delay: .18s; }
+.filters-panel .filters-clear { grid-column: 1 / -1; }
+.filters-panel .filters-clear .btn { width: auto; }
+@media (max-width: 720px) {
+  .filters-panel .filters { grid-template-columns: 1fr; }
+  .filters-toggle-text { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filters-panel, .filters-panel .filters > *, .filters-toggle .icon { transition: none !important; }
+}
