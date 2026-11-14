@@ -209,8 +209,35 @@
     </div>
   <% } %>
 
-  <% const charts = view.charts; %>
-    <% if (view.statement) { %>
+  <% const charts = view.fluxo ? view.charts.filter(c => c.id !== 'fluxo') : view.charts; %>
+  <% if (view.fluxo) { const fx = view.fluxo; %>
+    <div class="card bloco-largo fluxo-tl" data-ordem-chave="fluxo-timeline">
+      <div class="card-head">
+        <h2>Fluxo mensal de apropriação</h2>
+        <span class="hint">Valores em <%= cur %> · de janeiro até 12 meses após a competência</span>
+      </div>
+      <div class="fluxo-totais">
+        <div><span>Apropriado no ano</span><strong><%= fmt.currency(fx.ano, cur) %></strong></div>
+        <div><span>A apropriar em até 12 meses</span><strong><%= fmt.currency(fx.cp, cur) %></strong></div>
+        <div><span>A apropriar após 12 meses</span><strong><%= fmt.currency(fx.lp, cur) %></strong></div>
+        <div class="destaque"><span>Saldo a apropriar</span><strong><%= fmt.currency(fx.saldo, cur) %></strong></div>
+      </div>
+      <div class="fluxo-legenda" aria-hidden="true"><span class="lg realizado">Realizado</span><span class="lg atual">Competência</span><span class="lg futuro">A apropriar</span></div>
+      <div class="fluxo-trilha" tabindex="0" aria-label="Linha do tempo mês a mês (role para os lados)">
+        <ol class="fluxo-meses">
+          <% fx.meses.forEach(x => { %>
+            <li class="fluxo-mes <%= x.fase %>" title="<%= x.nome %>: <%= fmt.currency(x.valor, cur) %>">
+              <span class="fm-valor"><%= fmt.kpi(x.valor, 'currency', cur) %></span>
+              <span class="fm-barra" data-h="<%= Math.round(Math.abs(x.valor) / fx.max * 100) %>"></span>
+              <span class="fm-ponto"></span>
+              <span class="fm-mes"><%= x.rotulo %><% if (x.fase === 'atual') { %><em>competência</em><% } %></span>
+            </li>
+          <% }) %>
+        </ol>
+      </div>
+    </div>
+  <% } %>
+    <% if (view.statement && !view.fluxo) { %>
       <div class="card" data-ordem-chave="quadro">
         <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : view.def.slug === 'imobilizado' ? 'Movimentação do ano' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
         <div class="table-wrap">

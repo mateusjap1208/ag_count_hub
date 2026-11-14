@@ -684,6 +684,16 @@
     if (img.complete && !img.naturalWidth) falhou(); else img.addEventListener('error', falhou);
   });
 
+  /* ---------- Seguros: linha do tempo horizontal do fluxo de apropriação ---------- */
+  document.querySelectorAll('.fm-barra[data-h]').forEach((b) => b.style.setProperty('--h', `${b.dataset.h}%`));
+  const trilha = document.querySelector('.fluxo-trilha');
+  const atualMes = trilha && trilha.querySelector('.fluxo-mes.atual');
+  // Abre a trilha já com a competência no meio (depois que a página termina de montar)
+  const centrarCompetencia = () => {
+    if (trilha && atualMes) trilha.scrollTo({ left: Math.max(0, atualMes.offsetLeft - trilha.clientWidth / 2 + atualMes.offsetWidth / 2), behavior: 'instant' });
+  };
+  if (document.readyState === 'complete') setTimeout(centrarCompetencia, 0); else window.addEventListener('load', centrarCompetencia);
+
   /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
   $$('[data-filtro-tabela]').forEach((inp) => {
     const tabela = document.querySelector(inp.dataset.filtroTabela);

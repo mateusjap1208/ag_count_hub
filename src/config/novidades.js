@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 38,
+    data: '2026-11-14',
+    titulo: 'Fluxo de apropriação em linha do tempo',
+    itens: [
+      'Seguros e Garantias: o fluxo mensal de apropriação virou uma linha do tempo horizontal, com o realizado, a competência e o que falta apropriar.',
+      'As alças para reorganizar os quadros ficam sempre visíveis.',
+    ],
+  },
+  {
     build: 37,
     data: '2026-11-14',
     titulo: 'Todos os quadros reorganizáveis',
