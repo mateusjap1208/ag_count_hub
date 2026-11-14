@@ -243,5 +243,5 @@ async function getRows(id, { page = 1, size = 25, q = '', sort, dir = 'asc', fil
 
 module.exports = {
   definitions, getDef, list, importFile, targetsFor, getRows, checks, CHECKS,
-  find, all, nameOf, classifyAccount, normKey, ParamError,
+  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds,
 };

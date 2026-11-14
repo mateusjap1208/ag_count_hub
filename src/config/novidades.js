@@ -6,6 +6,16 @@
  */
 module.exports = [
   {
+    build: 29,
+    data: '2026-11-14',
+    titulo: 'Pedidos de compra e atribuições',
+    itens: [
+      'Fornecedores: conta 2115100000 por pedido de compra, com o fornecedor do lançamento ou do EKKO, data do lançamento e montante.',
+      'Arrendamento: conta 2115100020 por Atribuição, só com as atribuições que não zeram.',
+      'Dados de fornecedores guardados de forma mais enxuta no banco.',
+    ],
+  },
+  {
     build: 27,
     data: '2026-11-14',
     titulo: 'Demonstrações recolhidas',

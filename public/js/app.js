@@ -498,6 +498,17 @@
     });
   }
 
+  /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
+  $('[data-filtro-tabela]').forEach((inp) => {
+    const tabela = document.querySelector(inp.dataset.filtroTabela);
+    if (!tabela) return;
+    const linhas = $('tbody tr', tabela);
+    inp.addEventListener('input', () => {
+      const q = inp.value.trim().toLowerCase();
+      linhas.forEach((tr) => tr.classList.toggle('hidden', !!q && !tr.textContent.toLowerCase().includes(q)));
+    });
+  });
+
   /* ---------- Seguros e Garantias: linha do tempo de apropriação por contrato ---------- */
   const tlCard = $('#timeline-seguro');
   const tlSelect = $('#tl-contrato');

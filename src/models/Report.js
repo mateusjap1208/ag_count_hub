@@ -299,7 +299,8 @@ async function importGeneric(slug, { buffer, fileName, user, period: periodIn })
   for (const [company, byCur] of data.byCompany) {
     for (const [currency, rows] of byCur) {
       items.push({
-        module: slug, period, company, currencyType: currency, rows,
+        module: slug, period, company, currencyType: currency,
+        rows: def.importer.guardar ? rows.map((r) => genericImport.enxugar(def, r)) : rows,
         summary: agg.computeSummary(rows, def, period),
         meta: { fileName, uploadedBy, batch, source: slug, currency, warnings: data.ignoradas ? 1 : 0 },
       });
@@ -521,6 +522,10 @@ async function loadRawRows(slug, scope) {
     const companies = Object.fromEntries((await Company.list()).map((c) => [c.code, c.name]));
     const parts = await Promise.all(meta.map(async (d) =>
       (await datasets.getRows(d)).map((r) => ({ empresa: companies[d.company] || d.company, ...r }))));
+    // Módulos gravados enxutos (FAGLL03): recompõe descrições, nomes e classificações a partir dos Parâmetros
+    if (def.importer?.guardar) {
+      await Promise.all(meta.map((d, i) => genericImport.rederive(def, parts[i], d.period)));
+    }
     return parts.flat();
   });
 }
