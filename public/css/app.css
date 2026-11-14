@@ -104,7 +104,12 @@ button, input, select { font: inherit; }
 .sidebar-tagline { font-size: 11px; color: var(--sb-muted); margin: 10px 16px 0; line-height: 1.4; }
 /* Versão do sistema (version.json): no fim do menu e na tela de login */
 .app-version { font-size: 11px; color: var(--sb-muted); margin: 4px 16px 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.login-card .app-version { color: var(--muted, #777777); margin: 24px 0 0; text-align: center; }
+.login-card .app-version { color: var(--muted, #777777); margin: 16px 0 0; text-align: center; }
+/* Redes sociais na tela de login */
+.social { display: flex; justify-content: center; gap: 10px; margin-top: 28px; }
+.social-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--border); color: var(--muted); transition: color .15s ease, border-color .15s ease, background-color .15s ease, transform .15s ease; }
+.social-btn .icon { width: 18px; height: 18px; }
+.social-btn:hover, .social-btn:focus-visible { color: #fff; background: var(--consag-blue); border-color: var(--consag-blue); transform: translateY(-2px); }
 
 /* Ícones animados: cada ícone tem um micro-movimento ao passar o mouse (e ao abrir a página, no item ativo) */
 .nav-item:hover .icon, .nav-item.active .icon { animation-duration: .6s; animation-timing-function: ease-in-out; animation-iteration-count: 1; }
