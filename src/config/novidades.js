@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 57,
+    data: "2026-11-15",
+    titulo: "Menu",
+    itens: [
+      "No menu, a DRE aparece como Demonstração de Resultado.",
+      "O menu aberto ficou mais largo para mostrar os nomes inteiros."
+    ]
+  },
+  {
     build: 56,
     data: "2026-11-15",
     titulo: "Parâmetros: importar nunca apaga",

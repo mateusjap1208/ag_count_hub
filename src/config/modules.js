@@ -104,7 +104,7 @@ const modules = [
   },
   {
     slug: 'dre',
-    menu: 'Demo do Resultado',
+    menu: 'Demonstração de Resultado',
     title: 'Demonstração do Resultado',
     icon: 'chart',
     source: 'fgi0',

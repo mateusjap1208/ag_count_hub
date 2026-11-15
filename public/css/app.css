@@ -2911,3 +2911,7 @@ a.pend-chip:hover { border-color: #F5A400; }
 .vinc-escolhas li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-radius: 8px; background: var(--surface-2); font-size: 12.5px; color: var(--text-2); }
 .vinc-tirar { border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; color: var(--muted); padding: 0 4px; }
 .vinc-tirar:hover { color: var(--danger, #D93025); }
+
+/* Menu mais largo para caber "Demonstração de Resultado" sem cortar (aberto: 300 px) */
+:root { --sidebar-w: 324px; }
+@media (min-width: 961px) { :root { --sidebar-w: 100px; --sb-open: 300px; } }
