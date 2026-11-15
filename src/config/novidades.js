@@ -6,6 +6,24 @@
  */
 module.exports = [
   {
+    build: 56,
+    data: "2026-11-15",
+    titulo: "Parâmetros: importar nunca apaga",
+    itens: [
+      "Subir um arquivo de parâmetro só incrementa a tabela: inclui os registros novos e atualiza os campos preenchidos dos que já existem. Nada é apagado.",
+      "Para corrigir ou excluir um registro, use Parâmetros › Consultar."
+    ]
+  },
+  {
+    build: 55,
+    data: "2026-11-15",
+    titulo: "Parâmetros: arquivo completa a tabela",
+    itens: [
+      "Ao subir um arquivo de parâmetro (como o Plano de Contas), ele agora completa a tabela: inclui o que falta e atualiza o que já existe, sem apagar o resto. Para trocar a tabela inteira, marque \"Substituir a tabela inteira\".",
+      "Em Pendências e no popup de vínculo, contas que já estão classificadas no cadastro aparecem como \"Já cadastrada · reimportar FGI0\"."
+    ]
+  },
+  {
     build: 54,
     data: "2026-11-15",
     titulo: "Contas de resultado com mais de uma classificação",

@@ -3,7 +3,7 @@
 <% if (result) { %>
   <div class="alert alert-ok">
     <strong>Arquivo importado:</strong> <%= result.fileName %>
-    <ul><% result.items.forEach(i => { %><li><%= i.title %>: <%= fmt.number(i.rows) %> registro(s)<% if (i.skipped) { %> · <%= fmt.number(i.skipped) %> linha(s) incompleta(s) ignorada(s)<% } %></li><% }) %></ul>
+    <ul><% result.items.forEach(i => { %><li><%= i.title %>: <% if (i.modo === 'incremento' && i.antes) { %><%= fmt.number(i.novos) %> novo(s), <%= fmt.number(i.atualizados) %> atualizado(s), <%= fmt.number(i.iguais) %> já existia(m) · total de <%= fmt.number(i.rows) %> registro(s) (nada foi apagado)<% } else { %><%= fmt.number(i.rows) %> registro(s)<% } %><% if (i.skipped) { %> · <%= fmt.number(i.skipped) %> linha(s) incompleta(s) ignorada(s)<% } %></li><% }) %></ul>
   </div>
 <% } %>
 <% if (error) { %><div class="alert alert-err"><strong>Não foi possível importar.</strong> <%= error %></div><% } %>
@@ -40,6 +40,7 @@
 </div>
 <% } %>
 
+<p class="param-regra"><strong>Importar não apaga nada:</strong> o arquivo só inclui registros novos e atualiza os campos preenchidos dos que já existem. Para corrigir ou excluir, use <em>Consultar</em>.</p>
 <% groups.forEach(g => { %>
   <h2 class="section-title"><%= g.name %></h2>
   <div class="grid grid-2">
