@@ -3104,3 +3104,9 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
   .brand-mini-ag .ag-letra { fill: #FFFFFF; }
   .brand-mini-ag .ag-furo { fill: var(--sb-bg, #06172B); }
 }
+
+/* Login: botão e "em um só lugar." no mesmo azul da logo AG (tema claro; no escuro todos usam o azul do sistema) */
+:root:not([data-theme="dark"]) .login-panel { --login-azul: #1F5FAF; --login-azul-hover: #194E91; }
+:root:not([data-theme="dark"]) .login-intro h1 em { color: var(--login-azul); }
+:root:not([data-theme="dark"]) .login-card .btn-primary:not(.btn-nao) { background: var(--login-azul); border-color: var(--login-azul); }
+:root:not([data-theme="dark"]) .login-card .btn-primary:not(.btn-nao):hover, :root:not([data-theme="dark"]) .login-card .btn-primary:not(.btn-nao):focus-visible { background: var(--login-azul-hover); border-color: var(--login-azul-hover); }

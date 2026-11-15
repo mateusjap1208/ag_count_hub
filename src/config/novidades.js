@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 77,
+    data: "2026-11-15",
+    titulo: "Login no azul da logo",
+    itens: [
+      "Na tela de login, o botão Entrar e o texto \"em um só lugar.\" usam o mesmo azul da logo AG."
+    ]
+  },
+  {
     build: 76,
     data: "2026-11-15",
     titulo: "Logo AG no menu recolhido",
