@@ -150,15 +150,14 @@ module.exports = [
   {
     id: 'empresas',
     title: 'Empresas (T001)',
-    description: 'Código, nome e moeda de cada empresa. Usado para dar nome às empresas nos relatórios (sem ele aparece "Empresa 1000").',
+    description: 'Código e moeda de cada empresa.',
     group: 'Cadastros',
     filePattern: /t001\b|t001[_ -]/i,
     type: 'table',
     key: 'codigo',
     columns: [
       { key: 'codigo', label: 'Empresa', required: true, aliases: ['empresa', 'bukrs', 'codigo'] },
-      { key: 'nome', label: 'Nome da empresa', required: true, aliases: ['nome_da_empresa', 'butxt', 'denominacao_da_firma_ou_empresa', 'nome'] },
-      { key: 'moeda', label: 'Moeda', aliases: ['moeda', 'waers'] },
+      { key: 'moeda', label: 'Moeda', required: true, aliases: ['moeda', 'waers'] },
     ],
   },
   {

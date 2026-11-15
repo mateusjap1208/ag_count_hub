@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 62,
+    data: "2026-11-15",
+    titulo: "Parâmetro Empresas",
+    itens: [
+      "O parâmetro Empresas (T001) agora pede só o código da empresa e a moeda."
+    ]
+  },
+  {
     build: 61,
     data: "2026-11-15",
     titulo: "Menu com seções separadas",
