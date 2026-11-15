@@ -800,6 +800,9 @@
   };
   if (document.readyState === 'complete') setTimeout(centrarCompetencia, 0); else window.addEventListener('load', centrarCompetencia);
 
+  /* ---------- Indicadores: ponteiro do velocímetro gira até o valor ---------- */
+  document.querySelectorAll('.g-ponteiro[data-ang]').forEach((p) => p.style.setProperty('--ang', `${p.dataset.ang}deg`));
+
   /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
   $$('[data-filtro-tabela]').forEach((inp) => {
     const tabela = document.querySelector(inp.dataset.filtroTabela);
