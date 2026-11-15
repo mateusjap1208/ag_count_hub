@@ -18,6 +18,7 @@
       <% menu.filter(m => !m.hideInMenu).forEach(m => {
            const ativo = (m.tabs || [{ slug: m.slug }]).some(t => currentPath === '/modulos/' + t.slug); %>
         <%- navItem('/modulos/' + m.slug, m.icon, m.menu, ativo) %>
+        <% if (m.slug === 'dre') { %><%- navItem('/indicadores', 'gauge', 'Indicadores', currentPath === '/indicadores') %><% } %>
       <% }) %>
       <% if (user.role === 'admin') { %>
         <div class="nav-label">Dados</div>
@@ -26,6 +27,7 @@
         <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
         <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
         <%- navItem('/mensagens', 'megaphone', 'Mensagens', currentPath.startsWith('/mensagens')) %>
+        <%- navItem('/pendencias', 'alerta', 'Pendências', currentPath.startsWith('/pendencias')) %>
       <% } %>
       <div class="nav-label">Sistema</div>
       <%- navItem('/novidades', 'sparkle', 'Novidades', currentPath === '/novidades') %>
@@ -63,13 +65,19 @@
           <g class="tema-estrelas"><path d="M17.5 3.5v2M16.5 4.5h2"/><path d="M20.5 8v1.4M19.8 8.7h1.4"/></g>
         </svg>
       </button>
+      <% const pend = locals.pendencias; if (pend && pend.total) { %>
+      <a class="pend-alerta" href="/pendencias" title="<%= pend.resumo.join(' · ') %>" aria-label="Pendências de parâmetros: <%= pend.resumo.join(', ') %>">
+        <%- include('icon', { name: 'alerta' }) %>
+        <span class="pend-badge" aria-hidden="true"><%= pend.total %></span>
+      </a>
+      <% } %>
       <a class="notif-bell <%= (locals.novidades && locals.novidades.pendente) ? 'has-new' : '' %>" href="/novidades" title="<%= (locals.novidades && locals.novidades.pendente) ? 'Nova atualização: ' + locals.novidades.atual : 'Novidades do sistema' %>" aria-label="Novidades<%= (locals.novidades && locals.novidades.pendente) ? ' (nova atualização)' : '' %>">
         <%- include('icon', { name: 'bell' }) %>
         <% if ((locals.novidades && locals.novidades.pendente)) { %><span class="notif-dot" aria-hidden="true"></span><% } %>
       </a>
       <% if (typeof hideFilters === 'undefined' || !hideFilters) {
            // Filtros de obra/empresa em uso (mostrados no selo do botão)
-           const filtrosAtivos = [filter.estrutura, filter.sigla, filter.empresa && filter.empresa !== 'all', filter.centro].filter(Boolean).length; %>
+           const filtrosAtivos = ['estrutura', 'sigla', 'empresa', 'centro'].filter(k => (filter[k] || []).length).length; %>
       <div class="filters-wrap" id="filters-wrap">
         <button class="filters-toggle" type="button" id="filters-toggle" aria-controls="filters-panel" aria-expanded="false" title="Filtros">
           <%- include('icon', { name: 'filter' }) %>
@@ -78,42 +86,25 @@
         </button>
         <div class="filters-panel" id="filters-panel">
       <form class="filters" method="get" id="filters">
+        <%
+          // Seleção múltipla: o campo oculto vazio garante que "nenhum marcado" limpe o filtro
+          const sel = (lista, v) => (lista || []).includes(v) ? 'selected' : '';
+          const campos = [
+            { name: 'estrutura', label: 'Estrutura', todos: 'Todas as estruturas', plural: 'estruturas', opts: filterOpts.estruturas.map(e => [e, e]) },
+            { name: 'sigla', label: 'Sigla', todos: 'Todas as siglas', plural: 'siglas', opts: filterOpts.siglas.map(x => [x, x]) },
+            { name: 'empresa', label: 'Empresa', todos: (filter.estrutura.length || filter.sigla.length) ? `Todas as empresas (${companies.length})` : 'Consolidado do grupo', plural: 'empresas', opts: companies.map(c => [c.code, fmt.company(c)]) },
+            { name: 'centro', label: 'Centro de lucro', todos: `Todos os centros (${fmt.number(filterOpts.centros.length)})`, plural: 'centros', opts: filterOpts.centros.map(c => [c.code, c.code + (c.siglaObra && c.siglaObra !== c.code ? ' · ' + c.siglaObra : '')]) },
+          ];
+        %>
+        <% campos.forEach(c => { %>
         <div>
-          <label for="f-estrutura">Estrutura</label>
-          <select class="select" name="estrutura" id="f-estrutura" data-autosubmit>
-            <option value="" <%= filter.estrutura ? '' : 'selected' %>>Todas as estruturas</option>
-            <% filterOpts.estruturas.forEach(e => { %>
-              <option value="<%= e %>" <%= filter.estrutura === e ? 'selected' : '' %>><%= e %></option>
-            <% }) %>
+          <label for="f-<%= c.name %>"><%= c.label %></label>
+          <input type="hidden" name="<%= c.name %>" value="">
+          <select class="select" name="<%= c.name %>" id="f-<%= c.name %>" multiple data-enhance="multi" data-todos="<%= c.todos %>" data-plural="<%= c.plural %>" size="1">
+            <% c.opts.forEach(([v, t]) => { %><option value="<%= v %>" <%= sel(filter[c.name], v) %>><%= t %></option><% }) %>
           </select>
         </div>
-        <div>
-          <label for="f-sigla">Sigla</label>
-          <select class="select" name="sigla" id="f-sigla" data-autosubmit title="Sigla da obra (cadastro de obras)">
-            <option value="" <%= filter.sigla ? '' : 'selected' %>>Todas as siglas</option>
-            <% filterOpts.siglas.forEach(s => { %>
-              <option value="<%= s %>" <%= filter.sigla === s ? 'selected' : '' %>><%= s %></option>
-            <% }) %>
-          </select>
-        </div>
-        <div>
-          <label for="f-empresa">Empresa</label>
-          <select class="select" name="empresa" id="f-empresa" data-autosubmit>
-            <option value="all" <%= filter.empresa === 'all' ? 'selected' : '' %>><%= filter.estrutura || filter.sigla ? `Todas as empresas (${companies.length})` : 'Consolidado do grupo' %></option>
-            <% companies.forEach(c => { %>
-              <option value="<%= c.code %>" <%= filter.empresa === c.code ? 'selected' : '' %>><%= fmt.company(c) %></option>
-            <% }) %>
-          </select>
-        </div>
-        <div>
-          <label for="f-centro">Centro de lucro</label>
-          <select class="select" name="centro" id="f-centro" data-autosubmit>
-            <option value="" <%= filter.centro ? '' : 'selected' %>>Todos os centros (<%= fmt.number(filterOpts.centros.length) %>)</option>
-            <% filterOpts.centros.forEach(c => { %>
-              <option value="<%= c.code %>" <%= filter.centro === c.code ? 'selected' : '' %>><%= c.code %><%= c.siglaObra && c.siglaObra !== c.code ? ' · ' + c.siglaObra : '' %></option>
-            <% }) %>
-          </select>
-        </div>
+        <% }) %>
         <div>
           <label for="f-periodo">Competência</label>
           <select class="select" name="periodo" id="f-periodo" data-autosubmit <%= periods.length ? '' : 'disabled' %>>
@@ -144,7 +135,7 @@
         <% } %>
         <noscript><button class="btn btn-primary" type="submit">Aplicar</button></noscript>
         <% if (hasObraFilter) { %>
-          <div class="filters-clear"><a class="btn btn-ghost" href="?estrutura=&sigla=&empresa=all&centro=">Limpar filtros</a></div>
+          <div class="filters-clear"><a class="btn btn-ghost" href="?estrutura=&sigla=&empresa=&centro=">Limpar filtros</a></div>
         <% } %>
       </form>
         </div>

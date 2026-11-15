@@ -2,12 +2,33 @@
  * Disponibiliza para as views: usuário, menu, filtros e suas opções.
  * Filtros em cascata (salvos na sessão): Estrutura → Sigla → Empresa → Centro de lucro,
  * além de Competência e Moeda. Cada filtro limita as opções do seguinte.
+ * Estrutura, sigla, empresa e centro de lucro aceitam seleção múltipla (listas).
  */
 const Report = require('../models/Report');
 const Company = require('../models/Company');
 const fmt = require('../utils/format');
 const novidades = require('../services/novidades');
 const Mensagem = require('../models/Mensagem');
+const pendencias = require('../services/pendencias');
+
+const MULTI = ['estrutura', 'sigla', 'empresa', 'centro'];
+/** Lista de valores de um filtro (aceita ?x=a&x=b, texto único ou valor antigo da sessão) */
+const lista = (v) => [...new Set([].concat(v ?? []).map((x) => String(x).trim().slice(0, 80)).filter((x) => x && x !== Report.ALL))].slice(0, 300);
+
+/** Escopo a partir do filtro: uma empresa → "company"; várias → "empresas" (com company = todas) */
+function scopeDe(f, perm) {
+  const empresas = lista(f.empresa);
+  return {
+    period: f.periodo,
+    company: empresas.length === 1 ? empresas[0] : Report.ALL,
+    empresas: empresas.length > 1 ? empresas : [],
+    moeda: f.moeda || 'grupo',
+    estrutura: lista(f.estrutura), sigla: lista(f.sigla), centro: lista(f.centro),
+    moedaContrato: f.moedaContrato || 'BRL',
+    rowFilters: { ...(f.rowFilters || {}) },
+    allowed: perm?.allowed || null, allowedKey: perm?.key || '',
+  };
+}
 
 async function viewLocals(req, res, next) {
   try {
@@ -16,9 +37,9 @@ async function viewLocals(req, res, next) {
     const f = (req.session.filter ||= {});
     const q = req.query;
     // Parâmetro presente (mesmo vazio) atualiza o filtro: permite "limpar"
-    for (const [param, key] of [['empresa', 'empresa'], ['periodo', 'periodo'], ['moeda', 'moeda'], ['estrutura', 'estrutura'], ['sigla', 'sigla'], ['centro', 'centro'], ['moedaContrato', 'moedaContrato']]) {
-      if (param in q) f[key] = String(q[param]).slice(0, 80);
-    }
+    for (const key of MULTI) if (key in q) f[key] = lista(q[key]);
+    for (const key of ['periodo', 'moeda', 'moedaContrato']) if (key in q) f[key] = String(q[key]).slice(0, 80);
+    for (const key of MULTI) f[key] = lista(f[key]); // sessões antigas guardavam texto
     if (!f.periodo || !periods.includes(f.periodo)) f.periodo = periods[0] || null;
     // Filtros de linha próprios de módulos (ex.: ?giro=Obsoleto no Estoque)
     f.rowFilters ||= {};
@@ -33,23 +54,26 @@ async function viewLocals(req, res, next) {
     const leaseCurrencies = await Report.leaseCurrencies(f.periodo);
     if (!/^[A-Z]{3}$/.test(String(f.moedaContrato || ''))) f.moedaContrato = 'BRL';
 
-    // Cascata: valida cada nível com as opções geradas pelo nível anterior
-    let opts = await Report.filterOptions({ allowed: perm.allowed, period: f.periodo, moeda: f.moeda, estrutura: f.estrutura });
-    if (!opts.estruturas.includes(f.estrutura)) f.estrutura = '';
-    opts = await Report.filterOptions({ allowed: perm.allowed, period: f.periodo, moeda: f.moeda, estrutura: f.estrutura, sigla: f.sigla });
-    if (!opts.siglas.includes(f.sigla)) f.sigla = '';
-    opts = await Report.filterOptions({ allowed: perm.allowed, period: f.periodo, moeda: f.moeda, estrutura: f.estrutura, sigla: f.sigla });
+    // Cascata: cada nível mantém só os itens válidos para as escolhas do nível anterior
+    const base = { allowed: perm.allowed, period: f.periodo, moeda: f.moeda };
+    let opts = await Report.filterOptions(base);
+    f.estrutura = f.estrutura.filter((x) => opts.estruturas.includes(x));
+    opts = await Report.filterOptions({ ...base, estrutura: f.estrutura });
+    f.sigla = f.sigla.filter((x) => opts.siglas.includes(x));
+    opts = await Report.filterOptions({ ...base, estrutura: f.estrutura, sigla: f.sigla });
     const companies = opts.companies ? allCompanies.filter((c) => opts.companies.includes(c.code)) : allCompanies;
-    if (!f.empresa || (f.empresa !== Report.ALL && !companies.some((c) => c.code === f.empresa))) f.empresa = Report.ALL;
-    opts = await Report.filterOptions({ allowed: perm.allowed, period: f.periodo, moeda: f.moeda, estrutura: f.estrutura, sigla: f.sigla, company: f.empresa });
-    if (f.centro && !opts.centros.some((c) => c.code === f.centro)) f.centro = '';
+    f.empresa = f.empresa.filter((x) => companies.some((c) => c.code === x));
+    opts = await Report.filterOptions({ ...base, estrutura: f.estrutura, sigla: f.sigla, empresas: f.empresa });
+    f.centro = f.centro.filter((x) => opts.centros.some((c) => c.code === x));
 
-    const companyObj = allCompanies.find((c) => c.code === f.empresa);
+    // Resumo do que está filtrado (subtítulo das telas)
+    const resumo = (itens, um, varios) => (itens.length === 1 ? um(itens[0]) : `${itens.length} ${varios}`);
     const parts = [];
-    if (f.estrutura) parts.push(f.estrutura);
-    if (f.sigla) parts.push(`Sigla ${f.sigla}`);
-    parts.push(f.empresa === Report.ALL ? (perm.allowed ? 'Empresas liberadas' : (f.estrutura || f.sigla ? 'Todas as empresas' : 'Consolidado do grupo')) : fmt.company(companyObj));
-    if (f.centro) parts.push(`Centro ${f.centro}`);
+    if (f.estrutura.length) parts.push(resumo(f.estrutura, (x) => x, 'estruturas'));
+    if (f.sigla.length) parts.push(resumo(f.sigla, (x) => `Sigla ${x}`, 'siglas'));
+    if (f.empresa.length) parts.push(resumo(f.empresa, (x) => fmt.company(allCompanies.find((c) => c.code === x)), 'empresas'));
+    else parts.push(perm.allowed ? 'Empresas liberadas' : (f.estrutura.length || f.sigla.length ? 'Todas as empresas' : 'Consolidado do grupo'));
+    if (f.centro.length) parts.push(resumo(f.centro, (x) => `Centro ${x}`, 'centros de lucro'));
 
     Object.assign(res.locals, {
       user: req.session.user,
@@ -62,13 +86,15 @@ async function viewLocals(req, res, next) {
       filterOpts: opts,
       filter: { ...f },
       restricted: !!perm.allowed,
-      hasObraFilter: !!(f.estrutura || f.sigla || f.centro || f.empresa !== Report.ALL),
-      scope: { period: f.periodo, company: f.empresa, moeda: f.moeda, estrutura: f.estrutura, sigla: f.sigla, centro: f.centro, moedaContrato: f.moedaContrato, rowFilters: { ...(f.rowFilters || {}) }, allowed: perm.allowed, allowedKey: perm.key },
+      hasObraFilter: !!(f.estrutura.length || f.sigla.length || f.centro.length || f.empresa.length),
+      scope: scopeDe(f, perm),
       companyName: parts.join(' · '),
       currentPath: req.path,
       fmt,
       novidades: novidades.paraUsuario(req.user),
       mensagensRodape: await Mensagem.ativas().catch(() => []),
+      // Selo de pendências no topo (administradores): valor em cache, calculado em segundo plano
+      pendencias: req.session.user?.role === 'admin' && f.periodo ? pendencias.resumoRapido(f.periodo) : null,
     });
     next();
   } catch (e) { next(e); }
@@ -76,13 +102,9 @@ async function viewLocals(req, res, next) {
 
 /** Escopo do filtro salvo na sessão (rotas de API, sem renderização) */
 function sessionScope(req) {
-  const f = req.session.filter || {};
-  return {
-    period: f.periodo, company: f.empresa || Report.ALL, moeda: f.moeda || 'grupo',
-    estrutura: f.estrutura || '', sigla: f.sigla || '', centro: f.centro || '', moedaContrato: f.moedaContrato || 'BRL',
-    rowFilters: { ...(f.rowFilters || {}) },
-    allowed: req.permission?.allowed || null, allowedKey: req.permission?.key || '',
-  };
+  const f = { ...(req.session.filter || {}) };
+  for (const key of MULTI) f[key] = lista(f[key]);
+  return scopeDe(f, req.permission);
 }
 
 module.exports = { viewLocals, sessionScope };

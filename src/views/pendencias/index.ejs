@@ -1,0 +1,59 @@
+<%- include('../partials/layout-start') %>
+
+<section class="pendencias">
+  <% if (!p.total) { %>
+    <div class="alert alert-ok">Nenhuma pendência de parâmetros ou cadastros para <%= fmt.periodFull(p.period) %>.</div>
+  <% } else { %>
+    <div class="pend-resumo">
+      <% p.resumo.forEach(r => { %><span class="pend-chip"><%= r %></span><% }) %>
+    </div>
+  <% } %>
+
+  <% if (p.contas.length) { %>
+    <div class="card mt">
+      <div class="card-head">
+        <h2>Contas contábeis a classificar <span class="hint">(<%= fmt.number(p.contas.length) %> · FGI0 de <%= fmt.periodFull(p.period) %>, moeda do grupo)</span></h2>
+        <a class="btn btn-ghost" href="/parametros">Abrir Parâmetros</a>
+      </div>
+      <p class="hint pend-ajuda">Estas contas não têm classificação no Plano de Contas nem conta semelhante já classificada. Elas aparecem como "A classificar" no BP e na DRE. Inclua-as no Plano de Contas e reimporte o FGI0.</p>
+      <div class="table-wrap pend-tabela">
+        <table>
+          <thead><tr><th>Conta</th><th>Descrição</th><th>Onde aparece</th><th class="num">Centros de lucro</th><th class="num">Saldo (moeda do grupo)</th></tr></thead>
+          <tbody>
+            <% p.contas.forEach(c => { %>
+              <tr><td><%= c.conta %></td><td><%= c.descricao || '—' %></td><td><%= c.onde %></td><td class="num"><%= fmt.number(c.centros) %></td><td class="num <%= c.saldo < 0 ? 'neg' : '' %>"><%= fmt.currency(c.saldo, 'USD') %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+
+  <% if (p.naoCarregados.length) { %>
+    <div class="card mt">
+      <div class="card-head"><h2>Tabelas de parâmetros não carregadas</h2><a class="btn btn-ghost" href="/parametros">Carregar em Parâmetros</a></div>
+      <ul class="pend-lista">
+        <% p.naoCarregados.forEach(t => { %><li><strong><%= t.titulo %></strong><span class="hint"><%= t.descricao %></span></li><% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <% if (p.checagens.length) { %>
+    <div class="card mt">
+      <div class="card-head"><h2>Alertas nos parâmetros</h2><a class="btn btn-ghost" href="/parametros">Ver detalhes</a></div>
+      <ul class="pend-lista">
+        <% p.checagens.forEach(c => { %><li class="pend-<%= c.level %>"><span class="pend-nivel"><%= c.level === 'warn' ? 'Atenção' : 'Informativo' %></span><span><%= c.text %></span></li><% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <% if (p.semObra.length) { %>
+    <div class="card mt">
+      <div class="card-head"><h2>Centros de lucro sem cadastro de obra <span class="hint">(<%= fmt.number(p.semObra.length) %>)</span></h2><a class="btn btn-ghost" href="/obras">Abrir Obras</a></div>
+      <p class="hint pend-ajuda">Têm movimento no FGI0 mas não estão no cadastro de obras: nos filtros, a sigla repete o próprio centro de lucro e a estrutura fica "Sem cadastro de obra".</p>
+      <div class="pend-centros"><% p.semObra.forEach(c => { %><a class="pend-chip" href="/obras/nova?centroLucro=<%= encodeURIComponent(c) %>"><%= c %></a><% }) %></div>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/layout-end') %>

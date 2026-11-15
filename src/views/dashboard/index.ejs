@@ -10,7 +10,7 @@
       <a class="card kpi <%= k.tone || '' %>" href="/modulos/<%= k.module %>" data-ordem-chave="<%= k.label %>">
         <div class="label"><%= k.label %></div>
         <div class="value" title="<%= fmt.value(k.value, k.format, k.currency) %>"><%= fmt.kpi(k.value, k.format, k.currency) %></div>
-        <div class="meta"><%= fmt.value(k.value, k.format, k.currency) %></div>
+        <div class="meta"><%= fmt.value(k.value, k.format, k.currency) %><%= k.hint ? ' · ' + k.hint : '' %></div>
       </a>
     <% }) %>
   </div>
