@@ -64,16 +64,22 @@ function usesGroupCurrency(def) { return def.source === 'fgi0' || def.currencyMo
 const activeRowFilters = (def, s) => (def.rowFilters || []).filter((f) => s.rowFilters?.[f.param]);
 const rowFilterKey = (def, s) => activeRowFilters(def, s).map((f) => `${f.param}=${s.rowFilters[f.param]}`).join('&');
 // A chave de cache inclui a permissão do usuário (allowedKey): usuários com centros diferentes nunca compartilham resultados
+/** Valores de um filtro (aceita texto único ou lista — seleção múltipla) */
+const lista = (v) => [].concat(v ?? []).map((x) => String(x).trim()).filter(Boolean);
+const juntar = (v) => lista(v).join(',');
 const scopeKey = (slug, s) => {
   const def = bySlug[slug];
   const a = `|A${s.allowedKey || ''}`;
-  if (def?.source === 'fgi0') return `${slug}|${s.period}|${s.company}|${s.moeda}|${s.estrutura || ''}|${s.sigla || ''}|${s.centro || ''}${a}`;
-  if (def && rowCurrency(def)) return `${slug}|${s.period}|${s.company}|${s.moedaContrato || 'BRL'}|${s.estrutura || ''}|${s.sigla || ''}|${s.centro || ''}${a}`;
-  if (def && usesGroupCurrency(def)) return `${slug}|${s.period}|${s.company}|${s.moeda}|${rowFilterKey(def, s)}${a}`;
-  return `${slug}|${s.period}|${s.company}|-${a}`;
+  const emp = `${s.company}${lista(s.empresas).length ? '+' + juntar(s.empresas) : ''}`;
+  if (def?.source === 'fgi0') return `${slug}|${s.period}|${emp}|${s.moeda}|${juntar(s.estrutura)}|${juntar(s.sigla)}|${juntar(s.centro)}${a}`;
+  if (def && rowCurrency(def)) return `${slug}|${s.period}|${emp}|${s.moedaContrato || 'BRL'}|${juntar(s.estrutura)}|${juntar(s.sigla)}|${juntar(s.centro)}${a}`;
+  if (def && usesGroupCurrency(def)) return `${slug}|${s.period}|${emp}|${s.moeda}|${rowFilterKey(def, s)}${a}`;
+  return `${slug}|${s.period}|${emp}|-${a}`;
 };
-/** Escopo base (sem filtros de obra). Mantém a permissão: as linhas carregadas já respeitam o usuário. */
-const baseScope = (s) => ({ period: s.period, company: s.company, moeda: s.moeda, moedaContrato: s.moedaContrato, allowed: s.allowed, allowedKey: s.allowedKey });
+/** Escopo base (sem filtros de obra). Mantém a permissão e as empresas escolhidas. */
+const baseScope = (s) => ({ period: s.period, company: s.company, empresas: lista(s.empresas), moeda: s.moeda, moedaContrato: s.moedaContrato, allowed: s.allowed, allowedKey: s.allowedKey });
+/** Várias empresas escolhidas no filtro (com uma só, o escopo usa "company") */
+const empresasDoFiltro = (s) => { const e = lista(s.empresas); return e.length > 1 ? new Set(e) : null; };
 const upper = (v) => String(v ?? '').trim().toUpperCase();
 
 /**
@@ -82,11 +88,14 @@ const upper = (v) => String(v ?? '').trim().toUpperCase();
  */
 async function centroFilter(scope) {
   let set = null;
-  if (scope.centro) set = new Set([upper(scope.centro)]);
-  else if (scope.estrutura || scope.sigla) {
+  const centros = lista(scope.centro).map(upper);
+  const estr = lista(scope.estrutura);
+  const sig = lista(scope.sigla);
+  if (centros.length) set = new Set(centros);
+  else if (estr.length || sig.length) {
     const obras = await effectiveObras(scope.period, scope.moeda);
     set = new Set(obras
-      .filter((o) => (!scope.estrutura || o.estrutura === scope.estrutura) && (!scope.sigla || o.siglaObra === scope.sigla))
+      .filter((o) => (!estr.length || estr.includes(o.estrutura)) && (!sig.length || sig.includes(o.siglaObra)))
       .map((o) => o.centroLucro));
   }
   if (scope.allowed) set = set ? new Set([...set].filter((c) => scope.allowed.has(c))) : new Set(scope.allowed);
@@ -469,6 +478,8 @@ async function getSummary(slug, scope) {
     // Relatórios sem centro de lucro nas linhas: restringe às empresas liberadas ao usuário
     const empresas = await allowedCompanies(scope);
     if (empresas) parts = parts.filter((p) => empresas.has(p.company));
+    const escolhidas = empresasDoFiltro(scope);
+    if (escolhidas) parts = parts.filter((p) => escolhidas.has(p.company));
     if (!parts.length) return null;
     // Resumo gravado antes de um breakdown novo existir (ex.: contas do BP): recalcula a partir das linhas
     const faltando = def.breakdowns.some((b) => parts.some((p) => p.summary && !(b.id in (p.summary.breakdowns || {}))));
@@ -520,6 +531,8 @@ async function loadRawRows(slug, scope) {
     if (currency) meta = meta.filter((d) => d.currency === currency);
     const empresas = await allowedCompanies(s);
     if (empresas) meta = meta.filter((d) => empresas.has(d.company));
+    const escolhidas = empresasDoFiltro(s);
+    if (escolhidas) meta = meta.filter((d) => escolhidas.has(d.company));
     const companies = Object.fromEntries((await Company.list()).map((c) => [c.code, c.name]));
     const parts = await Promise.all(meta.map(async (d) =>
       (await datasets.getRows(d)).map((r) => ({ empresa: companies[d.company] || d.company, ...r }))));
@@ -619,7 +632,10 @@ async function effectiveObras(period, moeda) {
   return extra.length ? obras.concat(extra) : obras;
 }
 
-async function filterOptions({ period, moeda, estrutura, sigla, company, allowed }) {
+async function filterOptions({ period, moeda, estrutura: estrIn, sigla: sigIn, company, empresas: empIn, allowed }) {
+  const estrutura = lista(estrIn);
+  const sigla = lista(sigIn);
+  const empresasSel = lista(empIn).length ? lista(empIn) : (company && company !== ALL ? [company] : []);
   const obras = await effectiveObras(period, moeda);
   const fullMap = await companyCentros(period, moeda);
   // Usuário restrito: só os seus centros de lucro (e as empresas que os possuem)
@@ -632,14 +648,14 @@ async function filterOptions({ period, moeda, estrutura, sigla, company, allowed
   const cont = new Map();
   obrasDados.forEach((o) => cont.set(o.estrutura, (cont.get(o.estrutura) || 0) + 1));
   const estruturas = [...cont.keys()].sort((a, b) => (a === SEM_CADASTRO) - (b === SEM_CADASTRO) || cont.get(b) - cont.get(a));
-  const obrasEstr = estrutura ? obrasDados.filter((o) => o.estrutura === estrutura) : obrasDados;
+  const obrasEstr = estrutura.length ? obrasDados.filter((o) => estrutura.includes(o.estrutura)) : obrasDados;
   const siglas = [...new Set(obrasEstr.map((o) => o.siglaObra).filter(Boolean))].sort(collator.compare);
-  const obraSet = (estrutura || sigla)
-    ? new Set(obrasEstr.filter((o) => !sigla || o.siglaObra === sigla).map((o) => o.centroLucro))
+  const obraSet = (estrutura.length || sigla.length)
+    ? new Set(obrasEstr.filter((o) => !sigla.length || sigla.includes(o.siglaObra)).map((o) => o.centroLucro))
     : null;
   let companies = obraSet ? [...map].filter(([, set]) => [...set].some((c) => obraSet.has(c))).map(([code]) => code) : null;
   if (!companies && allowed) companies = [...map.keys()];
-  let centros = company && company !== ALL ? [...(map.get(company) || [])] : [...new Set([...map.values()].flatMap((s) => [...s]))];
+  let centros = empresasSel.length ? [...new Set(empresasSel.flatMap((e) => [...(map.get(e) || [])]))] : [...new Set([...map.values()].flatMap((s) => [...s]))];
   if (obraSet) centros = centros.filter((c) => obraSet.has(c));
   centros = centros.filter(Boolean); // linhas sem centro só pelo filtro de sigla "(SEM CENTRO)"
   const obraBy = new Map(obras.map((o) => [o.centroLucro, o]));

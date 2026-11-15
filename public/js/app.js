@@ -327,6 +327,112 @@
     document.addEventListener('click', (e) => { if (!fWrap.contains(e.target)) close(); });
   }
 
+  /* ---------- Filtros com seleção múltipla (Estrutura, Sigla, Empresa, Centro de lucro) ----------
+     Substitui visualmente o <select multiple>: caixas de seleção, busca e "Aplicar".
+     O formulário só é enviado no "Aplicar" (ou Enter), para escolher vários itens de uma vez. */
+  function enhanceMulti(sel) {
+    const wrap = document.createElement('div');
+    wrap.className = 'mselect';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    sel.classList.add('mselect-native');
+    sel.tabIndex = -1;
+    const todos = sel.dataset.todos || 'Todos';
+    const plural = sel.dataset.plural || 'itens';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'select mselect-btn';
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+    const rotulo = () => {
+      const marcados = [...sel.options].filter((o) => o.selected);
+      btn.textContent = !marcados.length ? todos : marcados.length === 1 ? marcados[0].textContent : `${marcados.length} ${plural}`;
+      btn.classList.toggle('tem-selecao', marcados.length > 0);
+      if (marcados.length > 1) btn.title = marcados.map((o) => o.textContent).join('\n'); else btn.removeAttribute('title');
+    };
+    const painel = document.createElement('div');
+    painel.className = 'mselect-panel';
+    painel.hidden = true;
+    const busca = document.createElement('input');
+    busca.type = 'search';
+    busca.className = 'input mselect-busca';
+    busca.placeholder = 'Buscar…';
+    busca.setAttribute('aria-label', `Buscar em ${sel.closest('div')?.querySelector('label')?.textContent || 'opções'}`);
+    const acoes = document.createElement('div');
+    acoes.className = 'mselect-acoes';
+    const marcarTodos = document.createElement('button');
+    marcarTodos.type = 'button'; marcarTodos.className = 'link-btn'; marcarTodos.textContent = 'Marcar visíveis';
+    const limpar = document.createElement('button');
+    limpar.type = 'button'; limpar.className = 'link-btn'; limpar.textContent = 'Limpar';
+    acoes.append(marcarTodos, limpar);
+    const listaEl = document.createElement('ul');
+    listaEl.className = 'mselect-lista';
+    listaEl.setAttribute('role', 'listbox');
+    listaEl.setAttribute('aria-multiselectable', 'true');
+    [...sel.options].forEach((o, i) => {
+      const li = document.createElement('li');
+      const lbl = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = o.selected;
+      cb.dataset.i = i;
+      cb.addEventListener('change', () => { o.selected = cb.checked; rotulo(); });
+      const t = document.createElement('span');
+      t.textContent = o.textContent;
+      lbl.append(cb, t);
+      li.append(lbl);
+      listaEl.append(li);
+    });
+    if (!sel.options.length) { const vazio = document.createElement('li'); vazio.className = 'mselect-vazio'; vazio.textContent = 'Nenhuma opção para os filtros atuais.'; listaEl.append(vazio); }
+    const rodape = document.createElement('div');
+    rodape.className = 'mselect-rodape';
+    const aplicar = document.createElement('button');
+    aplicar.type = 'button'; aplicar.className = 'btn btn-primary'; aplicar.textContent = 'Aplicar';
+    rodape.append(aplicar);
+    painel.append(busca, acoes, listaEl, rodape);
+    wrap.append(btn, painel);
+    const inicial = () => [...sel.options].map((o) => o.selected).join();
+    let estadoAoAbrir = inicial();
+    const abrir = () => {
+      document.querySelectorAll('.mselect.open').forEach((w) => { if (w !== wrap) w.dispatchEvent(new Event('fechar')); });
+      estadoAoAbrir = inicial();
+      painel.hidden = false; wrap.classList.add('open'); btn.setAttribute('aria-expanded', 'true');
+      busca.value = ''; filtrar(); busca.focus();
+    };
+    const fechar = (aplicando) => {
+      if (!aplicando && inicial() !== estadoAoAbrir) {
+        // fechou sem aplicar: volta ao que estava
+        const antes = estadoAoAbrir.split(',');
+        [...sel.options].forEach((o, i) => { o.selected = antes[i] === 'true'; });
+        listaEl.querySelectorAll('input[type=checkbox]').forEach((cb) => { cb.checked = sel.options[cb.dataset.i].selected; });
+        rotulo();
+      }
+      painel.hidden = true; wrap.classList.remove('open'); btn.setAttribute('aria-expanded', 'false');
+    };
+    const filtrar = () => {
+      const q = busca.value.trim().toLowerCase();
+      listaEl.querySelectorAll('li').forEach((li) => { li.hidden = !!q && !li.textContent.toLowerCase().includes(q); });
+    };
+    const enviar = () => { fechar(true); if (inicial() !== estadoAoAbrir) { if (typeof mostrarCarregando === 'function') mostrarCarregando(); sel.form.submit(); } };
+    btn.addEventListener('click', () => (wrap.classList.contains('open') ? fechar(false) : abrir()));
+    busca.addEventListener('input', filtrar);
+    busca.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); enviar(); } });
+    marcarTodos.addEventListener('click', () => {
+      listaEl.querySelectorAll('li:not([hidden]) input[type=checkbox]').forEach((cb) => { cb.checked = true; sel.options[cb.dataset.i].selected = true; });
+      rotulo();
+    });
+    limpar.addEventListener('click', () => {
+      listaEl.querySelectorAll('input[type=checkbox]').forEach((cb) => { cb.checked = false; sel.options[cb.dataset.i].selected = false; });
+      rotulo();
+    });
+    aplicar.addEventListener('click', enviar);
+    wrap.addEventListener('fechar', () => fechar(false));
+    wrap.addEventListener('keydown', (e) => { if (e.key === 'Escape' && wrap.classList.contains('open')) { e.stopPropagation(); fechar(false); btn.focus(); } });
+    document.addEventListener('click', (e) => { if (wrap.classList.contains('open') && !wrap.contains(e.target)) fechar(false); });
+    rotulo();
+  }
+  $$('select[data-enhance="multi"]').forEach(enhanceMulti);
+
   /* ---------- Seletor de moeda com ícones (substitui visualmente o <select> nativo) ---------- */
   function enhanceCurrency(sel) {
     const wrap = document.createElement('div');

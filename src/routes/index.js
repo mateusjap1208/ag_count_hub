@@ -9,6 +9,9 @@ const novidadesSvc = require('../services/novidades');
 const versaoAtual = require('../config/versao');
 const User = require('../models/User');
 const mensagensCtl = require('../controllers/mensagemController');
+const pendencias = require('../services/pendencias');
+const indicadores = require('../services/indicadores');
+const Report = require('../models/Report');
 const auth = require('../controllers/authController');
 const dashboard = require('../controllers/dashboardController');
 const modules = require('../controllers/moduleController');
@@ -89,6 +92,22 @@ router.post('/novidades/visto', verifyCsrf, async (req, res, next) => {
     const volta = String(req.body?.voltar || '/');
     return res.redirect(volta.startsWith('/') && !volta.startsWith('//') ? volta : '/');
   } catch (e) { return next(e); }
+});
+// Indicadores da análise do balanço (liquidez, rentabilidade, estrutura de capital)
+router.get('/indicadores', async (req, res, next) => {
+  try {
+    const { scope } = res.locals;
+    const ind = scope.period ? await indicadores.calcular(scope) : null;
+    const cur = await Report.displayCurrency(Report.getModule('bp'), scope);
+    res.render('indicadores/index', { title: 'Indicadores', ind, cur });
+  } catch (e) { next(e); }
+});
+// Pendências de parâmetros e cadastros (somente administradores)
+router.get('/pendencias', requireAdmin, async (req, res, next) => {
+  try {
+    const p = await pendencias.doPeriodo(res.locals.filter.periodo);
+    res.render('pendencias/index', { title: 'Pendências', subtitle: 'Parâmetros e cadastros a completar', hideFilters: true, p });
+  } catch (e) { next(e); }
 });
 // Mensagens do rodapé (somente administradores)
 router.get('/mensagens', requireAdmin, mensagensCtl.index);

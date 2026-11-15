@@ -30,7 +30,7 @@ async function renderForm(res, { obra, original, errors = {}, error = null }) {
 }
 
 exports.newForm = async (req, res, next) => {
-  try { await renderForm(res, { obra: { ativa: true, estrutura: String(req.query.estrutura || '') } }); } catch (e) { next(e); }
+  try { await renderForm(res, { obra: { ativa: true, estrutura: String(req.query.estrutura || ''), centroLucro: String(req.query.centroLucro || '').slice(0, 20).toUpperCase() } }); } catch (e) { next(e); }
 };
 
 exports.editForm = async (req, res, next) => {

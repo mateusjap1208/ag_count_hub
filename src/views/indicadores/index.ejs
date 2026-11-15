@@ -1,0 +1,50 @@
+<%- include('../partials/layout-start') %>
+
+<% if (!ind) { %>
+  <%- include('../partials/empty', { heading: 'Sem dados do FGI0 nesta seleção', text: 'Os indicadores usam o BP e a DRE. Suba o FGI0 da competência ou ajuste os filtros.' }) %>
+<% } else {
+     const n2 = (v) => v == null ? '—' : v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+     const valor = (i) => i.valor == null ? '—' : i.fmt === '%' ? n2(i.valor * 100) + '%' : n2(i.valor);
+     const SIT = { bom: 'Bom', atencao: 'Atenção', neutro: '', sem: 'Sem dados' };
+     const b = ind.base; %>
+
+  <div class="grid mt ind-grupos" data-ordenavel="indicadores" aria-label="Indicadores">
+    <% ind.grupos.forEach((g, gi) => { %>
+      <section class="card bloco-largo ind-grupo" data-ordem-chave="grupo-<%= gi %>">
+        <div class="card-head"><h2><%= g.titulo %></h2><span class="hint">Competência <%= fmt.periodFull(filter.periodo) %> · <%= cur %></span></div>
+        <div class="ind-cards">
+          <% g.itens.forEach(i => { %>
+            <article class="ind-card ind-<%= i.situacao %>" title="<%= i.texto %>">
+              <header>
+                <span class="ind-sigla"><%= i.id %></span>
+                <% if (SIT[i.situacao]) { %><span class="ind-sit"><%= SIT[i.situacao] %></span><% } %>
+              </header>
+              <h3><%= i.nome %></h3>
+              <div class="ind-valor"><%= valor(i) %></div>
+              <code class="ind-formula"><%= i.formula %></code>
+              <p class="ind-texto"><%= i.texto %></p>
+              <span class="ind-direcao"><%= i.melhor === 'maior' ? '▲ Quanto maior, melhor' : '▼ Quanto menor, melhor' %></span>
+            </article>
+          <% }) %>
+        </div>
+      </section>
+    <% }) %>
+
+    <section class="card bloco-largo" data-ordem-chave="base">
+      <div class="card-head"><h2>Base do cálculo</h2><span class="hint">Valores do BP e da DRE em <%= cur %></span></div>
+      <div class="ind-base">
+        <% [
+             ['AC', 'Ativo circulante', b.AC], ['Estoques', 'Estoques', b.Estoques], ['ANC', 'Ativo não circulante', b.ANC],
+             ['ARLP', 'Realizável a longo prazo', b.ARLP], ['AI', 'Imobilizado', b.AI], ['AT', 'Ativo total', b.AT],
+             ['PC', 'Passivo circulante', b.PC], ['PNC', 'Passivo não circulante', b.PNC], ['PL', 'Patrimônio líquido', b.PL],
+             ['Vendas', 'Vendas líquidas (receita líquida)', b.Vendas], ['LL', 'Lucro líquido', b.LL],
+           ].forEach(([sig, nome, v]) => { %>
+          <div><span><strong><%= sig %></strong> · <%= nome %></span><b class="<%= v < 0 ? 'neg' : '' %>"><%= fmt.currency(v, cur) %></b></div>
+        <% }) %>
+      </div>
+      <p class="hint ind-nota">ARLP = ativo não circulante sem investimentos, imobilizado e intangível. AI = linhas "Imobilizado" e "Property, plant and equipments" do BP. Vendas e lucro são o acumulado do ano até a competência.</p>
+    </section>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-end') %>

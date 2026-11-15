@@ -28,7 +28,11 @@ exports.index = async (req, res, next) => {
       { module: 'dre', ...kpi(views.dre, 'Lucro líquido') },
       { module: 'capital-empregado', ...kpi(views['capital-empregado'], 'Capital empregado') },
       { module: 'estoque', ...kpi(views.estoque, 'Valor em estoque') },
-    ].filter((h) => h.label);
+      { module: 'arrendamento', ...kpi(views.arrendamento, 'Passivo de arrendamento'), hint: 'IFRS 16' },
+      { module: 'adiantamentos', ...kpi(views.adiantamentos, 'Total de adiantamentos'), hint: 'Fornecedores, subempreiteiros e funcionários' },
+      { module: 'seguros-garantias', ...kpi(views['seguros-garantias'], 'Saldo a apropriar'), label: 'Seguros a apropriar', hint: 'Despesa antecipada' },
+      { module: 'imobilizado', ...kpi(views.imobilizado, 'Valor contábil'), label: 'Imobilizado (valor contábil)', hint: 'Custo − depreciação' },
+    ].filter((h) => h.value !== undefined);
 
     const dreTrend = await Report.trend('dre', scope);
     const trend = {

@@ -6,6 +6,17 @@
  */
 module.exports = [
   {
+    build: 43,
+    data: '2026-11-15',
+    titulo: 'Filtros múltiplos, Indicadores e Pendências',
+    itens: [
+      'Filtros: escolha várias estruturas, siglas, empresas e centros de lucro ao mesmo tempo.',
+      'Visão Geral: novos cards de passivo de arrendamento, adiantamentos, seguros a apropriar e imobilizado.',
+      'Novo menu Indicadores (após a DRE): liquidez, rentabilidade e estrutura de capital.',
+      'Administradores: alerta de pendências (contas a classificar, parâmetros e obras sem cadastro).',
+    ],
+  },
+  {
     build: 42,
     data: '2026-11-14',
     titulo: 'Cards da Medição',
