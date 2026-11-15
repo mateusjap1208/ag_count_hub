@@ -6,6 +6,23 @@
  */
 module.exports = [
   {
+    build: 77,
+    data: "2026-11-15",
+    titulo: "Login no azul da logo",
+    itens: [
+      "Na tela de login, o botão Entrar e o texto \"em um só lugar.\" usam o mesmo azul da logo AG."
+    ]
+  },
+  {
+    build: 76,
+    data: "2026-11-15",
+    titulo: "Logo AG no menu recolhido",
+    itens: [
+      "Com o menu recolhido, o ícone do topo passa a ser o AG da logo.",
+      "A logo do menu ficou sem o contorno."
+    ]
+  },
+  {
     build: 75,
     data: "2026-11-15",
     titulo: "Sistema no menu do avatar",
