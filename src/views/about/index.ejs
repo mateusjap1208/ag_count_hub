@@ -2,9 +2,8 @@
 
 <section class="about">
   <div class="about-card card">
-    <img class="about-logo logo-pos" src="/static/img/logo-consag.png" alt="CONSAG Engenharia">
-    <img class="about-logo logo-neg" src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia">
-    <h2>AG Cont Hub</h2>
+    <%- include('../partials/logo-ag', { cls: 'about-logo' }) %>
+    <h2>AG ContHub</h2>
     <p class="about-sub">Painel Contábil · CONSAG Engenharia</p>
     <p class="about-version">Versão <%= appVersion %></p>
 

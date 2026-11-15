@@ -117,7 +117,7 @@ exports.exportXlsx = async (req, res, next) => {
     const cols = [{ key: 'empresa', label: 'Empresa', type: 'string' }, ...def.columns];
 
     const wb = new ExcelJS.Workbook();
-    wb.creator = 'AG Cont Hub';
+    wb.creator = 'AG ContHub';
     const ws = wb.addWorksheet(def.menu.slice(0, 31), { views: [{ state: 'frozen', ySplit: 1 }] });
     ws.columns = cols.map((c) => ({
       header: c.format === 'currency' ? `${c.label} (${currency})` : c.label,

@@ -73,7 +73,7 @@ li { margin: 4px 0; }
  */
 function paginaObra({ status, titulo, texto, itens = [] }) {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AG Cont Hub · ${esc(titulo)}</title><style>${CSS}</style></head>
+<title>AG ContHub · ${esc(titulo)}</title><style>${CSS}</style></head>
 <body><main class="caixa">${svg}
 <p>Estamos fazendo uma obrinha por aqui. Tente de novo em instantes.</p>
 <div class="codigo">${esc(status)}</div>

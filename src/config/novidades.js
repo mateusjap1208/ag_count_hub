@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 71,
+    data: "2026-11-15",
+    titulo: "Logo Andrade Gutierrez",
+    itens: [
+      "O menu, a página Sobre e as telas de erro usam a logo Andrade Gutierrez no lugar da logo CONSAG.",
+      "O nome do sistema passa a ser AG ContHub."
+    ]
+  },
+  {
     build: 70,
     data: "2026-11-15",
     titulo: "Personalize as cores",

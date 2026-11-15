@@ -5,7 +5,7 @@
       <%- include('../partials/obra-animacao') %>
       <p class="error-obra">Estamos fazendo uma obrinha por aqui. Tente de novo em instantes.</p>
     <% } else { %>
-    <img src="/static/img/logo-consag.png" alt="CONSAG Engenharia" class="error-logo logo-pos"><img src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia" class="error-logo logo-neg">
+    <%- include('../partials/logo-ag', { cls: 'error-logo' }) %>
     <% } %>
     <div class="code"><%= status %></div>
     <p class="error-msg"><%= message %></p>
