@@ -48,7 +48,7 @@ const modules = [
    * ------------------------------------------------------------------ */
   {
     slug: 'bp',
-    menu: 'BP',
+    menu: 'Balanço Patrimonial',
     title: 'Balanço Patrimonial',
     icon: 'scale',
     source: 'fgi0',
@@ -104,7 +104,7 @@ const modules = [
   },
   {
     slug: 'dre',
-    menu: 'DRE',
+    menu: 'Demonstração do Resultado',
     title: 'Demonstração do Resultado',
     icon: 'chart',
     source: 'fgi0',
