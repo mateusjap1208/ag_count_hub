@@ -3061,3 +3061,11 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .previa-linha { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .previa-link { font-weight: 600; }
 .user-panel .user-link { margin-top: 10px; text-decoration: none; }
+
+/* Logo Andrade Gutierrez (vetor): peças azul-marinho com espaço transparente entre elas */
+.logo-andrade { display: block; height: 40px; width: auto; aspect-ratio: 1250 / 412; }
+.sidebar .brand-logo.logo-andrade { height: 38px; }
+.about-logo.logo-andrade { height: 64px; margin: 0 auto; }
+.error-logo.logo-andrade { height: 48px; margin: 0 auto 8px; }
+/* No tema escuro o azul-marinho da logo se confunde com o fundo: um contorno discreto separa as peças */
+:root[data-theme="dark"] .logo-andrade rect[fill="#0B1730"] { stroke: rgba(255, 255, 255, .22); stroke-width: 6; }
