@@ -85,3 +85,14 @@ exports.rows = async (req, res, next) => {
 exports.classify = async (req, res, next) => {
   try { res.json(await Parameter.classifyAccount(String(req.params.conta).slice(0, 20))); } catch (e) { next(e); }
 };
+
+/* Edição de linhas da tabela de parâmetros (administradores) */
+const responder = (fn) => async (req, res, next) => {
+  try { res.json({ ok: true, ...(await fn(req)) }); } catch (e) {
+    if (e instanceof Parameter.ParamError) return res.status(400).json({ error: e.message });
+    return next(e);
+  }
+};
+exports.addRow = responder(async (req) => ({ linha: await Parameter.addRow(req.params.id, req.body?.valores, req.user) }));
+exports.updateRow = responder(async (req) => ({ linha: await Parameter.updateRow(req.params.id, req.params.i, req.body?.valores, req.body?.chave, req.user) }));
+exports.deleteRow = responder(async (req) => { await Parameter.deleteRow(req.params.id, req.params.i, req.body?.chave, req.user); return {}; });

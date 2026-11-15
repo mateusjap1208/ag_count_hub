@@ -1044,6 +1044,90 @@
       return `<td>${esc(v)}</td>`;
     };
 
+    /* Parâmetros: editar, excluir e incluir registros (tabela marcada com data-editavel) */
+    const editavel = tableCard.dataset.editavel === '1';
+    const chaveCol = tableCard.dataset.chave || columns[0]?.key;
+    const csrfTok = (() => { try { return JSON.parse(document.getElementById('user-prefs')?.textContent || '{}').csrf || ''; } catch { return ''; } })();
+    let linhasAtuais = [];
+    const acoes = (n) => `<td class="param-acoes"><button class="icon-btn" type="button" data-editar="${n}" title="Editar" aria-label="Editar registro"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button><button class="icon-btn icon-btn-danger" type="button" data-excluir="${n}" title="Excluir" aria-label="Excluir registro"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg></button></td>`;
+    const chamar = async (metodo, url, corpo) => {
+      const r = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'x-csrf-token': csrfTok }, body: JSON.stringify(corpo || {}) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || 'Não foi possível salvar.');
+      return d;
+    };
+    const avisar = (msg, erro) => {
+      const a = document.createElement('div');
+      a.className = `alert ${erro ? 'alert-err' : 'alert-ok'} param-aviso`;
+      a.setAttribute('role', 'status');
+      a.textContent = msg;
+      tableCard.prepend(a);
+      setTimeout(() => a.remove(), 4000);
+    };
+    // Formulário (diálogo) para incluir/editar
+    const dlg = editavel ? document.createElement('dialog') : null;
+    if (dlg) {
+      dlg.className = 'modal param-dialog';
+      dlg.innerHTML = `<form method="dialog" class="param-form"><h2 data-titulo></h2><div class="param-campos"></div><p class="field-error" data-erro hidden></p><div class="modal-actions"><button class="btn btn-ghost" value="cancelar" type="submit" formnovalidate>Cancelar</button><button class="btn btn-primary" value="salvar" type="submit" data-salvar>Salvar</button></div></form>`;
+      document.body.append(dlg);
+    }
+    const abrirForm = (linha) => new Promise((resolve) => {
+      const campos = dlg.querySelector('.param-campos');
+      dlg.querySelector('[data-titulo]').textContent = linha ? 'Editar registro' : 'Novo registro';
+      campos.innerHTML = '';
+      columns.forEach((c) => {
+        const id = `pf-${c.key}`;
+        const wrap = document.createElement('div');
+        wrap.className = 'field';
+        const lbl = document.createElement('label');
+        lbl.htmlFor = id; lbl.textContent = c.label;
+        const inp = document.createElement('input');
+        inp.className = 'input'; inp.id = id; inp.name = c.key; inp.autocomplete = 'off';
+        inp.value = linha && linha[c.key] != null ? String(linha[c.key]) : '';
+        if (c.type === 'number') inp.inputMode = 'decimal';
+        wrap.append(lbl, inp);
+        campos.append(wrap);
+      });
+      const erro = dlg.querySelector('[data-erro]');
+      erro.hidden = true;
+      dlg.onclose = () => resolve(dlg.returnValue === 'salvar' ? Object.fromEntries(columns.map((c) => [c.key, dlg.querySelector(`[name="${c.key}"]`).value])) : null);
+      dlg.returnValue = '';
+      dlg.showModal();
+      campos.querySelector('input')?.focus();
+    });
+    if (editavel) {
+      tbody.addEventListener('click', async (e) => {
+        const bE = e.target.closest('[data-editar]');
+        const bX = e.target.closest('[data-excluir]');
+        if (!bE && !bX) return;
+        const linha = linhasAtuais[Number((bE || bX).dataset.editar ?? (bE || bX).dataset.excluir)];
+        if (!linha) return;
+        const url = `${endpoint}/${linha._i}`;
+        try {
+          if (bX) {
+            if (!window.confirm(`Excluir o registro ${linha[chaveCol] ?? ''}? Esta ação não pode ser desfeita.`)) return;
+            await chamar('DELETE', url, { chave: linha[chaveCol] });
+            avisar('Registro excluído.');
+          } else {
+            const valores = await abrirForm(linha);
+            if (!valores) return;
+            await chamar('PUT', url, { chave: linha[chaveCol], valores });
+            avisar('Registro atualizado.');
+          }
+          load();
+        } catch (err) { avisar(err.message, true); }
+      });
+      $('[data-novo-registro]')?.addEventListener('click', async () => {
+        try {
+          const valores = await abrirForm(null);
+          if (!valores) return;
+          await chamar('POST', endpoint, { valores });
+          avisar('Registro incluído no fim da tabela.');
+          load();
+        } catch (err) { avisar(err.message, true); }
+      });
+    }
+
     async function load() {
       if (ctrl) ctrl.abort();
       ctrl = new AbortController();
@@ -1056,9 +1140,10 @@
         const d = await res.json();
         if (!res.ok) throw new Error(d.error || 'Erro ao carregar');
         state.pages = d.pages; state.page = d.page;
+        linhasAtuais = d.rows;
         tbody.innerHTML = d.rows.length
-          ? d.rows.map((r) => `<tr>${columns.map((c) => cell(c, r[c.key])).join('')}</tr>`).join('')
-          : `<tr><td colspan="${columns.length}">Nenhum registro encontrado.</td></tr>`;
+          ? d.rows.map((r, n) => `<tr>${columns.map((c) => cell(c, r[c.key])).join('')}${editavel ? acoes(n) : ''}</tr>`).join('')
+          : `<tr><td colspan="${columns.length + (editavel ? 1 : 0)}">Nenhum registro encontrado.</td></tr>`;
         const from = d.total ? (d.page - 1) * d.size + 1 : 0;
         info.textContent = `${num.format(from)}–${num.format(Math.min(d.page * d.size, d.total))} de ${num.format(d.total)} · página ${d.page} de ${d.pages}`;
         prev.disabled = d.page <= 1;

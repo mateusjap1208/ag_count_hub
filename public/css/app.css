@@ -1399,3 +1399,16 @@ a.pend-chip:hover { border-color: #F5A400; }
 }
 @keyframes oa-carga-viagem { 0%, 20% { transform: scaleY(.08); } 23%, 53% { transform: scaleY(.4); } 56%, 86% { transform: scaleY(.7); } 89%, 100% { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .oa-caminhao { animation: none !important; transform: none; } }
+
+/* Parâmetros: editar / excluir / incluir registros */
+.param-acoes { white-space: nowrap; text-align: right; position: sticky; right: 0; background: var(--surface); }
+.param-acoes-th { text-align: right; position: sticky; right: 0; }
+.param-acoes .icon-btn { display: inline-grid; color: var(--muted); }
+.param-acoes .icon-btn:hover { color: var(--consag-blue); background: var(--blue-soft); }
+.param-acoes .icon-btn-danger:hover { color: var(--danger); background: var(--err-bg); }
+.param-dialog { width: min(560px, calc(100vw - 32px)); }
+.param-form h2 { font-size: 17px; margin: 0 0 14px; }
+.param-campos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; max-height: 60vh; overflow: auto; padding: 2px; }
+.param-campos .input { width: 100%; }
+.param-aviso { margin-bottom: 12px; }
+.modal.param-dialog { max-width: 560px; }

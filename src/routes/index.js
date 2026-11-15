@@ -66,6 +66,9 @@ router.get('/modulos/:slug/exportar.csv', modules.exportCsv);
 router.get('/modulos/:slug/exportar.xlsx', modules.exportXlsx);
 router.get('/api/parametros/conta/:conta', parameters.classify);
 router.get('/api/parametros/:id/linhas', requireAdmin, parameters.rows);
+router.post('/api/parametros/:id/linhas', requireAdmin, express.json({ limit: '20kb' }), verifyCsrf, parameters.addRow);
+router.put('/api/parametros/:id/linhas/:i', requireAdmin, express.json({ limit: '20kb' }), verifyCsrf, parameters.updateRow);
+router.delete('/api/parametros/:id/linhas/:i', requireAdmin, express.json({ limit: '20kb' }), verifyCsrf, parameters.deleteRow);
 
 router.use(viewLocals);
 router.get('/', dashboard.index);

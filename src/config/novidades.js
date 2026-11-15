@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 49,
+    data: '2026-11-15',
+    titulo: 'Edição dos parâmetros',
+    itens: ['Em Parâmetros › Consultar, os registros podem ser editados, excluídos e incluídos direto na tela.'],
+  },
+  {
     build: 48,
     data: '2026-11-15',
     titulo: 'Caminhão novo na obra',
