@@ -313,27 +313,69 @@ async function deleteRow(id, i, chaveOriginal, user) {
 }
 
 /**
- * Vincula uma conta do razão sem classificação: copia do Plano de Contas a classificação de uma
- * conta de referência (conta do grupo, N1 a N4 e classe BP/DRE) e, se a referência tiver,
- * também a linha gerencial do Mapeamento de Contas (Capital Empregado).
+ * Vincula uma conta do razão sem classificação a partir de contas de referência já classificadas.
+ *
+ * - Contas de resultado (começam com 4 ou 5) → Plano de Contas. Podem repetir, uma linha por
+ *   categoria da DRE (ex.: Custos e Despesas Gerais e Administrativas): na importação do FGI0,
+ *   a área funcional de cada lançamento decide qual linha vale
+ *   (Z001/Z002 → Despesa; Z003, Z004, Z005 ou vazia → Custo).
+ * - Contas de balanço (1, 2, 3) → Mapeamento de Contas: copia a conta do grupo (que liga à
+ *   estrutura do BP) e a linha gerencial do Capital Empregado. Uma única classificação por conta.
  */
-async function vincularConta({ conta, referencia, descricao }, user) {
+async function vincularConta({ conta, referencia, referencias, descricao }, user) {
   const c = String(conta || '').trim().toUpperCase();
   if (!/^[0-9A-Z]{4,20}$/.test(c)) throw new ParamError('Conta inválida.');
-  if ((await find('plano-contas', c)).length) throw new ParamError(`A conta ${c} já está no Plano de Contas.`);
-  const ref = (await find('plano-contas', String(referencia || '').trim()))[0];
-  if (!ref) throw new ParamError('Escolha uma conta de referência que exista no Plano de Contas.');
-  const desc = String(descricao || '').trim().slice(0, 120) || ref.descricao || '';
-  const plano = await addRow('plano-contas', {
-    conta: c, contaGrupo: ref.contaGrupo, descricao: desc, n1: ref.n1 || '', n2: ref.n2 || '', n3: ref.n3 || '', n4: ref.n4 || '', classe: ref.classe || '',
-  }, user);
-  let mapeamento = null;
-  const loaded = await loadedIds();
-  if (loaded.has('mapeamento-contas') && !(await find('mapeamento-contas', c)).length) {
-    const m = (await find('mapeamento-contas', ref.conta))[0];
-    if (m) mapeamento = await addRow('mapeamento-contas', { contaGrupo: m.contaGrupo || ref.contaGrupo, conta: c, descricao: desc, codGerencial: m.codGerencial, descGerencial: m.descGerencial || '' }, user);
+  const resultado = /^[45]/.test(c);
+  // referências: "CONTA" ou { conta, i } (i = posição da linha no Plano de Contas, para contas com várias classificações)
+  const itens = (Array.isArray(referencias) ? referencias : [referencia])
+    .map((x) => (x && typeof x === 'object' ? { conta: String(x.conta || '').trim(), i: Number.isInteger(x.i) ? x.i : null } : { conta: String(x || '').trim(), i: null }))
+    .filter((x) => x.conta)
+    .slice(0, 6);
+  const codigos = [...new Set(itens.map((x) => x.conta))];
+  if (!itens.length) throw new ParamError('Escolha uma conta de referência.');
+  const descInformada = String(descricao || '').trim().slice(0, 120);
+
+  if (!resultado) {
+    if (codigos.length > 1) throw new ParamError('Contas de balanço têm uma única classificação: escolha só uma referência.');
+    if ((await find('mapeamento-contas', c)).length) throw new ParamError(`A conta ${c} já está no Mapeamento de Contas.`);
+    const ref = (await find('mapeamento-contas', codigos[0]))[0];
+    if (!ref) throw new ParamError(`A conta de referência ${codigos[0]} não existe no Mapeamento de Contas.`);
+    const mapeamento = await addRow('mapeamento-contas', {
+      contaGrupo: ref.contaGrupo, conta: c, descricao: descInformada || ref.descricao || '', codGerencial: ref.codGerencial, descGerencial: ref.descGerencial || '',
+    }, user);
+    return { tabela: 'mapeamento-contas', linhas: [mapeamento] };
   }
-  return { plano, mapeamento };
+
+  const existentes = await find('plano-contas', c);
+  const classesUsadas = new Set(existentes.map((p) => normKey(p.classe)));
+  const todas = (await load('plano-contas')).rows;
+  const refs = [];
+  for (const item of itens) {
+    // a conta de referência pode ter várias classificações: vale a linha escolhida (_i) quando informada
+    const cod = item.conta;
+    const doCodigo = await find('plano-contas', cod);
+    let ref = Number.isInteger(item.i) && todas[item.i] && normKey(todas[item.i].conta) === normKey(cod) ? todas[item.i] : null;
+    if (!ref && Number.isInteger(item.i)) throw new ParamError('O Plano de Contas mudou desde que você abriu o popup. Feche e tente de novo.');
+    if (!ref) {
+      if (new Set(doCodigo.map((p) => normKey(p.classe))).size > 1) throw new ParamError(`A conta ${cod} tem mais de uma classificação: escolha a linha certa na lista.`);
+      [ref] = doCodigo;
+    }
+    if (!ref) throw new ParamError(`A conta de referência ${cod} não existe no Plano de Contas.`);
+    if (!String(ref.n1 || '').startsWith('A.4')) throw new ParamError(`A conta ${c} é de resultado: escolha referências da DRE (a ${cod} não é).`);
+    const k = normKey(ref.classe);
+    if (classesUsadas.has(k)) throw new ParamError(`A conta ${c} já tem a classificação "${ref.classe}". Escolha uma referência de cada categoria da DRE.`);
+    classesUsadas.add(k);
+    refs.push(ref);
+  }
+  const desc = descInformada || existentes[0]?.descricao || refs[0].descricao || '';
+  const def = getDef('plano-contas');
+  const linhas = refs.map((ref) => linhaDoFormulario(def, {
+    conta: c, contaGrupo: ref.contaGrupo, descricao: desc, n1: ref.n1 || '', n2: ref.n2 || '', n3: ref.n3 || '', n4: ref.n4 || '', classe: ref.classe || '',
+  }));
+  linhas.forEach((n) => validar(def, n));
+  // uma única gravação para todas as classificações da conta
+  await gravarTabela('plano-contas', [...(await load('plano-contas')).rows, ...linhas], user, 'vínculo de conta');
+  return { tabela: 'plano-contas', linhas };
 }
 
 async function addRow(id, valores, user) {
