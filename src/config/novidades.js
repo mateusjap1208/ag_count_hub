@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 61,
+    data: "2026-11-15",
+    titulo: "Menu com seções separadas",
+    itens: [
+      "Uma linha separa as seções do menu (Relatórios, Dados e Sistema), inclusive com o menu recolhido."
+    ]
+  },
+  {
     build: 60,
     data: "2026-11-15",
     titulo: "Menu reorganizado",

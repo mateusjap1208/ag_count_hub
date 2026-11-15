@@ -14,7 +14,7 @@
     </div>
     <nav class="nav" aria-label="Menu principal">
       <%- navItem('/', 'home', 'Visão Geral', currentPath === '/') %>
-      <div class="nav-label">Relatórios</div>
+      <hr class="nav-sep"><div class="nav-label">Relatórios</div>
       <% // Ordem do menu (só a navegação; módulos fora da lista vão para o fim, na ordem original)
          const ORDEM_MENU = ['bp', 'dre', 'capital-empregado', 'clientes', 'adiantamentos', 'estoque', 'seguros-garantias', 'imobilizado', 'fornecedores', 'receita-poc', 'arrendamento'];
          const posMenu = (m) => { const i = ORDEM_MENU.indexOf(m.slug); return i < 0 ? ORDEM_MENU.length : i; };
@@ -25,7 +25,7 @@
         <% if (m.slug === 'dre') { %><%- navItem('/indicadores', 'gauge', 'Indicadores', currentPath === '/indicadores') %><% } %>
       <% }) %>
       <% if (user.role === 'admin') { %>
-        <div class="nav-label">Dados</div>
+        <hr class="nav-sep"><div class="nav-label">Dados</div>
         <%- navItem('/upload', 'upload', 'Upload de relatórios', currentPath === '/upload') %>
         <%- navItem('/obras', 'hardhat', 'Obras', currentPath.startsWith('/obras')) %>
         <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
@@ -33,7 +33,7 @@
         <%- navItem('/mensagens', 'megaphone', 'Mensagens', currentPath.startsWith('/mensagens')) %>
         <%- navItem('/pendencias', 'alerta', 'Pendências', currentPath.startsWith('/pendencias')) %>
       <% } %>
-      <div class="nav-label">Sistema</div>
+      <hr class="nav-sep"><div class="nav-label">Sistema</div>
       <%- navItem('/novidades', 'sparkle', 'Novidades', currentPath === '/novidades') %>
       <%- navItem('/sobre', 'info', 'Sobre', currentPath === '/sobre') %>
     </nav>

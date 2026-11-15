@@ -2952,3 +2952,8 @@ a.pend-chip:hover { border-color: #F5A400; }
 .user-panel .theme-btn.user-tema:hover, .user-panel .theme-btn.user-tema:focus-visible { background: var(--blue-soft); }
 .user-panel .theme-btn.user-tema:hover .tema-texto { color: var(--consag-blue); }
 .user-panel .user-sair { margin-top: 2px; }
+
+/* Linha separando as seções do menu (aparece também com o menu recolhido) */
+.sidebar .nav-sep { border: 0; height: 1px; background: var(--sb-line); margin: 10px 8px 0; flex-shrink: 0; }
+.sidebar .nav-sep + .nav-label { padding-top: 10px; }
+@media (min-width: 961px) { .sidebar .nav-sep { margin: 10px 6px 0; } }
