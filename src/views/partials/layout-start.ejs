@@ -14,14 +14,18 @@
     </div>
     <nav class="nav" aria-label="Menu principal">
       <%- navItem('/', 'home', 'Visão Geral', currentPath === '/') %>
-      <div class="nav-label">Relatórios</div>
-      <% menu.filter(m => !m.hideInMenu).forEach(m => {
+      <hr class="nav-sep"><div class="nav-label">Relatórios</div>
+      <% // Ordem do menu (só a navegação; módulos fora da lista vão para o fim, na ordem original)
+         const ORDEM_MENU = ['bp', 'dre', 'capital-empregado', 'clientes', 'adiantamentos', 'estoque', 'seguros-garantias', 'imobilizado', 'fornecedores', 'receita-poc', 'arrendamento'];
+         const posMenu = (m) => { const i = ORDEM_MENU.indexOf(m.slug); return i < 0 ? ORDEM_MENU.length : i; };
+         const itensMenu = menu.filter(m => !m.hideInMenu).map((m, i) => ({ m, i })).sort((a, b) => posMenu(a.m) - posMenu(b.m) || a.i - b.i).map(x => x.m); %>
+      <% itensMenu.forEach(m => {
            const ativo = (m.tabs || [{ slug: m.slug }]).some(t => currentPath === '/modulos/' + t.slug); %>
         <%- navItem('/modulos/' + m.slug, m.icon, m.menu, ativo) %>
         <% if (m.slug === 'dre') { %><%- navItem('/indicadores', 'gauge', 'Indicadores', currentPath === '/indicadores') %><% } %>
       <% }) %>
       <% if (user.role === 'admin') { %>
-        <div class="nav-label">Dados</div>
+        <hr class="nav-sep"><div class="nav-label">Dados</div>
         <%- navItem('/upload', 'upload', 'Upload de relatórios', currentPath === '/upload') %>
         <%- navItem('/obras', 'hardhat', 'Obras', currentPath.startsWith('/obras')) %>
         <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
@@ -29,7 +33,7 @@
         <%- navItem('/mensagens', 'megaphone', 'Mensagens', currentPath.startsWith('/mensagens')) %>
         <%- navItem('/pendencias', 'alerta', 'Pendências', currentPath.startsWith('/pendencias')) %>
       <% } %>
-      <div class="nav-label">Sistema</div>
+      <hr class="nav-sep"><div class="nav-label">Sistema</div>
       <%- navItem('/novidades', 'sparkle', 'Novidades', currentPath === '/novidades') %>
       <%- navItem('/sobre', 'info', 'Sobre', currentPath === '/sobre') %>
     </nav>
@@ -50,13 +54,6 @@
         <% } %>
       </div>
       <div class="spacer"></div>
-      <button class="theme-btn" type="button" id="theme-toggle" title="Mudar para o tema escuro" aria-label="Mudar para o tema escuro" aria-pressed="false">
-        <svg class="tema-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-          <g class="tema-sol"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></g>
-          <path class="tema-lua" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>
-          <g class="tema-estrelas"><path d="M17.5 3.5v2M16.5 4.5h2"/><path d="M20.5 8v1.4M19.8 8.7h1.4"/></g>
-        </svg>
-      </button>
       <% const pend = locals.pendencias; if (pend && pend.total) { %>
       <a class="pend-alerta" href="/pendencias" title="<%= pend.resumo.join(' · ') %>" aria-label="Pendências de parâmetros: <%= pend.resumo.join(', ') %>">
         <%- include('icon', { name: 'alerta' }) %>
@@ -144,6 +141,14 @@
             <span class="avatar"><%= iniciais %></span>
             <div class="user-info"><strong><%= user.name || user.email %></strong><span><%= perfil %></span><% if (user.name && user.email) { %><span class="user-email"><%= user.email %></span><% } %></div>
           </div>
+          <button class="theme-btn user-tema" type="button" id="theme-toggle" title="Mudar para o tema escuro" aria-label="Mudar para o tema escuro" aria-pressed="false">
+            <svg class="tema-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <g class="tema-sol"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></g>
+          <path class="tema-lua" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>
+          <g class="tema-estrelas"><path d="M17.5 3.5v2M16.5 4.5h2"/><path d="M20.5 8v1.4M19.8 8.7h1.4"/></g>
+        </svg>
+            <span class="tema-texto">Tema escuro</span>
+          </button>
           <form method="post" action="/logout">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button class="user-sair" type="submit"><%- include('icon', { name: 'logout' }) %>Sair do sistema</button>

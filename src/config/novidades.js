@@ -6,6 +6,39 @@
  */
 module.exports = [
   {
+    build: 62,
+    data: "2026-11-15",
+    titulo: "Parâmetro Empresas",
+    itens: [
+      "O parâmetro Empresas (T001) agora pede só o código da empresa e a moeda."
+    ]
+  },
+  {
+    build: 61,
+    data: "2026-11-15",
+    titulo: "Menu com seções separadas",
+    itens: [
+      "Uma linha separa as seções do menu (Relatórios, Dados e Sistema), inclusive com o menu recolhido."
+    ]
+  },
+  {
+    build: 60,
+    data: "2026-11-15",
+    titulo: "Menu reorganizado",
+    itens: [
+      "Depois de Capital Empregado, o menu segue a ordem: Clientes, Adiantamentos, Estoque, Seguros e Garantias, Imobilizado, Fornecedores, Receita e Arrendamento."
+    ]
+  },
+  {
+    build: 59,
+    data: "2026-11-15",
+    titulo: "Tema no menu do usuário",
+    itens: [
+      "O botão de tema claro/escuro agora fica dentro do menu do avatar, no topo.",
+      "No menu, a DRE aparece como Demonstração do Resultado."
+    ]
+  },
+  {
     build: 58,
     data: "2026-11-15",
     titulo: "Usuário no topo",

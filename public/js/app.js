@@ -65,6 +65,8 @@
     themeBtn.title = texto;
     themeBtn.setAttribute('aria-label', texto);
     themeBtn.setAttribute('aria-pressed', String(isDark()));
+    const rotulo = themeBtn.querySelector('.tema-texto');
+    if (rotulo) rotulo.textContent = isDark() ? 'Tema claro' : 'Tema escuro';
   };
   if (themeBtn && window.agchTheme) {
     themeBtn.addEventListener('click', () => { window.agchTheme.toggle(); });
