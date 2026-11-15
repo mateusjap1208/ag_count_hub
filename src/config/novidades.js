@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 74,
+    data: "2026-11-15",
+    titulo: "Menu azul-escuro",
+    itens: [
+      "O menu lateral fica sempre azul-escuro, no tema claro e no escuro.",
+      "A logo Andrade Gutierrez no topo do menu ficou maior."
+    ]
+  },
+  {
     build: 73,
     data: "2026-11-15",
     titulo: "Logo AG mais redonda",

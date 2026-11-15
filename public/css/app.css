@@ -3069,3 +3069,23 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .error-logo.logo-andrade { height: 48px; margin: 0 auto 8px; }
 /* No tema escuro o azul-marinho da logo se confunde com o fundo: um contorno discreto separa as peças */
 :root[data-theme="dark"] .logo-andrade rect[fill="#0B1730"] { stroke: rgba(255, 255, 255, .22); stroke-width: 6; }
+
+/* =========================================================================
+   Menu sempre azul-escuro (tema claro e escuro) e logo maior
+   ========================================================================= */
+:root .sidebar {
+  --sb-bg: #06172B; --sb-text: #B8C4D6; --sb-muted: #6F7F98; --sb-line: rgba(255, 255, 255, .08); --sb-hover: rgba(255, 255, 255, .06); --sb-strong: #FFFFFF;
+  background: var(--sb-bg); box-shadow: 0 0 0 1px #1B2E4A, 0 10px 30px rgba(6, 23, 43, .25);
+}
+:root .sidebar .nav-item, :root .sidebar .brand-mini { color: #B8C4D6; }
+:root .sidebar .nav-label, :root .sidebar .user-info span, :root .sidebar .brand-text span, :root .sidebar .sidebar-tagline { color: #6F7F98; }
+:root .sidebar .nav-item:hover { color: #FFFFFF; }
+:root .sidebar .nav-item.active, :root .sidebar .nav-item.active:hover { color: #FFFFFF; }
+:root .sidebar .nav { scrollbar-color: rgba(255, 255, 255, .14) transparent; }
+@media (min-width: 961px) {
+  :root .sidebar:hover, :root .sidebar:has(:focus-visible) { box-shadow: 0 0 0 1px #1B2E4A, 0 18px 50px rgba(6, 23, 43, .45); }
+  :root[data-menu="fixo"] .sidebar { box-shadow: 0 0 0 1px #1B2E4A, 0 10px 30px rgba(6, 23, 43, .25); }
+}
+.sidebar .brand-logo.logo-andrade { height: 60px; }
+/* A logo é azul-marinho como o menu: um contorno discreto separa as peças do fundo */
+.sidebar .logo-andrade rect[fill="#0B1730"] { stroke: rgba(255, 255, 255, .22); stroke-width: 6; }
