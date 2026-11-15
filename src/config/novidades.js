@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 53,
+    data: '2026-11-15',
+    titulo: 'Vincular contas a classificar',
+    itens: ['Na lista de contas do olho (linhas "a classificar" do BP e da DRE) e na tela de Pendências, o administrador clica na conta e a vincula a uma conta parecida já classificada no Plano de Contas e no Mapeamento de Contas.'],
+  },
+  {
     build: 52,
     data: '2026-11-15',
     titulo: 'Filtros organizados',

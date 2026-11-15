@@ -55,7 +55,7 @@
 <script type="application/json" id="page-data"><%- JSON.stringify(chartData).replace(/</g, '\\u003c') %></script>
 <script src="/vendor/chart.js/chart.umd.min.js"></script>
 <% } %>
-<% if (locals.user) { %><script type="application/json" id="user-prefs"><%- JSON.stringify({ ordem: user.ordem || {}, csrf: csrfToken }).replace(/</g, '\\u003c') %></script><% } %>
+<% if (locals.user) { %><script type="application/json" id="user-prefs"><%- JSON.stringify({ ordem: user.ordem || {}, csrf: csrfToken, admin: user.role === 'admin' }).replace(/</g, '\\u003c') %></script><% } %>
 <script src="/static/js/app.js?v=<%= appVersion %>"></script>
 </body>
 </html>

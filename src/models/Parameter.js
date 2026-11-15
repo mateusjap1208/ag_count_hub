@@ -312,6 +312,30 @@ async function deleteRow(id, i, chaveOriginal, user) {
   await gravarTabela(id, rows, user, 'exclusão');
 }
 
+/**
+ * Vincula uma conta do razão sem classificação: copia do Plano de Contas a classificação de uma
+ * conta de referência (conta do grupo, N1 a N4 e classe BP/DRE) e, se a referência tiver,
+ * também a linha gerencial do Mapeamento de Contas (Capital Empregado).
+ */
+async function vincularConta({ conta, referencia, descricao }, user) {
+  const c = String(conta || '').trim().toUpperCase();
+  if (!/^[0-9A-Z]{4,20}$/.test(c)) throw new ParamError('Conta inválida.');
+  if ((await find('plano-contas', c)).length) throw new ParamError(`A conta ${c} já está no Plano de Contas.`);
+  const ref = (await find('plano-contas', String(referencia || '').trim()))[0];
+  if (!ref) throw new ParamError('Escolha uma conta de referência que exista no Plano de Contas.');
+  const desc = String(descricao || '').trim().slice(0, 120) || ref.descricao || '';
+  const plano = await addRow('plano-contas', {
+    conta: c, contaGrupo: ref.contaGrupo, descricao: desc, n1: ref.n1 || '', n2: ref.n2 || '', n3: ref.n3 || '', n4: ref.n4 || '', classe: ref.classe || '',
+  }, user);
+  let mapeamento = null;
+  const loaded = await loadedIds();
+  if (loaded.has('mapeamento-contas') && !(await find('mapeamento-contas', c)).length) {
+    const m = (await find('mapeamento-contas', ref.conta))[0];
+    if (m) mapeamento = await addRow('mapeamento-contas', { contaGrupo: m.contaGrupo || ref.contaGrupo, conta: c, descricao: desc, codGerencial: m.codGerencial, descGerencial: m.descGerencial || '' }, user);
+  }
+  return { plano, mapeamento };
+}
+
 async function addRow(id, valores, user) {
   const def = getDef(id);
   const nova = linhaDoFormulario(def, valores);
@@ -323,5 +347,5 @@ async function addRow(id, valores, user) {
 
 module.exports = {
   definitions, getDef, list, importFile, targetsFor, getRows, checks, CHECKS,
-  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas, updateRow, deleteRow, addRow,
+  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas, updateRow, deleteRow, addRow, vincularConta,
 };

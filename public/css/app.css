@@ -1431,3 +1431,23 @@ a.pend-chip:hover { border-color: #F5A400; }
 /* Filtros: o painel abre só no clique (não ao passar o mouse); as listas de seleção só aparecem quando abertas */
 .mselect-panel[hidden] { display: none !important; }
 .filters-toggle:hover { border-color: var(--consag-blue); color: var(--consag-blue); }
+
+/* Vincular conta "a classificar" */
+.pop-vincular { cursor: pointer; }
+.pop-vincular:hover td { background: var(--blue-soft); }
+.pop-vincular td:first-child::after { content: ' · vincular'; color: var(--consag-blue); font-size: 11px; font-weight: 600; opacity: 0; }
+.pop-vincular:hover td:first-child::after { opacity: 1; }
+.link-classificar { border: 0; background: none; padding: 0; font: inherit; color: var(--consag-blue); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; text-align: left; }
+.modal.vinc-dialog { max-width: 560px; width: min(560px, calc(100vw - 32px)); }
+.vinc-dialog h2 { margin-top: 0; }
+.vinc-conta { color: var(--consag-blue); font-variant-numeric: tabular-nums; }
+.vinc-dialog .field { margin-bottom: 10px; }
+.vinc-dialog .input { width: 100%; }
+.vinc-lista { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
+.vinc-op { width: 100%; display: grid; gap: 2px; text-align: left; padding: 8px 12px; border: 0; border-bottom: 1px solid var(--border); background: none; cursor: pointer; font: inherit; color: var(--text); }
+.vinc-op strong { font-size: 13px; color: var(--heading); }
+.vinc-op span { font-size: 11.5px; color: var(--muted); }
+.vinc-op:hover, .vinc-op.ativo { background: var(--blue-soft); }
+.vinc-op.ativo strong { color: var(--consag-blue); }
+.vinc-vazio { padding: 10px 12px; font-size: 12.5px; color: var(--muted); }
+.vinc-escolha { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--surface-2); font-size: 12.5px; color: var(--text-2); }

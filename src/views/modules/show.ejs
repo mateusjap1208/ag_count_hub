@@ -199,11 +199,16 @@
                const linhas = [];
                view.tree.forEach(l => { if (l.kind === 'conta') linhas[linhas.length - 1].lista.push(l); else linhas.push({ ...l, lista: [] }); });
                let gi = 0;
+               let grupoLbl = '';
+               const codigoDe = (txt) => { const i = String(txt).indexOf(' - '); return (i > 0 ? String(txt).slice(0, i) : String(txt)).replace(/[^0-9A-Za-z]/g, ''); };
+               const pendente = (txt) => /a classificar|não classificad/i.test(txt || '');
                linhas.forEach(l => {
-                 if (l.kind === 'group') gi++;
+                 if (l.kind === 'group') { gi++; grupoLbl = l.label; }
+                 // BP: dentro de "Ativo/Passivo/PL a classificar" cada linha já é a própria conta
+                 const contaSolta = l.kind === 'item' && pendente(grupoLbl) && !l.lista.length;
                  const attrs = l.kind === 'group' ? `data-group="${gi}" tabindex="0" role="button" aria-expanded="false"` : l.kind === 'item' ? `data-parent="${gi}"` : ''; %>
               <tr class="t-<%= l.kind %> <%= l.highlight ? 'highlight' : '' %> <%= l.kind === 'group' ? 'collapsed' : '' %> <%= l.kind === 'item' && gi > 0 ? 'hidden' : '' %>" <%- attrs %>>
-                <td><% if (l.kind === 'group') { %><span class="caret">▾</span><% } %><%= l.label %></td>
+                <td><% if (l.kind === 'group') { %><span class="caret">▾</span><% } %><% if (contaSolta) { %><button class="link-classificar" type="button" data-classificar="<%= codigoDe(l.label) %>" title="Vincular esta conta no Plano de Contas"><%= l.label %></button><% } else { %><%= l.label %><% } %></td>
                 <% if (l.kind === 'section') { %>
                   <td colspan="<%= comparando ? periodos.length + 2 : 1 %>"></td>
                 <% } else { %>
@@ -213,7 +218,7 @@
                       <% if (comparando) { %><thead><tr><th>Conta</th><% periodos.forEach(p => { %><th class="num"><%= dataFim(p) %></th><% }) %></tr></thead><% } %>
                       <tbody>
                         <% l.lista.forEach(c => { const sep = c.label.indexOf(' - '); %>
-                          <tr><td><span class="pop-cod"><%= sep > 0 ? c.label.slice(0, sep) : c.label %></span><%= sep > 0 ? c.label.slice(sep + 3) : '' %></td><% (comparando ? c.values : [c.value]).forEach(cv => { %><td class="num <%= cv < 0 ? 'neg' : '' %>"><%= cel(cv) %></td><% }) %></tr>
+                          <tr<%- pendente(l.label) ? ` data-classificar="${codigoDe(c.label)}" title="Clique para vincular esta conta" class="pop-vincular"` : '' %>><td><span class="pop-cod"><%= sep > 0 ? c.label.slice(0, sep) : c.label %></span><%= sep > 0 ? c.label.slice(sep + 3) : '' %></td><% (comparando ? c.values : [c.value]).forEach(cv => { %><td class="num <%= cv < 0 ? 'neg' : '' %>"><%= cel(cv) %></td><% }) %></tr>
                         <% }) %>
                       </tbody>
                       <tfoot><tr><td>Total</td><% (comparando ? l.values : [l.value]).forEach(tv => { %><td class="num"><%= cel(tv) %></td><% }) %></tr></tfoot>
