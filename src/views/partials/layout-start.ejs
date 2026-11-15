@@ -15,7 +15,11 @@
     <nav class="nav" aria-label="Menu principal">
       <%- navItem('/', 'home', 'Visão Geral', currentPath === '/') %>
       <div class="nav-label">Relatórios</div>
-      <% menu.filter(m => !m.hideInMenu).forEach(m => {
+      <% // Ordem do menu (só a navegação; módulos fora da lista vão para o fim, na ordem original)
+         const ORDEM_MENU = ['bp', 'dre', 'capital-empregado', 'clientes', 'adiantamentos', 'estoque', 'seguros-garantias', 'imobilizado', 'fornecedores', 'receita-poc', 'arrendamento'];
+         const posMenu = (m) => { const i = ORDEM_MENU.indexOf(m.slug); return i < 0 ? ORDEM_MENU.length : i; };
+         const itensMenu = menu.filter(m => !m.hideInMenu).map((m, i) => ({ m, i })).sort((a, b) => posMenu(a.m) - posMenu(b.m) || a.i - b.i).map(x => x.m); %>
+      <% itensMenu.forEach(m => {
            const ativo = (m.tabs || [{ slug: m.slug }]).some(t => currentPath === '/modulos/' + t.slug); %>
         <%- navItem('/modulos/' + m.slug, m.icon, m.menu, ativo) %>
         <% if (m.slug === 'dre') { %><%- navItem('/indicadores', 'gauge', 'Indicadores', currentPath === '/indicadores') %><% } %>

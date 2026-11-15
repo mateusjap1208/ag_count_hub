@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 60,
+    data: "2026-11-15",
+    titulo: "Menu reorganizado",
+    itens: [
+      "Depois de Capital Empregado, o menu segue a ordem: Clientes, Adiantamentos, Estoque, Seguros e Garantias, Imobilizado, Fornecedores, Receita e Arrendamento."
+    ]
+  },
+  {
     build: 59,
     data: "2026-11-15",
     titulo: "Tema no menu do usuário",
