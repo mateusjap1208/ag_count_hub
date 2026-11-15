@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 66,
+    data: "2026-11-15",
+    titulo: "Painel Contábil",
+    itens: [
+      "O subtítulo do sistema passou de Dashboard Contábil para Painel Contábil."
+    ]
+  },
+  {
     build: 65,
     data: "2026-11-15",
     titulo: "Login errado mais claro",

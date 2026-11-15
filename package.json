@@ -1,7 +1,7 @@
 {
   "name": "ag-cont-hub",
   "version": "0.1.0",
-  "description": "AG Cont Hub - Dashboard contábil do grupo CONSAG (Node.js + Express, arquitetura MVC)",
+  "description": "AG Cont Hub - Painel contábil do grupo CONSAG (Node.js + Express, arquitetura MVC)",
   "main": "server.js",
   "private": true,
   "scripts": {
