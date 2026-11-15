@@ -301,6 +301,14 @@
     $$('.is-busy').forEach((b) => { b.classList.remove('is-busy'); b.removeAttribute('aria-busy'); b.disabled = false; });
   });
 
+  /* ---------- Login errado: botão vermelho volta ao normal quando a pessoa digita de novo ---------- */
+  const loginBtn = document.getElementById('login-btn');
+  if (loginBtn && loginBtn.classList.contains('btn-nao')) {
+    const limpar = () => loginBtn.classList.remove('btn-nao');
+    ['email', 'password'].forEach((id) => document.getElementById(id)?.addEventListener('input', limpar, { once: true }));
+    document.getElementById('password')?.focus();
+  }
+
   /* ---------- Vídeo do login: só aparece quando está tocando (nunca mostra o botão de play) ---------- */
   const video = document.getElementById('login-video');
   if (video) {

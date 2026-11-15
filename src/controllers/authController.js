@@ -10,7 +10,7 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.authenticate(email, password);
     if (!user) {
-      return res.status(401).render('auth/login', { error: 'E-mail ou senha inválidos.', email: email || '' });
+      return res.status(401).render('auth/login', { error: 'E-mail ou senha inválidos.', email: email || '', loginErrado: true });
     }
     const returnTo = req.session.returnTo;
     // Regenera a sessão no login (evita fixação de sessão)

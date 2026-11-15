@@ -22,7 +22,7 @@
           <label for="password">Senha</label>
           <input class="input" type="password" id="password" name="password" autocomplete="current-password" required>
         </div>
-        <button class="btn btn-primary" type="submit">Entrar</button>
+        <button class="btn btn-primary<%= locals.loginErrado ? ' btn-nao' : '' %>" type="submit" id="login-btn">Entrar</button>
       </form>
       <nav class="social" aria-label="Redes sociais">
         <% redesSociais.forEach(r => { %>

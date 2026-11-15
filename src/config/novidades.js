@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 65,
+    data: "2026-11-15",
+    titulo: "Login errado mais claro",
+    itens: [
+      "Quando o e-mail ou a senha estão errados, o botão Entrar fica vermelho e balança como quem diz \"não\". Ele volta ao normal assim que você digita de novo."
+    ]
+  },
+  {
     build: 64,
     data: "2026-11-15",
     titulo: "Logo AG em vetor",
