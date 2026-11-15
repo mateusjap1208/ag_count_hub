@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 69,
+    data: "2026-11-15",
+    titulo: "Logo AG redesenhada",
+    itens: [
+      "A logo AG do login e do ícone da aba foi redesenhada em vetor, mais fiel ao original."
+    ]
+  },
+  {
     build: 68,
     data: "2026-11-15",
     titulo: "Logo AG azul no login",
