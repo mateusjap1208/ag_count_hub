@@ -68,35 +68,68 @@ function colunasCompactas(def, rows) {
 }
 
 /**
- * Importação de arquivo de parâmetro.
- * Padrão (tabelas com chave, ex.: Plano de Contas): COMPLETA a tabela atual. Os registros do arquivo
- * entram e, se a chave já existir, as linhas antigas dessa chave são trocadas pelas do arquivo
- * (uma conta com várias classificações fica exatamente como está no arquivo). O resto não muda.
- * Com "substituir", a tabela inteira passa a ser o conteúdo do arquivo.
- * Estruturas (BPC, Estrutura do CE) são sempre substituídas, pois são um desenho completo.
+ * REGRA: subir um arquivo de parâmetro NUNCA apaga o que está no banco — só incrementa.
+ *  - Tabela com código único (Mapeamento, Clientes, Fornecedores, Estrutura do CE…):
+ *    código novo entra; código que já existe tem atualizados só os campos preenchidos no arquivo.
+ *  - Tabela em que o código se repete (Plano de Contas, Centros de lucro, BPC…):
+ *    a linha do arquivo entra só se ainda não existir uma linha idêntica; nada é sobrescrito.
+ *  - Estruturas com "ordem" (BPC, Estrutura do CE): linhas novas entram logo depois da linha
+ *    do arquivo que as antecede, e a ordem é renumerada.
+ * Para corrigir ou excluir registros, use Parâmetros › Consultar (editar / excluir).
  */
-const completavel = (def) => def.type === 'table' && !!def.key;
+const vazio = (v) => v == null || v === '';
+const assinatura = (r) => JSON.stringify(Object.keys(r).filter((k) => k !== 'ordem' && !vazio(r[k])).sort().map((k) => [k, normKey(r[k])]));
 
-async function importFile(ids, { buffer, fileName, user, substituir = false }) {
+function incrementar(def, atuais, novas) {
+  const chaveDe = (r) => normKey(r[def.key]);
+  const contar = (rows) => { const c = new Map(); rows.forEach((r) => c.set(chaveDe(r), (c.get(chaveDe(r)) || 0) + 1)); return c; };
+  const repetidas = (c) => [...c.values()].some((n) => n > 1) || c.has(normKey(''));
+  const porCodigo = !!def.key && !repetidas(contar(atuais)) && !repetidas(contar(novas));
+  const idDe = porCodigo ? chaveDe : assinatura;
+
+  const out = atuais.map((r) => ({ ...r }));
+  const pos = new Map();
+  out.forEach((r, i) => { if (!pos.has(idDe(r))) pos.set(idDe(r), i); });
+  const inicio = [];
+  const depois = new Map(); // índice da linha existente → linhas novas que vêm logo depois dela
+  let ancora = null;
+  let novos = 0; let atualizados = 0; let iguais = 0;
+  for (const n of novas) {
+    const k = idDe(n);
+    if (pos.has(k)) {
+      const i = pos.get(k);
+      if (i < 0) { iguais++; continue; } // repetida no próprio arquivo
+      const antigo = out[i];
+      const junto = { ...antigo };
+      for (const [c, v] of Object.entries(n)) if (c !== 'ordem' && !vazio(v)) junto[c] = v; // campo vazio no arquivo não apaga
+      if (assinatura(junto) !== assinatura(antigo)) { out[i] = junto; atualizados++; } else iguais++;
+      ancora = i;
+    } else {
+      if (ancora == null) inicio.push(n);
+      else { if (!depois.has(ancora)) depois.set(ancora, []); depois.get(ancora).push(n); }
+      pos.set(k, -1);
+      novos++;
+    }
+  }
+  const final = [...inicio];
+  out.forEach((r, i) => { final.push(r); if (depois.has(i)) final.push(...depois.get(i)); });
+  if (final.some((r) => 'ordem' in r)) final.forEach((r, i) => { r.ordem = i + 1; });
+  return { final, resumo: { modo: 'incremento', arquivo: novas.length, novos, atualizados, iguais, antes: atuais.length, porCodigo } };
+}
+
+async function importFile(ids, { buffer, fileName, user }) {
   const sheets = await readSheets(buffer, fileName);
   // lê tudo antes de gravar: se algum arquivo estiver errado, nenhuma tabela é alterada
   const lidas = ids.map((id) => ({ id, def: getDef(id), ...parseParameter(sheets, getDef(id)) }));
   const carregadas = await loadedIds();
   const results = [];
   for (const { id, def, rows, skipped, sheet } of lidas) {
-    let final = rows;
-    let resumo = { modo: 'substituição', arquivo: rows.length };
-    if (!substituir && completavel(def) && carregadas.has(id)) {
-      const atuais = (await load(id)).rows;
-      const chaves = new Set(rows.map((r) => normKey(r[def.key])));
-      const mantidas = atuais.filter((r) => !chaves.has(normKey(r[def.key])));
-      const atualizadas = new Set(atuais.filter((r) => chaves.has(normKey(r[def.key]))).map((r) => normKey(r[def.key]))).size;
-      final = [...mantidas, ...rows];
-      resumo = { modo: 'complemento', arquivo: rows.length, novas: chaves.size - atualizadas, atualizadas, antes: atuais.length };
-    }
+    const atuais = carregadas.has(id) ? (await load(id)).rows : [];
+    const { final, resumo } = incrementar(def, atuais, rows);
+    if (atuais.length && final.length < atuais.length) throw new Error('Importação reduziria a tabela — operação cancelada.'); // garantia
     const record = await params.save(id, final, {
       fileName, sheet, skipped,
-      uploadedBy: `${user?.name || user?.email || 'sistema'}${resumo.modo === 'complemento' ? ' (complemento)' : ''}`,
+      uploadedBy: `${user?.name || user?.email || 'sistema'}${atuais.length ? ' (incremento)' : ''}`,
       compactar: colunasCompactas(def, final),
     });
     results.push({ def, record, resumo });
@@ -414,5 +447,5 @@ async function addRow(id, valores, user) {
 
 module.exports = {
   definitions, getDef, list, importFile, targetsFor, getRows, checks, CHECKS,
-  completavel, find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas, updateRow, deleteRow, addRow, vincularConta,
+  incrementar, find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas, updateRow, deleteRow, addRow, vincularConta,
 };

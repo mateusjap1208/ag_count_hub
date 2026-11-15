@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 56,
+    data: "2026-11-15",
+    titulo: "Parâmetros: importar nunca apaga",
+    itens: [
+      "Subir um arquivo de parâmetro só incrementa a tabela: inclui os registros novos e atualiza os campos preenchidos dos que já existem. Nada é apagado.",
+      "Para corrigir ou excluir um registro, use Parâmetros › Consultar."
+    ]
+  },
+  {
     build: 55,
     data: "2026-11-15",
     titulo: "Parâmetros: arquivo completa a tabela",

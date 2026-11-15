@@ -3,7 +3,7 @@
 <% if (result) { %>
   <div class="alert alert-ok">
     <strong>Arquivo importado:</strong> <%= result.fileName %>
-    <ul><% result.items.forEach(i => { %><li><%= i.title %>: <% if (i.modo === 'complemento') { %>tabela completada · <%= fmt.number(i.novas) %> novo(s), <%= fmt.number(i.atualizadas) %> atualizado(s) · total de <%= fmt.number(i.rows) %> registro(s)<% } else { %><%= fmt.number(i.rows) %> registro(s)<% if (i.modo === 'substituição') { %> (tabela substituída)<% } %><% } %><% if (i.skipped) { %> · <%= fmt.number(i.skipped) %> linha(s) incompleta(s) ignorada(s)<% } %></li><% }) %></ul>
+    <ul><% result.items.forEach(i => { %><li><%= i.title %>: <% if (i.modo === 'incremento' && i.antes) { %><%= fmt.number(i.novos) %> novo(s), <%= fmt.number(i.atualizados) %> atualizado(s), <%= fmt.number(i.iguais) %> já existia(m) · total de <%= fmt.number(i.rows) %> registro(s) (nada foi apagado)<% } else { %><%= fmt.number(i.rows) %> registro(s)<% } %><% if (i.skipped) { %> · <%= fmt.number(i.skipped) %> linha(s) incompleta(s) ignorada(s)<% } %></li><% }) %></ul>
   </div>
 <% } %>
 <% if (error) { %><div class="alert alert-err"><strong>Não foi possível importar.</strong> <%= error %></div><% } %>
@@ -40,6 +40,7 @@
 </div>
 <% } %>
 
+<p class="param-regra"><strong>Importar não apaga nada:</strong> o arquivo só inclui registros novos e atualiza os campos preenchidos dos que já existem. Para corrigir ou excluir, use <em>Consultar</em>.</p>
 <% groups.forEach(g => { %>
   <h2 class="section-title"><%= g.name %></h2>
   <div class="grid grid-2">
@@ -60,9 +61,6 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <label class="sr-only" for="f-<%= t.id %>">Arquivo para <%= t.title %></label>
           <input class="input" type="file" name="file" id="f-<%= t.id %>" accept="<%= t.type === 'custom' ? '.xlsx' : '.xlsx,.txt,.csv' %>" required>
-          <% if (t.meta && t.type === 'table' && t.key) { %>
-            <label class="param-substituir" title="Sem marcar: o arquivo completa a tabela (inclui o que falta e atualiza o que já existe)."><input type="checkbox" name="substituir" value="1"> Substituir a tabela inteira (apaga o que não está no arquivo)</label>
-          <% } %>
           <button class="btn btn-primary" type="submit"><%- include('../partials/icon', { name: 'upload' }) %><%= t.meta ? 'Atualizar' : 'Importar' %></button>
           <% if (t.meta) { %><a class="btn btn-ghost" href="/parametros/<%= t.id %>"><%- include('../partials/icon', { name: 'search' }) %>Consultar</a><% } %>
         </form>
