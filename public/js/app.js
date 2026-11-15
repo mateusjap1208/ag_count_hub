@@ -357,6 +357,17 @@
   }
 
   /* ---------- Painel de filtros: abre ao passar o mouse (CSS); o clique fixa/solta, Esc e clique fora fecham ---------- */
+  /* ---------- Avatar do usuário (topo): painel com nome, perfil e Sair ---------- */
+  const uMenu = document.getElementById('user-menu');
+  const uBtn = document.getElementById('user-btn');
+  const uPanel = document.getElementById('user-panel');
+  if (uMenu && uBtn && uPanel) {
+    const abrir = (sim) => { uPanel.hidden = !sim; uBtn.setAttribute('aria-expanded', String(sim)); uMenu.classList.toggle('open', sim); };
+    uBtn.addEventListener('click', (e) => { e.stopPropagation(); abrir(uPanel.hidden); });
+    document.addEventListener('click', (e) => { if (!uPanel.hidden && !uMenu.contains(e.target)) abrir(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !uPanel.hidden) { abrir(false); uBtn.focus(); } });
+  }
+
   const fWrap = document.getElementById('filters-wrap');
   const fBtn = document.getElementById('filters-toggle');
   if (fWrap && fBtn) {

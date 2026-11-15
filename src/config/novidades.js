@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 58,
+    data: "2026-11-15",
+    titulo: "Usuário no topo",
+    itens: [
+      "O avatar do usuário logado fica no topo, ao lado do botão Filtros. Clique nele para ver seu nome, perfil e sair do sistema.",
+      "O menu aberto mostra Demonstração de Resultado por inteiro."
+    ]
+  },
+  {
     build: 57,
     data: "2026-11-15",
     titulo: "Menu",

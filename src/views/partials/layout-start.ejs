@@ -34,14 +34,6 @@
       <%- navItem('/sobre', 'info', 'Sobre', currentPath === '/sobre') %>
     </nav>
     <div class="sidebar-foot">
-      <div class="sidebar-user">
-        <div class="avatar"><%= (user.name || user.email).trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() %></div>
-        <div class="user-info"><strong><%= user.name || user.email %></strong><span><%= user.role === 'admin' ? 'Administrador' : (user.todosCentros ? 'Consulta' : 'Consulta · ' + user.centros.length + ' centro(s)') %></span></div>
-      </div>
-      <form method="post" action="/logout">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <button class="nav-item nav-logout" type="submit" title="Sair do sistema" aria-label="Sair do sistema"><span class="nav-icon"><%- include('icon', { name: 'logout' }) %></span><span class="nav-text">Sair</span></button>
-      </form>
       <p class="app-version" title="Versão do sistema"><%= appVersion %></p>
     </div>
   </aside>
@@ -141,5 +133,22 @@
         </div>
       </div>
       <% } %>
+      <% const iniciais = (user.name || user.email).trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
+         const perfil = user.role === 'admin' ? 'Administrador' : (user.todosCentros ? 'Consulta' : 'Consulta · ' + user.centros.length + ' centro(s)'); %>
+      <div class="user-menu" id="user-menu">
+        <button class="user-btn" type="button" id="user-btn" aria-haspopup="true" aria-expanded="false" aria-controls="user-panel" title="<%= user.name || user.email %> · <%= perfil %>">
+          <span class="avatar"><%= iniciais %></span>
+        </button>
+        <div class="user-panel" id="user-panel" hidden>
+          <div class="user-panel-head">
+            <span class="avatar"><%= iniciais %></span>
+            <div class="user-info"><strong><%= user.name || user.email %></strong><span><%= perfil %></span><% if (user.name && user.email) { %><span class="user-email"><%= user.email %></span><% } %></div>
+          </div>
+          <form method="post" action="/logout">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="user-sair" type="submit"><%- include('icon', { name: 'logout' }) %>Sair do sistema</button>
+          </form>
+        </div>
+      </div>
     </header>
     <main class="content">
