@@ -2912,6 +2912,32 @@ a.pend-chip:hover { border-color: #F5A400; }
 .vinc-tirar { border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; color: var(--muted); padding: 0 4px; }
 .vinc-tirar:hover { color: var(--danger, #D93025); }
 
-/* Menu mais largo para caber "Demonstração de Resultado" sem cortar (aberto: 300 px) */
-:root { --sidebar-w: 324px; }
-@media (min-width: 961px) { :root { --sidebar-w: 100px; --sb-open: 300px; } }
+/* Menu mais largo: "Demonstração de Resultado" inteiro, inclusive no item ativo (negrito) */
+:root { --sidebar-w: 348px; }
+@media (min-width: 961px) { :root { --sidebar-w: 100px; --sb-open: 324px; } }
+
+/* Usuário logado no topo, ao lado do Filtros */
+.user-menu { position: relative; flex-shrink: 0; }
+.user-btn { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; display: grid; place-items: center; }
+.user-btn .avatar { width: 40px; height: 40px; font-size: 14px; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--border); transition: box-shadow .2s ease, transform .2s ease; }
+.user-btn:hover .avatar, .user-btn:focus-visible .avatar, .user-menu.open .avatar { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--consag-blue); }
+.user-btn:focus-visible { outline: none; }
+.user-panel {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 60; width: 260px; padding: 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 18px 40px rgba(6, 23, 43, .18);
+  animation: user-panel-in .18s ease-out;
+}
+.user-panel[hidden] { display: none; }
+@keyframes user-panel-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.user-panel-head { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.user-panel .user-info { min-width: 0; }
+.user-panel .user-info strong { display: block; color: var(--heading); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-panel .user-info span { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-sair {
+  margin-top: 10px; width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 9px;
+  background: none; color: var(--text); font: inherit; font-size: 13px; cursor: pointer;
+}
+.user-sair .icon { width: 18px; height: 18px; }
+.user-sair:hover, .user-sair:focus-visible { background: var(--blue-soft); color: var(--consag-blue); outline: none; }
+.sidebar .sidebar-foot .app-version { text-align: center; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .user-panel { animation: none; } }
