@@ -3095,3 +3095,12 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .user-panel .user-sistema .user-link { margin-top: 0; }
 .user-panel .user-link.atual { color: var(--consag-blue); font-weight: 600; }
 .user-novo { margin-left: auto; padding: 1px 8px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Logo do menu sem contorno */
+.sidebar .logo-andrade rect[fill], :root[data-theme="dark"] .sidebar .logo-andrade rect[fill] { stroke: none; }
+/* Menu recolhido: letras AG no lugar do ícone de menu */
+@media (min-width: 961px) {
+  .brand-mini svg.brand-mini-ag { width: 40px; height: auto; }
+  .brand-mini-ag .ag-letra { fill: #FFFFFF; }
+  .brand-mini-ag .ag-furo { fill: var(--sb-bg, #06172B); }
+}
