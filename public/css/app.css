@@ -731,15 +731,15 @@ body, .card, .topbar, .select, .input, .btn { transition: background-color .2s e
   box-shadow: 0 18px 40px rgba(6, 23, 43, .16);
 }
 .filters-panel .filters > * { opacity: 0; transform: translateY(-6px); transition: opacity .2s ease, transform .2s ease; }
-.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-toggle {
+.filters-wrap:is(.open, :has(.cselect.open)) .filters-toggle {
   border-color: var(--consag-blue); color: var(--consag-blue); box-shadow: 0 0 0 3px rgba(48, 116, 246, .12);
 }
-.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-toggle .icon { transform: translateY(1px) rotate(-12deg) scale(1.1); }
-.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-panel {
+.filters-wrap:is(.open, :has(.cselect.open)) .filters-toggle .icon { transform: translateY(1px) rotate(-12deg) scale(1.1); }
+.filters-wrap:is(.open, :has(.cselect.open)) .filters-panel {
   opacity: 1; visibility: visible; transform: none; transition: opacity .2s ease, transform .25s cubic-bezier(.2, .9, .3, 1.2), visibility 0s;
 }
 /* os campos entram um após o outro */
-.filters-wrap:is(:hover, :focus-within, .open, :has(.cselect.open)) .filters-panel .filters > * { opacity: 1; transform: none; }
+.filters-wrap:is(.open, :has(.cselect.open)) .filters-panel .filters > * { opacity: 1; transform: none; }
 .filters-panel .filters > :nth-child(2) { transition-delay: .03s; }
 .filters-panel .filters > :nth-child(3) { transition-delay: .06s; }
 .filters-panel .filters > :nth-child(4) { transition-delay: .09s; }
@@ -1427,3 +1427,7 @@ a.pend-chip:hover { border-color: #F5A400; }
 .btn-perigo { background: var(--danger); border-color: var(--danger); color: #fff; }
 .btn-perigo:hover, .btn-perigo:focus-visible { filter: brightness(.92); }
 @media (prefers-reduced-motion: reduce) { .popup, .popup::backdrop { animation: none; } }
+
+/* Filtros: o painel abre só no clique (não ao passar o mouse); as listas de seleção só aparecem quando abertas */
+.mselect-panel[hidden] { display: none !important; }
+.filters-toggle:hover { border-color: var(--consag-blue); color: var(--consag-blue); }

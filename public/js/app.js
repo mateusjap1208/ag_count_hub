@@ -360,7 +360,7 @@
   const fWrap = document.getElementById('filters-wrap');
   const fBtn = document.getElementById('filters-toggle');
   if (fWrap && fBtn) {
-    const sync = () => fBtn.setAttribute('aria-expanded', String(fWrap.matches(':hover, :focus-within, .open')));
+    const sync = () => fBtn.setAttribute('aria-expanded', String(fWrap.matches('.open')));
     const close = () => { fWrap.classList.remove('open'); if (fWrap.contains(document.activeElement)) document.activeElement.blur(); sync(); };
     fBtn.addEventListener('click', () => {
       if (fWrap.classList.contains('open')) close(); else { fWrap.classList.add('open'); sync(); }

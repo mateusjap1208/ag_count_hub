@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 52,
+    data: '2026-11-15',
+    titulo: 'Filtros organizados',
+    itens: ['O painel de filtros abre só ao clicar no botão, e cada lista de seleção abre uma de cada vez.'],
+  },
+  {
     build: 51,
     data: '2026-11-15',
     titulo: 'Confirmações com a cara do sistema',
