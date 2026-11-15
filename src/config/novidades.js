@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 68,
+    data: "2026-11-15",
+    titulo: "Logo AG azul no login",
+    itens: [
+      "Na tela de login, a logo AG aparece só com as letras, em azul, sem o quadrado.",
+      "O vídeo de fundo se esconde quando é pausado, sem mostrar os controles do YouTube."
+    ]
+  },
+  {
     build: 67,
     data: "2026-11-15",
     titulo: "Fixar o menu",

@@ -323,7 +323,12 @@
       const estado = d?.info?.playerState;
       if (estado === 1 && !video.classList.contains('tocando')) {
         clearInterval(t);
-        setTimeout(() => video.classList.add('tocando'), 1200); // pula a faixa de título do início
+        clearTimeout(video._mostrar);
+        video._mostrar = setTimeout(() => video.classList.add('tocando'), 1200); // pula a faixa de título do início
+      } else if (estado === 2 || estado === -1 || estado === 5) {
+        // pausado (aba em segundo plano, economia de bateria…): esconde para não mostrar os controles do YouTube
+        clearTimeout(video._mostrar);
+        video.classList.remove('tocando');
       }
     });
   }

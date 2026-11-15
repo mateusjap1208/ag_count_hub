@@ -3015,3 +3015,7 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
   :root[data-menu="fixo"] .menu-pin .icon { transform: none; }
 }
 @media (min-width: 961px) and (prefers-reduced-motion: reduce) { .main, .menu-pin, .menu-pin .icon { transition: none !important; } }
+
+/* Login: logo AG só com as letras, em azul (sem o quadrado) */
+.login-logo svg.logo-ag-img { width: auto; height: 52px; border-radius: 0; color: #1F5FAF; overflow: visible; }
+:root[data-theme="dark"] .login-logo svg.logo-ag-img { color: var(--consag-blue); }
