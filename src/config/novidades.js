@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 45,
+    data: '2026-11-15',
+    titulo: 'Menu com nomes completos',
+    itens: ['BP e DRE aparecem no menu como Balanço Patrimonial e Demonstração do Resultado.'],
+  },
+  {
     build: 44,
     data: '2026-11-15',
     titulo: 'Indicadores em velocímetro',
