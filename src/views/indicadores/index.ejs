@@ -5,7 +5,12 @@
 <% } else {
      const n2 = (v) => v == null ? '—' : v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
      const valor = (i) => i.valor == null ? '—' : i.fmt === '%' ? n2(i.valor * 100) + '%' : n2(i.valor);
-     const SIT = { bom: 'Bom', atencao: 'Atenção', neutro: '', sem: 'Sem dados' };
+     // Velocímetro: semicírculo com 4 faixas (vermelho → amarelo → verde-claro → verde-escuro)
+     const R = 78, CX = 100, CY = 100;
+     const ponto = (graus) => { const a = graus * Math.PI / 180; return [(CX + R * Math.cos(a)).toFixed(2), (CY - R * Math.sin(a)).toFixed(2)]; };
+     const arco = (de, ate) => { const [x1, y1] = ponto(de); const [x2, y2] = ponto(ate); return `M ${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2}`; };
+     const FAIXAS_COR = [['critico', 180, 136], ['atencao', 134, 91], ['adequado', 89, 46], ['saudavel', 44, 0]];
+     const escalaTxt = (i, v) => i.fmt === '%' ? (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '%' : v.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
      const b = ind.base; %>
 
   <div class="grid mt ind-grupos" data-ordenavel="indicadores" aria-label="Indicadores">
@@ -14,13 +19,25 @@
         <div class="card-head"><h2><%= g.titulo %></h2><span class="hint">Competência <%= fmt.periodFull(filter.periodo) %> · <%= cur %></span></div>
         <div class="ind-cards">
           <% g.itens.forEach(i => { %>
-            <article class="ind-card ind-<%= i.situacao %>" title="<%= i.texto %>">
+            <article class="ind-card ind-faixa-<%= i.faixa ? i.faixa.id : 'sem' %>" title="<%= i.texto %>">
               <header>
                 <span class="ind-sigla"><%= i.id %></span>
-                <% if (SIT[i.situacao]) { %><span class="ind-sit"><%= SIT[i.situacao] %></span><% } %>
+                <h3><%= i.nome %></h3>
               </header>
-              <h3><%= i.nome %></h3>
-              <div class="ind-valor"><%= valor(i) %></div>
+              <figure class="gauge" aria-label="<%= i.nome %>: <%= valor(i) %><%= i.faixa ? ', ' + i.faixa.nome : '' %>">
+                <svg viewBox="0 0 200 118" role="img" aria-hidden="true">
+                  <% FAIXAS_COR.forEach(([id, de, ate]) => { %><path class="g-arco g-<%= id %>" d="<%= arco(de, ate) %>"/><% }) %>
+                  <% if (i.pos != null) { %>
+                    <g class="g-ponteiro" data-ang="<%= (i.pos * 180 - 90).toFixed(1) %>">
+                      <line x1="100" y1="100" x2="100" y2="34"/>
+                    </g>
+                  <% } %>
+                  <circle class="g-eixo" cx="100" cy="100" r="7"/>
+                </svg>
+                <div class="g-limites"><span><%= i.melhor === 'maior' ? escalaTxt(i, i.escala[0]) : escalaTxt(i, i.escala[1]) %></span><span><%= i.melhor === 'maior' ? escalaTxt(i, i.escala[1]) : escalaTxt(i, i.escala[0]) %></span></div>
+                <div class="g-valor"><%= valor(i) %></div>
+                <% if (i.faixa) { %><span class="g-pill g-pill-<%= i.faixa.id %>"><%= i.faixa.nome %></span><% } %>
+              </figure>
               <code class="ind-formula"><%= i.formula %></code>
               <p class="ind-texto"><%= i.texto %></p>
               <span class="ind-direcao"><%= i.melhor === 'maior' ? '▲ Quanto maior, melhor' : '▼ Quanto menor, melhor' %></span>

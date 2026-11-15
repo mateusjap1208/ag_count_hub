@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 44,
+    data: '2026-11-15',
+    titulo: 'Indicadores em velocímetro',
+    itens: ['Cada indicador agora aparece num velocímetro: do vermelho (crítico) ao verde-escuro (saudável), com o ponteiro no valor.'],
+  },
+  {
     build: 43,
     data: '2026-11-15',
     titulo: 'Filtros múltiplos, Indicadores e Pendências',
