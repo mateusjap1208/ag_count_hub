@@ -6,6 +6,16 @@
  */
 module.exports = [
   {
+    build: 54,
+    data: "2026-11-15",
+    titulo: "Contas de resultado com mais de uma classificação",
+    itens: [
+      "Ao vincular uma conta de resultado (começa com 4 ou 5), você pode escolher uma classificação para cada categoria da DRE, como Custos e Despesas Gerais e Administrativas. Na importação do FGI0, a área funcional decide qual vale: Z001 e Z002 viram Despesa; Z003, Z004, Z005 ou vazia viram Custo.",
+      "Contas de balanço agora são vinculadas pelo Mapeamento de Contas, que define a linha do BP e do Capital Empregado.",
+      "Na DRE, a linha de detalhe de contas com mais de uma classificação passa a seguir a classificação escolhida pela área funcional (vale a partir da próxima importação do FGI0)."
+    ]
+  },
+  {
     build: 53,
     data: '2026-11-15',
     titulo: 'Vincular contas a classificar',

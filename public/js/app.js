@@ -858,70 +858,108 @@
   const prefsV = (() => { try { return JSON.parse(document.getElementById('user-prefs')?.textContent || '{}'); } catch { return {}; } })();
   async function vincularConta(conta) {
     if (!prefsV.admin) { aviso({ titulo: 'Somente administradores', texto: 'Peça a um administrador para vincular esta conta no Plano de Contas.' }); return; }
+    // Contas de resultado (4 e 5) podem ter uma classificação por categoria da DRE; a área funcional do FGI0 escolhe qual vale
+    const resultado = /^[45]/.test(conta);
     const d = document.createElement('dialog');
     d.className = 'modal popup vinc-dialog';
     d.innerHTML = `<h2>Vincular conta <span class="vinc-conta"></span></h2>
-      <p>Escolha uma conta parecida já classificada. A conta nova recebe a mesma classificação (conta do grupo, N1 a N4, classe BP/DRE e linha do Capital Empregado).</p>
+      <p data-texto></p>
+      <div class="vinc-regra" data-regra hidden><strong>Custo ou despesa?</strong> Na importação do FGI0, a área funcional de cada lançamento decide: <b>Z001</b> e <b>Z002</b> → Despesas Gerais e Administrativas; <b>Z003</b>, <b>Z004</b>, <b>Z005</b> ou vazia → Custos. Por isso, escolha uma referência de cada categoria em que a conta pode aparecer.</div>
       <div class="field"><label for="vinc-desc">Descrição da conta (opcional)</label><input class="input" id="vinc-desc" maxlength="120" autocomplete="off"></div>
-      <div class="field"><label for="vinc-busca">Conta de referência</label><input class="input" id="vinc-busca" type="search" placeholder="Buscar por código ou descrição…" autocomplete="off"></div>
+      <div class="field"><label for="vinc-busca" data-rotulo></label><input class="input" id="vinc-busca" type="search" placeholder="Buscar por código ou descrição…" autocomplete="off"></div>
       <ul class="vinc-lista" role="listbox" aria-label="Contas de referência"></ul>
-      <div class="vinc-escolha" hidden></div>
+      <ul class="vinc-escolhas" aria-live="polite" hidden></ul>
       <p class="field-error" data-erro hidden></p>
       <div class="modal-actions popup-acoes"><button type="button" class="btn btn-ghost" data-cancelar>Cancelar</button><button type="button" class="btn btn-primary" data-vincular disabled>Vincular</button></div>`;
     d.querySelector('.vinc-conta').textContent = conta;
+    d.querySelector('[data-texto]').textContent = resultado
+      ? 'Conta de resultado: pode repetir no Plano de Contas, uma vez para cada categoria da DRE. Escolha uma conta parecida já classificada em cada categoria (por exemplo, uma de Custos e outra de Despesas Gerais e Administrativas).'
+      : 'Conta de balanço: escolha uma conta parecida já classificada no Mapeamento de Contas. A conta nova recebe a mesma conta do grupo (que define a linha do BP) e a mesma linha do Capital Empregado.';
+    d.querySelector('[data-regra]').hidden = !resultado;
+    d.querySelector('[data-rotulo]').textContent = resultado ? 'Contas de referência (uma por categoria)' : 'Conta de referência';
+    if (resultado) d.querySelector('.vinc-lista').setAttribute('aria-multiselectable', 'true');
     document.body.append(d);
     const busca = d.querySelector('#vinc-busca');
     const lista = d.querySelector('.vinc-lista');
-    const escolha = d.querySelector('.vinc-escolha');
+    const escolhas = d.querySelector('.vinc-escolhas');
     const erro = d.querySelector('[data-erro]');
     const btn = d.querySelector('[data-vincular]');
-    let ref = null;
+    const refs = new Map(); // linha de referência escolhida (conta + posição) → linha da tabela
+    const chave = (row) => `${row.conta}#${row._i ?? ''}`;
     let t;
     const fechar = () => { d.close(); d.remove(); };
+    const classeDe = (row) => String(row.classe || '').trim().toLowerCase();
+    const pintar = () => {
+      lista.querySelectorAll('.vinc-op').forEach((x) => { const on = refs.has(x.dataset.chave); x.classList.toggle('ativo', on); x.setAttribute('aria-selected', on); });
+      escolhas.replaceChildren();
+      refs.forEach((row) => {
+        const li = document.createElement('li');
+        const txt = document.createElement('span');
+        txt.textContent = resultado ? `${row.classe || 'Sem classe'} · ${row.n4 || row.n3 || ''} (como ${row.conta}, conta do grupo ${row.contaGrupo})` : `Vai receber: conta do grupo ${row.contaGrupo} · Capital Empregado: ${row.descGerencial || '—'} (como ${row.conta})`;
+        li.append(txt);
+        if (resultado) {
+          const x = document.createElement('button');
+          x.type = 'button'; x.className = 'vinc-tirar'; x.textContent = '×'; x.title = 'Remover esta classificação'; x.setAttribute('aria-label', `Remover ${row.classe || row.conta}`);
+          x.addEventListener('click', () => { refs.delete(chave(row)); pintar(); });
+          li.append(x);
+        }
+        escolhas.append(li);
+      });
+      escolhas.hidden = !refs.size;
+      btn.disabled = !refs.size;
+      btn.textContent = refs.size > 1 ? `Vincular ${refs.size} classificações` : 'Vincular';
+    };
+    const escolher = (row) => {
+      if (!resultado) { refs.clear(); refs.set(chave(row), row); pintar(); return; }
+      if (refs.has(chave(row))) { refs.delete(chave(row)); pintar(); return; }
+      // uma referência por categoria da DRE: outra da mesma classe substitui a anterior
+      [...refs.values()].filter((r) => classeDe(r) === classeDe(row)).forEach((r) => refs.delete(chave(r)));
+      refs.set(chave(row), row);
+      pintar();
+    };
     const procurar = async () => {
       const q = busca.value.trim();
       lista.innerHTML = '<li class="vinc-vazio">Buscando…</li>';
       try {
-        const r = await fetch(`/api/parametros/plano-contas/linhas?size=8&q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' } });
+        const r = await fetch(`/api/parametros/${resultado ? 'plano-contas' : 'mapeamento-contas'}/linhas?size=8&q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' } });
         const dados = await r.json();
         lista.innerHTML = '';
-        if (!dados.rows?.length) { lista.innerHTML = '<li class="vinc-vazio">Nenhuma conta encontrada.</li>'; return; }
-        dados.rows.forEach((row) => {
+        const rows = (dados.rows || []).filter((row) => row.conta !== conta);
+        if (!rows.length) { lista.innerHTML = '<li class="vinc-vazio">Nenhuma conta encontrada.</li>'; return; }
+        rows.forEach((row) => {
           const li = document.createElement('li');
           const b = document.createElement('button');
           b.type = 'button';
           b.className = 'vinc-op';
+          b.dataset.chave = chave(row);
+          b.setAttribute('role', 'option');
           const t1 = document.createElement('strong'); t1.textContent = `${row.conta} · ${row.descricao || ''}`;
-          const t2 = document.createElement('span'); t2.textContent = [row.n4, row.classe].filter(Boolean).join(' · ');
+          const t2 = document.createElement('span'); t2.textContent = resultado ? [row.n4, row.classe].filter(Boolean).join(' · ') : `Conta do grupo ${row.contaGrupo || '—'} · ${row.descGerencial || 'sem linha gerencial'}`;
           b.append(t1, t2);
-          b.addEventListener('click', () => {
-            ref = row;
-            lista.querySelectorAll('.vinc-op').forEach((x) => x.classList.toggle('ativo', x === b));
-            escolha.hidden = false;
-            escolha.textContent = `Vai receber: conta do grupo ${row.contaGrupo} · ${row.n3 || ''} › ${row.n4 || ''} · classe ${row.classe || '—'}`;
-            btn.disabled = false;
-          });
+          b.addEventListener('click', () => escolher(row));
           li.append(b);
           lista.append(li);
         });
+        pintar();
       } catch { lista.innerHTML = '<li class="vinc-vazio">Não foi possível buscar agora.</li>'; }
     };
     busca.addEventListener('input', () => { clearTimeout(t); t = setTimeout(procurar, 250); });
     d.querySelector('[data-cancelar]').addEventListener('click', fechar);
     d.addEventListener('cancel', (e) => { e.preventDefault(); fechar(); });
     btn.addEventListener('click', async () => {
-      if (!ref) return;
+      if (!refs.size) return;
       btn.disabled = true; erro.hidden = true;
       try {
         const r = await fetch('/api/vincular-conta', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'x-csrf-token': prefsV.csrf || '' },
-          body: JSON.stringify({ conta, referencia: ref.conta, descricao: d.querySelector('#vinc-desc').value }),
+          body: JSON.stringify({ conta, referencias: [...refs.values()].map((r) => ({ conta: r.conta, i: r._i })), descricao: d.querySelector('#vinc-desc').value }),
         });
         const res = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(res.error || 'Não foi possível vincular.');
+        const n = refs.size;
         fechar();
-        aviso({ titulo: 'Conta vinculada', texto: `A conta ${conta} foi incluída no Plano de Contas${res.mapeamento ? ' e no Mapeamento de Contas' : ''}. Para aparecer classificada nos relatórios, reimporte o FGI0 da competência.` });
+        aviso({ titulo: 'Conta vinculada', texto: `A conta ${conta} foi incluída no ${res.tabela === 'mapeamento-contas' ? 'Mapeamento de Contas' : 'Plano de Contas'}${n > 1 ? ` com ${n} classificações (a área funcional do FGI0 escolhe qual vale em cada lançamento)` : ''}. Para aparecer classificada nos relatórios, reimporte o FGI0 da competência.` });
       } catch (e2) { erro.textContent = e2.message; erro.hidden = false; btn.disabled = false; }
     });
     d.showModal();

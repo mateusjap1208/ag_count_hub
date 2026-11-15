@@ -228,14 +228,19 @@ function createClassifier() {
     const b = await base(row.conta);
     let classe = '';
     let ambigua = false;
-    if (b.plano.length) ({ classe, ambigua } = resolveClass(b.plano, row.areaFuncional));
-    else if (b.bpcBp) classe = b.bpcBp.classeAnalitica || b.bpcBp.descricao;
+    let { subgrupo } = b;
+    if (b.plano.length) {
+      ({ classe, ambigua } = resolveClass(b.plano, row.areaFuncional));
+      // conta com várias linhas no Plano de Contas: o detalhe (N3) vem da linha da classe escolhida pela área funcional
+      const escolhida = ambigua && b.plano.find((p) => p.classe === classe);
+      if (escolhida) subgrupo = stripCode(escolhida.n3);
+    } else if (b.bpcBp) classe = b.bpcBp.classeAnalitica || b.bpcBp.descricao;
     else if (b.bpcDre) classe = b.bpcDre.classeDre;
 
     let dre = null;
     if (b.natureza === 'resultado') dre = dreGroup(classe, b.bpcDre?.secao);
     const classificada = !!b.natureza && (b.natureza !== 'resultado' || !!dre);
-    return { ...b, classe, ambigua, dre, classificada };
+    return { ...b, subgrupo, classe, ambigua, dre, classificada };
   }
 
   return { classify };
