@@ -250,10 +250,78 @@ async function getRows(id, { page = 1, size = 25, q = '', sort, dir = 'asc', fil
   const total = rows.length;
   const pages = Math.max(1, Math.ceil(total / size));
   page = Math.min(Math.max(Number(page) || 1, 1), pages);
-  return { total, page, pages, size, rows: rows.slice((page - 1) * size, page * size) };
+  // _i = posição da linha na tabela inteira (usada para editar/excluir)
+  if (!data.pos) { data.pos = new Map(); data.rows.forEach((r, i) => data.pos.set(r, i)); }
+  return { total, page, pages, size, rows: rows.slice((page - 1) * size, page * size).map((r) => ({ ...r, _i: data.pos.get(r) })) };
+}
+
+/* ------------------------------------------------------- edição de linhas */
+
+/** Valores do formulário → linha da tabela (só as colunas da definição; números convertidos) */
+function linhaDoFormulario(def, valores) {
+  const out = {};
+  for (const c of def.columns) {
+    if (!(c.key in (valores || {}))) continue;
+    let v = String(valores[c.key] ?? '').trim().slice(0, 300);
+    if (c.type === 'number') v = v === '' ? null : Number(v.replace(/\./g, '').replace(',', '.'));
+    out[c.key] = v;
+  }
+  return out;
+}
+
+async function gravarTabela(id, rows, user, acao) {
+  const def = getDef(id);
+  const meta = (await params.list()).find((m) => m.id === id) || {};
+  const { id: _id, rows: _n, updatedAt, ...resto } = meta;
+  const record = await params.save(id, rows, { ...resto, uploadedBy: `${user?.name || user?.email || 'sistema'} (${acao})`, compactar: colunasCompactas(def, rows) });
+  invalidate([id]);
+  return record;
+}
+
+/** Confere se a linha i ainda é a mesma que o usuário viu (ninguém alterou a tabela no meio) */
+function conferir(def, rows, i, chave) {
+  const r = rows[i];
+  if (!r) throw new ParamError('Registro não encontrado. Recarregue a página.');
+  if (normKey(r[def.key]) !== normKey(chave)) throw new ParamError('A tabela mudou desde que você abriu a página. Recarregue e tente de novo.');
+  return r;
+}
+
+function validar(def, linha) {
+  const falta = def.columns.filter((c) => c.required && (linha[c.key] == null || linha[c.key] === ''));
+  if (falta.length) throw new ParamError(`Preencha: ${falta.map((c) => c.label).join(', ')}.`);
+  const num = def.columns.find((c) => c.type === 'number' && linha[c.key] != null && !Number.isFinite(linha[c.key]));
+  if (num) throw new ParamError(`"${num.label}" precisa ser um número.`);
+}
+
+async function updateRow(id, i, valores, chaveOriginal, user) {
+  const def = getDef(id);
+  const rows = [...(await load(id)).rows];
+  const atual = conferir(def, rows, Number(i), chaveOriginal);
+  const nova = { ...atual, ...linhaDoFormulario(def, valores) };
+  validar(def, nova);
+  rows[Number(i)] = nova;
+  await gravarTabela(id, rows, user, 'edição');
+  return nova;
+}
+
+async function deleteRow(id, i, chaveOriginal, user) {
+  const def = getDef(id);
+  const rows = [...(await load(id)).rows];
+  conferir(def, rows, Number(i), chaveOriginal);
+  rows.splice(Number(i), 1);
+  await gravarTabela(id, rows, user, 'exclusão');
+}
+
+async function addRow(id, valores, user) {
+  const def = getDef(id);
+  const nova = linhaDoFormulario(def, valores);
+  validar(def, nova);
+  const rows = [...(await load(id)).rows, nova];
+  await gravarTabela(id, rows, user, 'inclusão');
+  return nova;
 }
 
 module.exports = {
   definitions, getDef, list, importFile, targetsFor, getRows, checks, CHECKS,
-  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas,
+  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas, updateRow, deleteRow, addRow,
 };

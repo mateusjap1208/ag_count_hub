@@ -26,18 +26,20 @@
     <% } %>
   </div>
 
-  <div class="card mt" id="data-table" data-endpoint="/api/parametros/<%= def.id %>/linhas" data-extra="<%= filtro ? 'filtro=' + filtro : '' %>" data-columns="<%= JSON.stringify(columns) %>">
+  <div class="card mt" id="data-table" data-endpoint="/api/parametros/<%= def.id %>/linhas" data-extra="<%= filtro ? 'filtro=' + filtro : '' %>" data-columns="<%= JSON.stringify(columns) %>" data-editavel="1" data-chave="<%= def.key %>">
     <div class="card-head">
       <h2>Registros</h2>
       <div class="table-tools">
         <label class="sr-only" for="table-search">Buscar</label>
         <input class="input" type="search" id="table-search" placeholder="Buscar código, descrição…" autocomplete="off">
+        <button class="btn btn-primary" type="button" data-novo-registro>+ Novo registro</button>
       </div>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr>
           <% columns.forEach(c => { %><th data-sort="<%= c.key %>"><%= c.label %><span class="arrow"></span></th><% }) %>
+          <th class="param-acoes-th">Ações</th>
         </tr></thead>
         <tbody><tr><td colspan="<%= columns.length %>">Carregando…</td></tr></tbody>
       </table>
