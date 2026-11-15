@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 51,
+    data: '2026-11-15',
+    titulo: 'Confirmações com a cara do sistema',
+    itens: ['As confirmações (como excluir um registro) e os avisos agora aparecem num popup do próprio sistema, e não na janela padrão do navegador.'],
+  },
+  {
     build: 50,
     data: '2026-11-15',
     titulo: 'Menu',
