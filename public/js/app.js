@@ -304,7 +304,7 @@
   /* ---------- Login errado: botão vermelho volta ao normal quando a pessoa digita de novo ---------- */
   const loginBtn = document.getElementById('login-btn');
   if (loginBtn && loginBtn.classList.contains('btn-nao')) {
-    const limpar = () => loginBtn.classList.remove('btn-nao');
+    const limpar = () => { loginBtn.classList.remove('btn-nao'); loginBtn.textContent = 'Entrar'; };
     ['email', 'password'].forEach((id) => document.getElementById(id)?.addEventListener('input', limpar, { once: true }));
     document.getElementById('password')?.focus();
   }
