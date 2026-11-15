@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 46,
+    data: '2026-11-15',
+    titulo: 'Página de erro com obra',
+    itens: ['Quando o servidor tiver um problema, a página de erro mostra uma retroescavadeira enchendo a caçamba de um caminhãozinho.'],
+  },
+  {
     build: 45,
     data: '2026-11-15',
     titulo: 'Menu com nomes completos',

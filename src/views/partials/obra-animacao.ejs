@@ -1,0 +1,59 @@
+<%# Animação da página de erro do servidor: retroescavadeira enchendo a caçamba de um caminhãozinho (SVG + CSS) %>
+<svg class="obra-anim" viewBox="0 0 420 200" role="img" aria-label="Ilustração: uma retroescavadeira enche a caçamba de um caminhão">
+  <!-- chão -->
+  <line class="oa-chao" x1="0" y1="172" x2="420" y2="172"/>
+  <!-- monte de terra que a retroescavadeira cava -->
+  <path class="oa-terra" d="M135 172 Q150 150 168 148 Q186 146 200 160 Q206 166 210 172 Z"/>
+
+  <!-- caminhão (caçamba à esquerda, cabine à direita) -->
+  <g class="oa-caminhao">
+    <path class="oa-carga" d="M296 106 Q318 84 340 88 Q362 84 382 106 Z"/>
+    <rect class="oa-cacamba" x="290" y="104" width="98" height="38" rx="4"/>
+    <rect class="oa-cacamba-faixa" x="290" y="118" width="98" height="5"/>
+    <rect class="oa-chassi" x="286" y="142" width="132" height="8" rx="3"/>
+    <path class="oa-cabine" d="M390 112 h18 q8 0 10 8 l2 22 h-30 z"/>
+    <rect class="oa-janela" x="396" y="117" width="14" height="10" rx="2"/>
+    <circle class="oa-roda" cx="310" cy="156" r="12"/><circle class="oa-cubo" cx="310" cy="156" r="4"/>
+    <circle class="oa-roda" cx="340" cy="156" r="12"/><circle class="oa-cubo" cx="340" cy="156" r="4"/>
+    <circle class="oa-roda" cx="402" cy="156" r="12"/><circle class="oa-cubo" cx="402" cy="156" r="4"/>
+  </g>
+
+  <!-- terra caindo na caçamba -->
+  <g class="oa-queda">
+    <circle cx="322" cy="96" r="4"/><circle cx="332" cy="92" r="3"/><circle cx="328" cy="100" r="3.5"/><circle cx="338" cy="98" r="2.5"/>
+  </g>
+
+  <!-- retroescavadeira -->
+  <g class="oa-retro">
+    <rect class="oa-corpo" x="18" y="112" width="116" height="36" rx="6"/>
+    <rect class="oa-faixa" x="18" y="128" width="116" height="5"/>
+    <path class="oa-cabine-retro" d="M40 112 V74 q0-6 6-6 h40 q6 0 6 6 V112 z"/>
+    <rect class="oa-vidro" x="48" y="76" width="36" height="28" rx="3"/>
+    <rect class="oa-escape" x="104" y="90" width="6" height="22" rx="2"/>
+    <g class="oa-fumaca"><circle cx="107" cy="84" r="5"/><circle cx="112" cy="76" r="6"/><circle cx="118" cy="66" r="7"/></g>
+    <circle class="oa-roda" cx="44" cy="154" r="18"/><circle class="oa-cubo" cx="44" cy="154" r="6"/>
+    <circle class="oa-roda" cx="112" cy="158" r="14"/><circle class="oa-cubo" cx="112" cy="158" r="5"/>
+
+    <!-- lança → braço → concha (cada parte gira no próprio eixo) -->
+    <g transform="translate(130 105)">
+      <g class="oa-lanca">
+        <rect class="oa-peca" x="-6" y="-7" width="132" height="14" rx="7"/>
+        <circle class="oa-pino" cx="0" cy="0" r="5"/>
+        <g transform="translate(120 0)">
+          <g class="oa-braco">
+            <rect class="oa-peca" x="-6" y="-6" width="12" height="96" rx="6"/>
+            <circle class="oa-pino" cx="0" cy="0" r="4.5"/>
+            <g transform="translate(0 85)">
+              <g class="oa-concha">
+                <path class="oa-terra-concha" d="M-4 2 Q8 -10 20 0 Q14 8 2 8 Z"/>
+                <path class="oa-balde" d="M-6 -4 L22 -4 Q26 14 6 20 L-6 14 Z"/>
+                <path class="oa-dentes" d="M6 20 l3 5 l3 -6 l3 5 l3 -7"/>
+                <circle class="oa-pino" cx="0" cy="0" r="4"/>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
