@@ -1412,3 +1412,18 @@ a.pend-chip:hover { border-color: #F5A400; }
 .param-campos .input { width: 100%; }
 .param-aviso { margin-bottom: 12px; }
 .modal.param-dialog { max-width: 560px; }
+
+/* =========================================================================
+ * Popups do sistema (confirmação e aviso) no lugar dos do navegador
+ * ========================================================================= */
+.popup { max-width: 420px; text-align: left; animation: popup-entra .18s ease-out; }
+.popup::backdrop { animation: popup-fundo .18s ease-out; }
+@keyframes popup-entra { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes popup-fundo { from { opacity: 0; } to { opacity: 1; } }
+.popup-icone { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--blue-soft); color: var(--consag-blue); }
+.popup-perigo .popup-icone { background: var(--err-bg); color: var(--danger); }
+.popup h2 { margin: 14px 0 6px; }
+.popup-acoes { gap: 8px; }
+.btn-perigo { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn-perigo:hover, .btn-perigo:focus-visible { filter: brightness(.92); }
+@media (prefers-reduced-motion: reduce) { .popup, .popup::backdrop { animation: none; } }

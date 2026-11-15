@@ -3,6 +3,49 @@
   'use strict';
 
   const $ = (s, el = document) => el.querySelector(s);
+
+  /* ---------- Popups do sistema (substituem confirm/alert do navegador) ----------
+     confirmar({ titulo, texto, ok, cancelar, perigo }) → Promise<boolean>
+     aviso({ titulo, texto, ok }) → Promise<void> */
+  function popup({ titulo, texto, ok = 'OK', cancelar = null, perigo = false, icone = perigo ? 'perigo' : 'info' }) {
+    return new Promise((resolve) => {
+      const d = document.createElement('dialog');
+      d.className = `modal popup popup-${icone}`;
+      d.setAttribute('aria-labelledby', 'popup-titulo');
+      const ic = document.createElement('div');
+      ic.className = 'popup-icone';
+      ic.setAttribute('aria-hidden', 'true');
+      ic.innerHTML = icone === 'perigo'
+        ? '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5v.01"/></svg>';
+      const h = document.createElement('h2');
+      h.id = 'popup-titulo';
+      h.textContent = titulo || 'Atenção';
+      const p = document.createElement('p');
+      p.textContent = texto || '';
+      const acoes = document.createElement('div');
+      acoes.className = 'modal-actions popup-acoes';
+      const fechar = (valor) => { d.close(); d.remove(); resolve(valor); };
+      if (cancelar) {
+        const bc = document.createElement('button');
+        bc.type = 'button'; bc.className = 'btn btn-ghost'; bc.textContent = cancelar;
+        bc.addEventListener('click', () => fechar(false));
+        acoes.append(bc);
+      }
+      const bo = document.createElement('button');
+      bo.type = 'button'; bo.className = `btn ${perigo ? 'btn-perigo' : 'btn-primary'}`; bo.textContent = ok;
+      bo.addEventListener('click', () => fechar(true));
+      acoes.append(bo);
+      d.append(ic, h, p, acoes);
+      d.addEventListener('cancel', (e) => { e.preventDefault(); fechar(false); }); // Esc = cancelar
+      d.addEventListener('click', (e) => { if (e.target === d) fechar(false); }); // clique fora
+      document.body.append(d);
+      d.showModal();
+      (cancelar ? acoes.firstChild : bo).focus(); // em ações destrutivas o foco começa em "Cancelar"
+    });
+  }
+  const confirmar = (o) => popup({ cancelar: 'Cancelar', ok: 'Confirmar', ...o });
+  const aviso = (o) => popup({ ok: 'Entendi', ...o }).then(() => {});
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
   // Paleta CONSAG (principal + apoio + mídias digitais). No tema escuro, os tons escuros
@@ -561,9 +604,15 @@
     btn.lastChild.textContent = 'Importando…';
   }));
 
-  /* ---------- Confirmações ---------- */
-  $$('form[data-confirm]').forEach((f) => f.addEventListener('submit', (e) => {
-    if (!window.confirm(f.dataset.confirm)) e.preventDefault();
+  /* ---------- Confirmações (popup próprio no lugar do confirm do navegador) ---------- */
+  $$('form[data-confirm]').forEach((f) => f.addEventListener('submit', async (e) => {
+    if (f.dataset.confirmado === '1') { delete f.dataset.confirmado; return; }
+    e.preventDefault();
+    const destrutivo = /exclu|remov|apag/i.test(f.dataset.confirm);
+    const ok = await confirmar({ titulo: destrutivo ? 'Confirmar exclusão' : 'Confirmar', texto: f.dataset.confirm, ok: destrutivo ? 'Excluir' : 'Confirmar', perigo: destrutivo });
+    if (!ok) return;
+    f.dataset.confirmado = '1';
+    if (f.requestSubmit) f.requestSubmit(); else f.submit();
   }));
 
   /* ---------- Gráficos ---------- */
@@ -1105,7 +1154,7 @@
         const url = `${endpoint}/${linha._i}`;
         try {
           if (bX) {
-            if (!window.confirm(`Excluir o registro ${linha[chaveCol] ?? ''}? Esta ação não pode ser desfeita.`)) return;
+            if (!(await confirmar({ titulo: 'Excluir registro', texto: `Excluir o registro ${linha[chaveCol] ?? ''}? Esta ação não pode ser desfeita.`, ok: 'Excluir', perigo: true }))) return;
             await chamar('DELETE', url, { chave: linha[chaveCol] });
             avisar('Registro excluído.');
           } else {
@@ -1292,8 +1341,7 @@
         dialog.addEventListener('close', focusField, { once: true });
         dialog.showModal();
       } else {
-        window.alert(`O nome do arquivo "${name}" precisa ter a competência (ex.: _10.2026). Informe a competência no campo.`);
-        focusField();
+        aviso({ titulo: 'Competência não encontrada', texto: `O nome do arquivo "${name}" precisa ter a competência (ex.: _10.2026). Informe a competência no campo.` }).then(focusField);
       }
     };
 
