@@ -34,9 +34,18 @@ async function contasAClassificar(period) {
   for (const r of dre) {
     if (/a classificar/i.test(r.grupo || '')) add(r, 'DRE', r.valor);
   }
-  return [...por.values()]
+  const lista = [...por.values()]
     .map((o) => ({ ...o, onde: [...o.onde].join(' e '), centros: o.centros.size }))
     .sort((a, b) => Math.abs(b.saldo) - Math.abs(a.saldo));
+  // Conta cadastrada depois da importação: já tem classificação, só falta reimportar o FGI0 da competência
+  for (const o of lista) {
+    const resultado = /^[45]/.test(o.conta);
+    const cad = await Parameter.find(resultado ? 'plano-contas' : 'mapeamento-contas', o.conta).catch(() => []);
+    o.jaClassificada = cad.length
+      ? [...new Set(cad.map((c) => (resultado ? c.classe : c.descGerencial || c.contaGrupo)).filter(Boolean))].join(' / ') || 'cadastrada'
+      : null;
+  }
+  return lista;
 }
 
 async function calcular(period) {
@@ -58,7 +67,7 @@ async function calcular(period) {
     naoCarregados,
     semObra,
     resumo: [
-      contas.length && `${contas.length.toLocaleString('pt-BR')} conta(s) contábil(eis) a classificar`,
+      contas.length && `${contas.length.toLocaleString('pt-BR')} conta(s) contábil(eis) a classificar${contas.some((c) => c.jaClassificada) ? ` (${contas.filter((c) => c.jaClassificada).length.toLocaleString('pt-BR')} já cadastrada(s): reimporte o FGI0)` : ''}`,
       naoCarregados.length && `${naoCarregados.length} tabela(s) de parâmetros não carregada(s)`,
       avisos.length && `${avisos.length} alerta(s) nos parâmetros`,
       semObra.length && `${semObra.length.toLocaleString('pt-BR')} centro(s) de lucro sem cadastro de obra`,

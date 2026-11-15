@@ -865,6 +865,7 @@
     d.innerHTML = `<h2>Vincular conta <span class="vinc-conta"></span></h2>
       <p data-texto></p>
       <div class="vinc-regra" data-regra hidden><strong>Custo ou despesa?</strong> Na importação do FGI0, a área funcional de cada lançamento decide: <b>Z001</b> e <b>Z002</b> → Despesas Gerais e Administrativas; <b>Z003</b>, <b>Z004</b>, <b>Z005</b> ou vazia → Custos. Por isso, escolha uma referência de cada categoria em que a conta pode aparecer.</div>
+      <div class="vinc-ja" data-ja hidden></div>
       <div class="field"><label for="vinc-desc">Descrição da conta (opcional)</label><input class="input" id="vinc-desc" maxlength="120" autocomplete="off"></div>
       <div class="field"><label for="vinc-busca" data-rotulo></label><input class="input" id="vinc-busca" type="search" placeholder="Buscar por código ou descrição…" autocomplete="off"></div>
       <ul class="vinc-lista" role="listbox" aria-label="Contas de referência"></ul>
@@ -963,6 +964,21 @@
       } catch (e2) { erro.textContent = e2.message; erro.hidden = false; btn.disabled = false; }
     });
     d.showModal();
+    // a conta já está cadastrada? Então ela só aparece "a classificar" porque o FGI0 foi importado antes do cadastro
+    fetch(`/api/parametros/${resultado ? 'plano-contas' : 'mapeamento-contas'}/linhas?size=20&q=${encodeURIComponent(conta)}`, { headers: { Accept: 'application/json' } })
+      .then((r) => r.json())
+      .then((dados) => {
+        const cad = (dados.rows || []).filter((row) => String(row.conta).toUpperCase() === conta.toUpperCase());
+        if (!cad.length || !d.isConnected) return;
+        const ja = d.querySelector('[data-ja]');
+        const classes = [...new Set(cad.map((row) => (resultado ? row.classe : row.descGerencial || row.contaGrupo)).filter(Boolean))];
+        const forte = document.createElement('strong');
+        forte.textContent = `Esta conta já está classificada: ${classes.join(' / ') || 'cadastrada'}.`;
+        ja.append(forte, ` Ela aparece como "a classificar" porque o FGI0 desta competência foi importado antes desse cadastro. Para corrigir, reimporte o FGI0.${resultado ? ' Só vincule de novo se a conta também puder aparecer em outra categoria da DRE.' : ''}`);
+        ja.hidden = false;
+        if (!resultado) { busca.disabled = true; lista.hidden = true; }
+      })
+      .catch(() => {});
     // começa sugerindo contas com o mesmo início do código
     busca.value = conta.replace(/[^0-9]/g, '').slice(0, 5);
     procurar();

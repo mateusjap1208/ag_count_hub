@@ -67,14 +67,39 @@ function colunasCompactas(def, rows) {
   return soTexto ? cols : undefined;
 }
 
-async function importFile(ids, { buffer, fileName, user }) {
+/**
+ * Importação de arquivo de parâmetro.
+ * Padrão (tabelas com chave, ex.: Plano de Contas): COMPLETA a tabela atual. Os registros do arquivo
+ * entram e, se a chave já existir, as linhas antigas dessa chave são trocadas pelas do arquivo
+ * (uma conta com várias classificações fica exatamente como está no arquivo). O resto não muda.
+ * Com "substituir", a tabela inteira passa a ser o conteúdo do arquivo.
+ * Estruturas (BPC, Estrutura do CE) são sempre substituídas, pois são um desenho completo.
+ */
+const completavel = (def) => def.type === 'table' && !!def.key;
+
+async function importFile(ids, { buffer, fileName, user, substituir = false }) {
   const sheets = await readSheets(buffer, fileName);
+  // lê tudo antes de gravar: se algum arquivo estiver errado, nenhuma tabela é alterada
+  const lidas = ids.map((id) => ({ id, def: getDef(id), ...parseParameter(sheets, getDef(id)) }));
+  const carregadas = await loadedIds();
   const results = [];
-  for (const id of ids) {
-    const def = getDef(id);
-    const { rows, skipped, sheet } = parseParameter(sheets, def);
-    const record = await params.save(id, rows, { fileName, sheet, skipped, uploadedBy: user?.name || user?.email || 'sistema', compactar: colunasCompactas(def, rows) });
-    results.push({ def, record });
+  for (const { id, def, rows, skipped, sheet } of lidas) {
+    let final = rows;
+    let resumo = { modo: 'substituição', arquivo: rows.length };
+    if (!substituir && completavel(def) && carregadas.has(id)) {
+      const atuais = (await load(id)).rows;
+      const chaves = new Set(rows.map((r) => normKey(r[def.key])));
+      const mantidas = atuais.filter((r) => !chaves.has(normKey(r[def.key])));
+      const atualizadas = new Set(atuais.filter((r) => chaves.has(normKey(r[def.key]))).map((r) => normKey(r[def.key]))).size;
+      final = [...mantidas, ...rows];
+      resumo = { modo: 'complemento', arquivo: rows.length, novas: chaves.size - atualizadas, atualizadas, antes: atuais.length };
+    }
+    const record = await params.save(id, final, {
+      fileName, sheet, skipped,
+      uploadedBy: `${user?.name || user?.email || 'sistema'}${resumo.modo === 'complemento' ? ' (complemento)' : ''}`,
+      compactar: colunasCompactas(def, final),
+    });
+    results.push({ def, record, resumo });
   }
   invalidate(ids);
   return results;
@@ -389,5 +414,5 @@ async function addRow(id, valores, user) {
 
 module.exports = {
   definitions, getDef, list, importFile, targetsFor, getRows, checks, CHECKS,
-  find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas, updateRow, deleteRow, addRow, vincularConta,
+  completavel, find, all, nameOf, classifyAccount, normKey, ParamError, loadedIds, colunasCompactas, updateRow, deleteRow, addRow, vincularConta,
 };

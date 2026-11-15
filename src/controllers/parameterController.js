@@ -30,10 +30,10 @@ exports.upload = async (req, res, next) => {
   try {
     if (!req.file) throw new ParamError('Selecione o arquivo.');
     const ids = Parameter.targetsFor(req.params.id);
-    const results = await Parameter.importFile(ids, { buffer: req.file.buffer, fileName: req.file.originalname, user: req.session.user });
+    const results = await Parameter.importFile(ids, { buffer: req.file.buffer, fileName: req.file.originalname, user: req.session.user, substituir: req.body?.substituir === '1' });
     req.session.paramFlash = {
       fileName: req.file.originalname,
-      items: results.map(({ def, record }) => ({ title: def.title, rows: record.rows, skipped: record.skipped })),
+      items: results.map(({ def, record, resumo }) => ({ title: def.title, rows: record.rows, skipped: record.skipped, ...resumo })),
     };
     res.redirect('/parametros');
   } catch (e) {
