@@ -2941,3 +2941,14 @@ a.pend-chip:hover { border-color: #F5A400; }
 .user-sair:hover, .user-sair:focus-visible { background: var(--blue-soft); color: var(--consag-blue); outline: none; }
 .sidebar .sidebar-foot .app-version { text-align: center; margin: 0; }
 @media (prefers-reduced-motion: reduce) { .user-panel { animation: none; } }
+
+/* Botão de tema dentro do menu do avatar (linha com ícone animado + texto) */
+.user-panel .theme-btn.user-tema {
+  margin-top: 10px; width: 100%; height: auto; display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+  padding: 9px 10px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 13px;
+}
+.user-panel .theme-btn.user-tema .tema-svg { width: 18px; height: 18px; flex-shrink: 0; }
+.user-panel .theme-btn.user-tema .tema-texto { color: var(--text); }
+.user-panel .theme-btn.user-tema:hover, .user-panel .theme-btn.user-tema:focus-visible { background: var(--blue-soft); }
+.user-panel .theme-btn.user-tema:hover .tema-texto { color: var(--consag-blue); }
+.user-panel .user-sair { margin-top: 2px; }

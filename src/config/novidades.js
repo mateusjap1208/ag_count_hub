@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 59,
+    data: "2026-11-15",
+    titulo: "Tema no menu do usuário",
+    itens: [
+      "O botão de tema claro/escuro agora fica dentro do menu do avatar, no topo.",
+      "No menu, a DRE aparece como Demonstração do Resultado."
+    ]
+  },
+  {
     build: 58,
     data: "2026-11-15",
     titulo: "Usuário no topo",
