@@ -99,6 +99,26 @@ router.get('/', dashboard.index);
 router.get('/novidades', (req, res) => res.render('novidades/index', {
   title: 'Novidades', subtitle: 'O que mudou em cada versão', hideFilters: true, historico: novidadesSvc.historico(),
 }));
+// Personalizar cores (preferência de cada usuário)
+const coresCfg = require('../config/cores');
+router.get('/personalizar', (req, res) => res.render('personalizar/index', {
+  title: 'Personalizar', subtitle: 'Escolha as cores do sistema', hideFilters: true,
+  campos: coresCfg.CAMPOS, paletas: coresCfg.PALETAS, atuais: req.user.cores || {},
+}));
+router.post('/api/preferencias/cores', express.json({ limit: '2kb' }), verifyCsrf, async (req, res, next) => {
+  try {
+    const cores = await User.saveCores(req.user.id, req.body?.cores);
+    invalidateUser(req.user.id);
+    return res.json({ ok: true, cores, versao: coresCfg.versao(cores) });
+  } catch (e) { return next(e); }
+});
+router.get('/preferencias/cores.css', (req, res) => {
+  res.type('text/css');
+  // O endereço muda quando as cores mudam (?v=), então pode ficar em cache no navegador
+  res.set('Cache-Control', req.query.v ? 'private, max-age=31536000, immutable' : 'no-store');
+  res.send(coresCfg.css(req.user.cores));
+});
+
 // Ordem dos cards e gráficos de cada tela (preferência do usuário)
 router.post('/api/preferencias/ordem', express.json({ limit: '10kb' }), verifyCsrf, async (req, res, next) => {
   try {

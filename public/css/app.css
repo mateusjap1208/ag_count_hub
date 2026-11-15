@@ -3019,3 +3019,45 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 /* Login: logo AG só com as letras, em azul (sem o quadrado) */
 .login-logo svg.logo-ag-img { width: auto; height: 52px; border-radius: 0; color: #1F5FAF; overflow: visible; }
 :root[data-theme="dark"] .login-logo svg.logo-ag-img { color: var(--consag-blue); }
+
+/* =========================================================================
+   Personalizar: cores do sistema
+   ========================================================================= */
+.personalizar { display: grid; gap: 16px; }
+.paletas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.paleta {
+  display: grid; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+  cursor: pointer; text-align: left; font: inherit; color: var(--text); transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.paleta:hover, .paleta:focus-visible { border-color: var(--consag-blue); transform: translateY(-2px); box-shadow: var(--shadow); outline: none; }
+.paleta.ativa { border-color: var(--consag-blue); box-shadow: 0 0 0 2px var(--blue-soft); }
+.paleta-cores { display: flex; height: 28px; border-radius: 8px; overflow: hidden; }
+.paleta-cor { flex: 1; }
+.paleta-nome { font-size: 12.5px; font-weight: 600; }
+.pers-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1100px) { .pers-grid { grid-template-columns: 1fr; } }
+.pers-campos { display: grid; gap: 4px; }
+.pers-campo { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.pers-texto { display: grid; gap: 2px; min-width: 180px; flex: 1; }
+.pers-texto label { font-weight: 600; color: var(--heading); font-size: 13.5px; }
+.pers-entrada { display: flex; align-items: center; gap: 8px; }
+.pers-entrada input[type="color"] { width: 44px; height: 36px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; }
+.pers-hex { width: 104px; font-variant-numeric: tabular-nums; text-transform: uppercase; }
+.pers-hex.needs-attention { border-color: var(--danger); }
+.btn.btn-sm { height: 32px; padding: 0 10px; font-size: 12px; }
+.pers-aviso { margin: 8px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-text); font-size: 12.5px; }
+.pers-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.previa-corpo { display: grid; gap: 14px; }
+.previa-menu { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: var(--surface-2); }
+.previa-pilula { padding: 8px 12px; border-radius: 10px; background: var(--consag-blue); color: #fff; font-weight: 600; font-size: 13px; }
+.previa-item { padding: 6px 12px; font-size: 13px; color: var(--text-2); }
+.previa-titulo { font-size: 16px; }
+.previa-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.previa-kpi { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.previa-kpi span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.previa-kpi strong { font-size: 18px; }
+.previa-kpi .pos { color: var(--ok); }
+.previa-kpi .neg { color: var(--danger); }
+.previa-linha { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.previa-link { font-weight: 600; }
+.user-panel .user-link { margin-top: 10px; text-decoration: none; }

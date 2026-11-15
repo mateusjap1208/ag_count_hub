@@ -1,0 +1,60 @@
+<%- include('../partials/layout-start') %>
+
+<section class="personalizar">
+  <div class="card">
+    <div class="card-head"><h2>Paletas prontas</h2><span class="hint">Clique para experimentar; depois ajuste cada cor se quiser.</span></div>
+    <div class="paletas">
+      <% paletas.forEach(p => { %>
+        <button class="paleta" type="button" data-paleta="<%= p.id %>" aria-label="Usar a paleta <%= p.nome %>">
+          <span class="paleta-cores" aria-hidden="true">
+            <% campos.forEach(c => { %><span class="paleta-cor" data-cor="<%= p.cores[c.chave] %>"></span><% }) %>
+          </span>
+          <span class="paleta-nome"><%= p.nome %></span>
+        </button>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="pers-grid">
+    <div class="card">
+      <div class="card-head"><h2>Suas cores</h2><span class="hint">A página muda enquanto você escolhe.</span></div>
+      <form id="form-cores" class="pers-campos" novalidate>
+        <% campos.forEach(c => { const atual = atuais[c.chave] || c.padrao; %>
+          <div class="pers-campo">
+            <div class="pers-texto">
+              <label for="cor-<%= c.chave %>"><%= c.rotulo %></label>
+              <span class="hint"><%= c.ajuda %></span>
+            </div>
+            <div class="pers-entrada">
+              <input type="color" id="cor-<%= c.chave %>" data-chave="<%= c.chave %>" data-padrao="<%= c.padrao %>" value="<%= atual.toLowerCase() %>">
+              <input class="input pers-hex" type="text" maxlength="7" spellcheck="false" autocomplete="off" aria-label="<%= c.rotulo %> em hexadecimal" data-hex="<%= c.chave %>" value="<%= atual.toUpperCase() %>">
+              <button class="btn btn-ghost btn-sm" type="button" data-padrao-de="<%= c.chave %>" title="Voltar esta cor ao padrão">Padrão</button>
+            </div>
+          </div>
+        <% }) %>
+        <p class="pers-aviso" id="pers-contraste" hidden>Com essa cor principal, o texto branco dos botões pode ficar difícil de ler. Prefira um tom mais escuro.</p>
+        <div class="pers-acoes">
+          <button class="btn btn-ghost" type="button" id="pers-restaurar">Restaurar padrão</button>
+          <button class="btn btn-primary" type="button" id="pers-salvar" disabled>Salvar cores</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card pers-previa" aria-label="Prévia das cores">
+      <div class="card-head"><h2>Prévia</h2></div>
+      <div class="previa-corpo">
+        <div class="previa-menu"><span class="previa-pilula">Demonstração do Resultado</span><span class="previa-item">Capital Empregado</span></div>
+        <h3 class="previa-titulo">Título de um card</h3>
+        <div class="previa-kpis">
+          <div class="previa-kpi"><span>Lucro líquido</span><strong class="pos">R$ 1,2 mi</strong></div>
+          <div class="previa-kpi"><span>Resultado financeiro</span><strong class="neg">-R$ 340 mil</strong></div>
+        </div>
+        <div class="previa-linha"><button class="btn btn-primary" type="button" tabindex="-1">Botão principal</button><a href="#" class="previa-link" tabindex="-1">Um link</a><span class="badge ok">Carregado</span></div>
+        <p class="hint">Valores fictícios, só para mostrar as cores.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<script type="application/json" id="pers-dados"><%- JSON.stringify({ paletas: paletas.map(p => ({ id: p.id, cores: p.cores })) }).replace(/</g, '\\u003c') %></script>
+
+<%- include('../partials/layout-end') %>

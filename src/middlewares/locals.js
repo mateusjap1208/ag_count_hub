@@ -77,6 +77,7 @@ async function viewLocals(req, res, next) {
 
     Object.assign(res.locals, {
       user: req.session.user,
+      coresVersao: req.user?.cores ? require('../config/cores').versao(req.user.cores) : null, // CSS das cores personalizadas
       menu: Report.modules,
       companies,
       allCompanies,

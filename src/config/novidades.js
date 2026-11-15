@@ -6,6 +6,16 @@
  */
 module.exports = [
   {
+    build: 70,
+    data: "2026-11-15",
+    titulo: "Personalize as cores",
+    itens: [
+      "Nova tela Personalizar (no menu, em Sistema, e no menu do avatar): escolha a cor principal, os títulos, o fundo e as cores de valores positivos e negativos.",
+      "Há paletas prontas para começar, prévia ao vivo e aviso quando a cor principal deixa o texto dos botões difícil de ler.",
+      "As cores ficam salvas no seu usuário e valem em qualquer computador."
+    ]
+  },
+  {
     build: 69,
     data: "2026-11-15",
     titulo: "Logo AG redesenhada",
