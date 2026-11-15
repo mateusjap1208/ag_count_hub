@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 48,
+    data: '2026-11-15',
+    titulo: 'Caminhão novo na obra',
+    itens: ['Na animação da página de erro, o caminhão cheio vai embora e chega outro vazio.'],
+  },
+  {
     build: 46,
     data: '2026-11-15',
     titulo: 'Página de erro com obra',

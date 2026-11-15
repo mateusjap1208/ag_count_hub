@@ -1386,3 +1386,16 @@ a.pend-chip:hover { border-color: #F5A400; }
 @keyframes oa-trepida { 0%, 100% { transform: translateY(0); } 20% { transform: translateY(1px); } 50% { transform: translateY(-1px); } }
 .error-obra { color: var(--text-2); margin: 6px 0 4px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .obra-anim * { animation: none !important; } .oa-carga { transform: scaleY(.6); } }
+
+/* Caminhão cheio sai e entra outro vazio: despejos em 20%, 53% e 87% do ciclo de 10,8 s */
+.obra-anim { overflow: hidden; }
+.oa-caminhao { animation: oa-caminhao 10.8s ease-in-out infinite; }
+.oa-carga { animation: oa-carga-viagem 10.8s ease-in-out infinite; }
+@keyframes oa-caminhao {
+  0% { transform: translateX(230px); }
+  12%, 88% { transform: translateX(0); }
+  89%, 91% { transform: translateX(-3px); }
+  98%, 100% { transform: translateX(230px); }
+}
+@keyframes oa-carga-viagem { 0%, 20% { transform: scaleY(.08); } 23%, 53% { transform: scaleY(.4); } 56%, 86% { transform: scaleY(.7); } 89%, 100% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .oa-caminhao { animation: none !important; transform: none; } }
