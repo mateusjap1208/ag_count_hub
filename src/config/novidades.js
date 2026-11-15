@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 75,
+    data: "2026-11-15",
+    titulo: "Sistema no menu do avatar",
+    itens: [
+      "Personalizar cores, Novidades e Sobre saíram do menu lateral e agora ficam no menu do avatar, no topo."
+    ]
+  },
+  {
     build: 74,
     data: "2026-11-15",
     titulo: "Menu azul-escuro",
