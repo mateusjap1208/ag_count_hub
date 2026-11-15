@@ -102,6 +102,17 @@ router.get('/indicadores', async (req, res, next) => {
     res.render('indicadores/index', { title: 'Indicadores', ind, cur });
   } catch (e) { next(e); }
 });
+// Visualizar a página de erro do servidor (500) com a animação da obra (administradores)
+router.get('/erro-servidor', requireAdmin, (req, res) => {
+  res.status(500).render('errors/error', { status: 500, message: 'Esta é uma visualização da página de erro do servidor.', user: req.session?.user });
+});
+// Visualizar a página autônoma (a usada quando o sistema nem inicia, ex.: configuração da Vercel)
+router.get('/erro-servidor/indisponivel', requireAdmin, (req, res) => {
+  const { paginaObra } = require('../views/errors/paginaObra');
+  // página autônoma tem o CSS embutido: libera só estilos inline nesta resposta
+  res.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:");
+  res.status(503).type('html').send(paginaObra({ status: 503, titulo: 'Sistema indisponível (visualização)', texto: 'É assim que a página aparece quando falta configuração na Vercel.', itens: ['Exemplo: SESSION_SECRET não definida.'] }));
+});
 // Pendências de parâmetros e cadastros (somente administradores)
 router.get('/pendencias', requireAdmin, async (req, res, next) => {
   try {
