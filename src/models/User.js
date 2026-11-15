@@ -28,6 +28,7 @@ const publicUser = (u) => ({
   lastLoginAt: u.lastLoginAt,
   buildVisto: u.buildVisto, // último build cujo aviso de atualização o usuário já fechou
   ordem: u.prefs?.ordem || {}, // ordem dos cards e gráficos escolhida pelo usuário, por tela
+  cores: u.prefs?.cores || null, // cores personalizadas (tela Personalizar)
 });
 
 /** Conjunto de centros permitidos (null = sem restrição) e chave de cache da permissão */
@@ -132,10 +133,17 @@ async function saveOrdem(id, chave, ordem) {
   await users.setOrdem(id, k.replace(/\//g, '_'), lista.length ? lista : null);
 }
 
+/** Salva as cores personalizadas (só hexadecimais válidos); vazio volta ao padrão */
+async function saveCores(id, cores) {
+  const c = require('../config/cores').normalizar(cores);
+  await users.setCores(id, c);
+  return c;
+}
+
 /** Marca o aviso de atualização como visto até o build informado */
 async function markSeen(id, build) { await users.setBuildVisto(id, build); }
 
 async function list() { return (await users.list()).map(publicUser); }
 async function get(id) { const u = await users.findById(id); return u ? publicUser(u) : null; }
 
-module.exports = { markSeen, saveOrdem, authenticate, create, update, remove, list, get, permission, publicUser, ROLES, UserError, findByEmail: users.findByEmail };
+module.exports = { markSeen, saveOrdem, saveCores, authenticate, create, update, remove, list, get, permission, publicUser, ROLES, UserError, findByEmail: users.findByEmail };

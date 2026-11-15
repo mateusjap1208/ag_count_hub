@@ -7,10 +7,11 @@
 %>
   <aside class="sidebar" id="sidebar">
     <div class="brand">
+      <button class="menu-pin" type="button" id="menu-pin" aria-pressed="false" title="Fixar o menu aberto" aria-label="Fixar o menu aberto"><%- include('icon', { name: 'pin' }) %></button>
       <span class="brand-mini" aria-hidden="true"><%- include('icon', { name: 'menu' }) %></span>
       <img class="brand-logo logo-pos" src="/static/img/logo-consag.png" alt="CONSAG Engenharia">
       <img class="brand-logo logo-neg" src="/static/img/logo-consag-negativo.png" alt="CONSAG Engenharia">
-      <div class="brand-text"><strong>AG Cont Hub</strong><span>Dashboard Contábil</span></div>
+      <div class="brand-text"><strong>AG Cont Hub</strong><span>Painel Contábil</span></div>
     </div>
     <nav class="nav" aria-label="Menu principal">
       <%- navItem('/', 'home', 'Visão Geral', currentPath === '/') %>
@@ -34,6 +35,7 @@
         <%- navItem('/pendencias', 'alerta', 'Pendências', currentPath.startsWith('/pendencias')) %>
       <% } %>
       <hr class="nav-sep"><div class="nav-label">Sistema</div>
+      <%- navItem('/personalizar', 'palette', 'Personalizar', currentPath === '/personalizar') %>
       <%- navItem('/novidades', 'sparkle', 'Novidades', currentPath === '/novidades') %>
       <%- navItem('/sobre', 'info', 'Sobre', currentPath === '/sobre') %>
     </nav>
@@ -141,6 +143,7 @@
             <span class="avatar"><%= iniciais %></span>
             <div class="user-info"><strong><%= user.name || user.email %></strong><span><%= perfil %></span><% if (user.name && user.email) { %><span class="user-email"><%= user.email %></span><% } %></div>
           </div>
+          <a class="user-sair user-link" href="/personalizar"><%- include('icon', { name: 'palette' }) %>Personalizar cores</a>
           <button class="theme-btn user-tema" type="button" id="theme-toggle" title="Mudar para o tema escuro" aria-label="Mudar para o tema escuro" aria-pressed="false">
             <svg class="tema-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <g class="tema-sol"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></g>

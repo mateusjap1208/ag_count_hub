@@ -283,6 +283,56 @@
 
   $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => { mostrarCarregando(); el.form.submit(); }));
 
+  /* ---------- Botão de envio mostra um indicador circular enquanto processa ---------- */
+  document.addEventListener('submit', (e) => {
+    if (e.defaultPrevented) return;
+    const f = e.target;
+    const btn = e.submitter || f.querySelector('button[type="submit"], button:not([type]), input[type="submit"]');
+    if (!btn || btn.classList.contains('is-busy')) return;
+    btn.classList.add('is-busy');
+    btn.setAttribute('aria-busy', 'true');
+    setTimeout(() => { btn.disabled = true; }); // depois do envio, para o valor do botão ir junto
+  });
+  // Voltar pelo histórico (página restaurada do cache): botões liberados de novo
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    // A tela de login restaurada traz um token antigo: recarrega para pegar um novo
+    if (document.getElementById('login-form')) { window.location.reload(); return; }
+    $$('.is-busy').forEach((b) => { b.classList.remove('is-busy'); b.removeAttribute('aria-busy'); b.disabled = false; });
+  });
+
+  /* ---------- Login errado: botão vermelho volta ao normal quando a pessoa digita de novo ---------- */
+  const loginBtn = document.getElementById('login-btn');
+  if (loginBtn && loginBtn.classList.contains('btn-nao')) {
+    const limpar = () => loginBtn.classList.remove('btn-nao');
+    ['email', 'password'].forEach((id) => document.getElementById(id)?.addEventListener('input', limpar, { once: true }));
+    document.getElementById('password')?.focus();
+  }
+
+  /* ---------- Vídeo do login: só aparece quando está tocando (nunca mostra o botão de play) ---------- */
+  const video = document.getElementById('login-video');
+  if (video) {
+    const ouvir = () => { try { video.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'login', channel: 'widget' }), '*'); } catch { /* ignore */ } };
+    video.addEventListener('load', ouvir);
+    const t = setInterval(ouvir, 1000);
+    setTimeout(() => clearInterval(t), 15000);
+    window.addEventListener('message', (e) => {
+      if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin)) return;
+      let d;
+      try { d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch { return; }
+      const estado = d?.info?.playerState;
+      if (estado === 1 && !video.classList.contains('tocando')) {
+        clearInterval(t);
+        clearTimeout(video._mostrar);
+        video._mostrar = setTimeout(() => video.classList.add('tocando'), 1200); // pula a faixa de título do início
+      } else if (estado === 2 || estado === -1 || estado === 5) {
+        // pausado (aba em segundo plano, economia de bateria…): esconde para não mostrar os controles do YouTube
+        clearTimeout(video._mostrar);
+        video.classList.remove('tocando');
+      }
+    });
+  }
+
   /* ---------- Faixa de avisos do rodapé: velocidade constante, qualquer que seja o tamanho do texto ---------- */
   const ticker = $('[data-ticker]');
   if (ticker) {
@@ -359,6 +409,123 @@
   }
 
   /* ---------- Painel de filtros: abre ao passar o mouse (CSS); o clique fixa/solta, Esc e clique fora fecham ---------- */
+  /* ---------- Personalizar: cores do sistema com prévia ao vivo ---------- */
+  const formCores = document.getElementById('form-cores');
+  if (formCores) {
+    const html = document.documentElement;
+    const dadosCores = (() => { try { return JSON.parse(document.getElementById('pers-dados').textContent); } catch { return { paletas: [] }; } })();
+    const seletores = [...formCores.querySelectorAll('input[type="color"]')];
+    const hexDe = (chave) => formCores.querySelector(`[data-hex="${chave}"]`);
+    const btnSalvar = document.getElementById('pers-salvar');
+    const aviso2 = document.getElementById('pers-contraste');
+    const HEX = /^#[0-9a-f]{6}$/i;
+    const rgbDe = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const rgbaDe = (h, a) => `rgba(${rgbDe(h).join(', ')}, ${a})`;
+    const luz = (h) => { const [r, g, b] = rgbDe(h).map((v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const contrasteBranco = (h) => 1.05 / (luz(h) + 0.05);
+    const valores = () => Object.fromEntries(seletores.map((s) => [s.dataset.chave, s.value.toUpperCase()]));
+    let salvo = JSON.stringify(valores());
+
+    // Aplica as cores na página (variáveis CSS), respeitando o tema atual
+    const aplicar = () => {
+      const v = valores();
+      const escuro = isDark();
+      const set = (k, val) => (val ? html.style.setProperty(k, val) : html.style.removeProperty(k));
+      set('--consag-blue', v.principal);
+      set('--blue-soft', rgbaDe(v.principal, escuro ? 0.18 : 0.1));
+      set('--chip-border', rgbaDe(v.principal, escuro ? 0.45 : 0.4));
+      set('--section-bg', rgbaDe(v.principal, escuro ? 0.16 : 0.08));
+      set('--dropzone-border', escuro ? null : rgbaDe(v.principal, 0.35));
+      set('--heading', escuro ? null : v.titulos);
+      set('--bg', escuro ? null : v.fundo);
+      set('--topbar-bg', escuro ? null : rgbaDe(v.fundo, 0.92));
+      set('--ok', v.positivo);
+      set('--danger', v.negativo);
+      aviso2.hidden = contrasteBranco(v.principal) >= 3;
+      btnSalvar.disabled = JSON.stringify(v) === salvo;
+    };
+    const definir = (chave, cor) => {
+      const s = seletores.find((x) => x.dataset.chave === chave);
+      if (!s || !HEX.test(cor)) return;
+      s.value = cor.toLowerCase();
+      hexDe(chave).value = cor.toUpperCase();
+      hexDe(chave).classList.remove('needs-attention');
+    };
+    seletores.forEach((s) => s.addEventListener('input', () => { hexDe(s.dataset.chave).value = s.value.toUpperCase(); aplicar(); }));
+    formCores.querySelectorAll('[data-hex]').forEach((t) => t.addEventListener('input', () => {
+      let v = t.value.trim();
+      if (v && v[0] !== '#') v = '#' + v;
+      const ok = HEX.test(v);
+      t.classList.toggle('needs-attention', !ok);
+      if (ok) { seletores.find((x) => x.dataset.chave === t.dataset.hex).value = v.toLowerCase(); aplicar(); }
+    }));
+    formCores.querySelectorAll('[data-padrao-de]').forEach((b) => b.addEventListener('click', () => {
+      const s = seletores.find((x) => x.dataset.chave === b.dataset.padraoDe);
+      definir(s.dataset.chave, s.dataset.padrao);
+      aplicar();
+    }));
+    document.getElementById('pers-restaurar').addEventListener('click', () => { seletores.forEach((s) => definir(s.dataset.chave, s.dataset.padrao)); aplicar(); });
+    // Paletas prontas: amostras pintadas por JS (a política de segurança não permite estilo no HTML)
+    document.querySelectorAll('.paleta-cor[data-cor]').forEach((el) => el.style.setProperty('background', el.dataset.cor));
+    document.querySelectorAll('[data-paleta]').forEach((b) => b.addEventListener('click', () => {
+      const p = dadosCores.paletas.find((x) => x.id === b.dataset.paleta);
+      if (!p) return;
+      Object.entries(p.cores).forEach(([k, v]) => definir(k, v));
+      document.querySelectorAll('[data-paleta]').forEach((x) => x.classList.toggle('ativa', x === b));
+      aplicar();
+    }));
+    document.addEventListener('themechange', aplicar);
+    btnSalvar.addEventListener('click', async () => {
+      btnSalvar.disabled = true;
+      btnSalvar.classList.add('is-busy');
+      try {
+        const r = await fetch('/api/preferencias/cores', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'x-csrf-token': prefsV.csrf || '' },
+          body: JSON.stringify({ cores: valores() }),
+        });
+        const res = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(res.error || 'Não foi possível salvar as cores.');
+        // Troca o CSS das cores do usuário pela versão nova (vale em todas as telas)
+        let link = document.getElementById('cores-usuario');
+        if (res.cores) {
+          if (!link) { link = document.createElement('link'); link.rel = 'stylesheet'; link.id = 'cores-usuario'; document.head.append(link); }
+          link.href = `/preferencias/cores.css?v=${res.versao}`;
+        } else if (link) link.remove();
+        salvo = JSON.stringify(valores());
+        aplicar();
+        aviso({ titulo: 'Cores salvas', texto: res.cores ? 'As novas cores já valem em todas as telas, neste e em outros computadores.' : 'As cores voltaram ao padrão CONSAG.' });
+      } catch (e) {
+        aviso({ titulo: 'Não foi possível salvar', texto: e.message });
+        btnSalvar.disabled = false;
+      } finally { btnSalvar.classList.remove('is-busy'); }
+    });
+    window.addEventListener('beforeunload', (e) => { if (JSON.stringify(valores()) !== salvo) { e.preventDefault(); e.returnValue = ''; } });
+    aplicar();
+  }
+
+  /* ---------- Fixar o menu aberto (alfinete) ---------- */
+  const pinBtn = document.getElementById('menu-pin');
+  if (pinBtn) {
+    const html = document.documentElement;
+    const fixo = () => html.getAttribute('data-menu') === 'fixo';
+    const sync = () => {
+      const t = fixo() ? 'Soltar o menu (abrir só ao passar o mouse)' : 'Fixar o menu aberto';
+      pinBtn.setAttribute('aria-pressed', String(fixo()));
+      pinBtn.title = t;
+      pinBtn.setAttribute('aria-label', t);
+    };
+    sync();
+    pinBtn.addEventListener('click', () => {
+      const novo = !fixo();
+      if (novo) html.setAttribute('data-menu', 'fixo'); else html.removeAttribute('data-menu');
+      try { localStorage.setItem('agch-menu-fixo', novo ? '1' : '0'); } catch { /* vale só nesta página */ }
+      sync();
+      if (!novo) pinBtn.blur(); // solta: o menu recolhe ao tirar o mouse
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 320); // gráficos se ajustam à nova largura
+    });
+  }
+
   /* ---------- Avatar do usuário (topo): painel com nome, perfil e Sair ---------- */
   const uMenu = document.getElementById('user-menu');
   const uBtn = document.getElementById('user-btn');
@@ -645,7 +812,10 @@
     // Cores dependentes do tema; os gráficos são redesenhados ao trocar o tema
     const applyChartTheme = () => {
       PALETTE = isDark() ? PALETTE_DARK : PALETTE_LIGHT;
-      NEG = isDark() ? '#FF6B70' : '#D2232A';
+      // Cor principal personalizada (tela Personalizar) entra como a 1ª cor dos gráficos
+      const principal = cssVar('--consag-blue');
+      if (principal) PALETTE = [principal, ...PALETTE.slice(1)];
+      NEG = cssVar('--danger') || (isDark() ? '#FF6B70' : '#D2232A');
       Chart.defaults.color = cssVar('--chart-text') || '#283344';
       Chart.defaults.borderColor = cssVar('--chart-grid') || '#EEF1F6';
       grid = { color: cssVar('--chart-grid') || '#EEF1F6' };
@@ -821,7 +991,7 @@
                 type: 'line', label: 'Lucro líquido', data: data.trend.lucro, order: 1, tension: 0.4,
                 borderColor: PALETTE[1], borderWidth: 2.5, borderDash: [6, 4],
                 pointRadius: 5, pointHoverRadius: 7,
-                pointBackgroundColor: data.trend.lucro.map((v) => (v < 0 ? NEG : '#009360')), pointBorderColor: cssVar('--surface') || '#fff', pointBorderWidth: 2,
+                pointBackgroundColor: data.trend.lucro.map((v) => (v < 0 ? NEG : (cssVar('--ok') || '#009360'))), pointBorderColor: cssVar('--surface') || '#fff', pointBorderWidth: 2,
               },
             ],
           },

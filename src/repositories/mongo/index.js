@@ -104,6 +104,9 @@ module.exports = function createMongoRepositories(uri, dbName) {
       const campo = `prefs.ordem.${chave}`;
       await (await col('users')).updateOne({ id }, ordem ? { $set: { [campo]: ordem } } : { $unset: { [campo]: '' } });
     },
+    async setCores(id, cores) {
+      await (await col('users')).updateOne({ id }, cores ? { $set: { 'prefs.cores': cores } } : { $unset: { 'prefs.cores': '' } });
+    },
     async setBuildVisto(id, build) {
       await (await col('users')).updateOne({ id }, { $set: { buildVisto: build } });
     },

@@ -59,6 +59,16 @@ module.exports = function createJsonRepositories(dataDir) {
         if (u) { u.lastLoginAt = new Date().toISOString(); await writeJson(usersFile, all); }
       });
     },
+    async setCores(id, cores) {
+      return withLock(async () => {
+        const all = await users.list();
+        const u = all.find((x) => x.id === id);
+        if (!u) return;
+        u.prefs ||= {};
+        if (cores) u.prefs.cores = cores; else delete u.prefs.cores;
+        await writeJson(usersFile, all);
+      });
+    },
     async setOrdem(id, chave, ordem) {
       return withLock(async () => {
         const all = await users.list();

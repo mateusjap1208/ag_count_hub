@@ -6,6 +6,76 @@
  */
 module.exports = [
   {
+    build: 70,
+    data: "2026-11-15",
+    titulo: "Personalize as cores",
+    itens: [
+      "Nova tela Personalizar (no menu, em Sistema, e no menu do avatar): escolha a cor principal, os títulos, o fundo e as cores de valores positivos e negativos.",
+      "Há paletas prontas para começar, prévia ao vivo e aviso quando a cor principal deixa o texto dos botões difícil de ler.",
+      "As cores ficam salvas no seu usuário e valem em qualquer computador."
+    ]
+  },
+  {
+    build: 69,
+    data: "2026-11-15",
+    titulo: "Logo AG redesenhada",
+    itens: [
+      "A logo AG do login e do ícone da aba foi redesenhada em vetor, mais fiel ao original."
+    ]
+  },
+  {
+    build: 68,
+    data: "2026-11-15",
+    titulo: "Logo AG azul no login",
+    itens: [
+      "Na tela de login, a logo AG aparece só com as letras, em azul, sem o quadrado.",
+      "O vídeo de fundo se esconde quando é pausado, sem mostrar os controles do YouTube."
+    ]
+  },
+  {
+    build: 67,
+    data: "2026-11-15",
+    titulo: "Fixar o menu",
+    itens: [
+      "No topo do menu, o alfinete fixa o menu aberto: ele para de abrir e fechar com o mouse e o conteúdo se ajusta ao lado. Clique de novo para soltar. A escolha fica salva neste navegador."
+    ]
+  },
+  {
+    build: 66,
+    data: "2026-11-15",
+    titulo: "Painel Contábil",
+    itens: [
+      "O subtítulo do sistema passou de Dashboard Contábil para Painel Contábil."
+    ]
+  },
+  {
+    build: 65,
+    data: "2026-11-15",
+    titulo: "Login errado mais claro",
+    itens: [
+      "Quando o e-mail ou a senha estão errados, o botão Entrar fica vermelho e balança como quem diz \"não\". Ele volta ao normal assim que você digita de novo."
+    ]
+  },
+  {
+    build: 64,
+    data: "2026-11-15",
+    titulo: "Logo AG em vetor",
+    itens: [
+      "A tela de login e o ícone da aba usam a logo AG desenhada em vetor, nítida em qualquer tamanho."
+    ]
+  },
+  {
+    build: 63,
+    data: "2026-11-15",
+    titulo: "Login sem erro 403 e botões com indicador",
+    itens: [
+      "Corrigido: ao entrar com a página de login aberta há muito tempo (ou restaurada pelo navegador), o sistema mostrava a tela de erro 403. Agora o login aparece de novo, com o e-mail preenchido.",
+      "Os botões de envio mostram um indicador circular enquanto processam.",
+      "Tela de login: vídeo sem botão de play e sem legenda, e o nome ContHub.",
+      "Novo ícone da aba do navegador com a logo AG."
+    ]
+  },
+  {
     build: 62,
     data: "2026-11-15",
     titulo: "Parâmetro Empresas",
