@@ -8,10 +8,10 @@
   <section class="login-panel">
     <div class="login-card">
       <div class="login-intro">
-        <div class="login-logo"><svg class="logo-ag-img" viewBox="34 56 442 316" role="img" aria-label="AG"><defs><mask id="ag-mascara" maskUnits="userSpaceOnUse" x="0" y="0" width="510" height="510"><path fill="#fff" fill-rule="evenodd" d="M40 360 L150 62 L215 62 L299 290 L134 290 L108 360 Z M154 235 L211 235 L182.6 158 Z"/><g fill="#000"><ellipse cx="350" cy="215" rx="62" ry="94"/></g><g fill="#fff"><path d="M442.4 118.6 A118 150 0 1 0 462.9 266.3 L408.3 247.1 A62 94 0 1 1 397.5 154.6 Z"/><rect x="340" y="185" width="126" height="60"/><rect x="408" y="185" width="54" height="82"/></g></mask></defs><rect x="0" y="0" width="510" height="510" fill="currentColor" mask="url(#ag-mascara)"/></svg><span class="logo-hub">ContHub</span></div>
+        <div class="login-logo"><svg class="logo-ag-img" viewBox="34 56 472 316" role="img" aria-label="AG"><defs><mask id="ag-mascara" maskUnits="userSpaceOnUse" x="0" y="0" width="510" height="510"><path fill="#fff" fill-rule="evenodd" d="M40 360 L150 62 L215 62 L299 290 L134 290 L108 360 Z M154 235 L211 235 L182.6 158 Z"/><g fill="#000"><ellipse cx="360" cy="215" rx="82" ry="94"/></g><g fill="#fff"><path d="M467.2 118.6 A140 150 0 1 0 491.6 266.3 L437.1 247.1 A82 94 0 1 1 422.8 154.6 Z"/><rect x="360" y="185" width="136" height="60"/><rect x="436" y="185" width="55" height="82"/></g></mask></defs><rect x="0" y="0" width="510" height="510" fill="currentColor" mask="url(#ag-mascara)"/></svg><span class="logo-hub">ContHub</span></div>
         <h1>Os números do grupo, <em>em um só lugar.</em></h1>
       </div>
-      <% if (error) { %><div class="alert alert-err"><%= error %></div><% } %>
+      <% if (error && !locals.loginErrado) { %><div class="alert alert-err"><%= error %></div><% } %>
       <form method="post" action="/login" id="login-form" aria-label="Entrar no sistema">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="field">
@@ -22,7 +22,8 @@
           <label for="password">Senha</label>
           <input class="input" type="password" id="password" name="password" autocomplete="current-password" required>
         </div>
-        <button class="btn btn-primary<%= locals.loginErrado ? ' btn-nao' : '' %>" type="submit" id="login-btn">Entrar</button>
+        <button class="btn btn-primary<%= locals.loginErrado ? ' btn-nao' : '' %>" type="submit" id="login-btn"><%= locals.loginErrado ? error : 'Entrar' %></button>
+        <% if (locals.loginErrado) { %><span class="sr-only" role="alert"><%= error %></span><% } %>
       </form>
       <nav class="social" aria-label="Redes sociais">
         <% redesSociais.forEach(r => { %>

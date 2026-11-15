@@ -6,6 +6,22 @@
  */
 module.exports = [
   {
+    build: 73,
+    data: "2026-11-15",
+    titulo: "Logo AG mais redonda",
+    itens: [
+      "O G da logo AG ficou mais redondo (login, ícone da aba e logo do menu)."
+    ]
+  },
+  {
+    build: 72,
+    data: "2026-11-15",
+    titulo: "Login errado no próprio botão",
+    itens: [
+      "Com e-mail ou senha errados, a mensagem aparece no próprio botão vermelho, sem o aviso em cima. Ao digitar de novo, o botão volta para Entrar."
+    ]
+  },
+  {
     build: 71,
     data: "2026-11-15",
     titulo: "Logo Andrade Gutierrez",
