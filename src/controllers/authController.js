@@ -1,6 +1,7 @@
 const User = require('../models/User');
 
 exports.showLogin = (req, res) => {
+  res.set('Cache-Control', 'no-store'); // nunca reaproveitar a página com um token antigo
   res.render('auth/login', { error: null, email: '' });
 };
 

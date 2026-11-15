@@ -2957,3 +2957,17 @@ a.pend-chip:hover { border-color: #F5A400; }
 .sidebar .nav-sep { border: 0; height: 1px; background: var(--sb-line); margin: 10px 8px 0; flex-shrink: 0; }
 .sidebar .nav-sep + .nav-label { padding-top: 10px; }
 @media (min-width: 961px) { .sidebar .nav-sep { margin: 10px 6px 0; } }
+
+/* Indicador circular no botão de envio enquanto processa */
+.is-busy { pointer-events: none; }
+.is-busy::after {
+  content: ''; display: inline-block; width: 14px; height: 14px; margin-left: 8px; vertical-align: -2px; flex-shrink: 0;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: girar .7s linear infinite;
+}
+button.is-busy:disabled { opacity: .85; cursor: progress; }
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .is-busy::after { animation-duration: 1.6s; } }
+
+/* Vídeo do login: invisível até tocar (sem botão de play, sem título do YouTube) */
+.login-video iframe { opacity: 0; transition: opacity .8s ease; transform: translate(-50%, -50%) scale(1.25); }
+.login-video iframe.tocando { opacity: 1; }

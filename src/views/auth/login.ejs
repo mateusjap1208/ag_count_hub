@@ -2,14 +2,13 @@
 <div class="login">
   <section class="login-hero">
     <div class="login-video" aria-hidden="true">
-      <iframe src="<%= videoLogin %>" title="Vídeo institucional" tabindex="-1" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" loading="eager"></iframe>
+      <iframe id="login-video" src="<%= videoLogin %>" title="Vídeo institucional" tabindex="-1" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" loading="eager"></iframe>
     </div>
-    <div class="foot">Dashboard Contábil · CONSAG Engenharia</div>
   </section>
   <section class="login-panel">
     <div class="login-card">
       <div class="login-intro">
-        <div class="login-logo"><span class="logo-ag">AG</span><span class="logo-hub">cont Hub</span></div>
+        <div class="login-logo"><span class="logo-ag">AG</span><span class="logo-hub">ContHub</span></div>
         <h1>Os números do grupo, <em>em um só lugar.</em></h1>
       </div>
       <% if (error) { %><div class="alert alert-err"><%= error %></div><% } %>

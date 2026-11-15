@@ -283,6 +283,43 @@
 
   $$('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => { mostrarCarregando(); el.form.submit(); }));
 
+  /* ---------- Botão de envio mostra um indicador circular enquanto processa ---------- */
+  document.addEventListener('submit', (e) => {
+    if (e.defaultPrevented) return;
+    const f = e.target;
+    const btn = e.submitter || f.querySelector('button[type="submit"], button:not([type]), input[type="submit"]');
+    if (!btn || btn.classList.contains('is-busy')) return;
+    btn.classList.add('is-busy');
+    btn.setAttribute('aria-busy', 'true');
+    setTimeout(() => { btn.disabled = true; }); // depois do envio, para o valor do botão ir junto
+  });
+  // Voltar pelo histórico (página restaurada do cache): botões liberados de novo
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    // A tela de login restaurada traz um token antigo: recarrega para pegar um novo
+    if (document.getElementById('login-form')) { window.location.reload(); return; }
+    $$('.is-busy').forEach((b) => { b.classList.remove('is-busy'); b.removeAttribute('aria-busy'); b.disabled = false; });
+  });
+
+  /* ---------- Vídeo do login: só aparece quando está tocando (nunca mostra o botão de play) ---------- */
+  const video = document.getElementById('login-video');
+  if (video) {
+    const ouvir = () => { try { video.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'login', channel: 'widget' }), '*'); } catch { /* ignore */ } };
+    video.addEventListener('load', ouvir);
+    const t = setInterval(ouvir, 1000);
+    setTimeout(() => clearInterval(t), 15000);
+    window.addEventListener('message', (e) => {
+      if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin)) return;
+      let d;
+      try { d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch { return; }
+      const estado = d?.info?.playerState;
+      if (estado === 1 && !video.classList.contains('tocando')) {
+        clearInterval(t);
+        setTimeout(() => video.classList.add('tocando'), 1200); // pula a faixa de título do início
+      }
+    });
+  }
+
   /* ---------- Faixa de avisos do rodapé: velocidade constante, qualquer que seja o tamanho do texto ---------- */
   const ticker = $('[data-ticker]');
   if (ticker) {

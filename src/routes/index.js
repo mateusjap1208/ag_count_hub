@@ -54,8 +54,20 @@ const paramUploader = multer({
 
 // Autenticação
 router.get('/login', csrfToken, redirectIfAuthenticated, auth.showLogin);
-router.post('/login', csrfToken, loginLimiter, verifyCsrf, auth.login);
-router.post('/logout', csrfToken, verifyCsrf, auth.logout);
+// Página de login aberta há muito tempo (ou restaurada pelo navegador) traz um token vencido:
+// em vez da tela 403, mostra o login de novo com um token novo e o e-mail já preenchido.
+const csrfLogin = (req, res, next) => verifyCsrf(req, res, (err) => {
+  if (!err) return next();
+  res.set('Cache-Control', 'no-store');
+  return res.status(403).render('auth/login', {
+    error: 'A página de login ficou aberta por muito tempo. Digite a senha e entre novamente.',
+    email: String(req.body?.email || '').slice(0, 200),
+  });
+});
+// Sair com token vencido: encerra a sessão do mesmo jeito (sair não traz risco)
+const csrfLogout = (req, res, next) => verifyCsrf(req, res, (err) => (err ? auth.logout(req, res) : next()));
+router.post('/login', csrfToken, loginLimiter, csrfLogin, auth.login);
+router.post('/logout', csrfToken, csrfLogout, auth.logout);
 
 // Área autenticada
 router.use(requireAuth, csrfToken);

@@ -6,6 +6,17 @@
  */
 module.exports = [
   {
+    build: 63,
+    data: "2026-11-15",
+    titulo: "Login sem erro 403 e botões com indicador",
+    itens: [
+      "Corrigido: ao entrar com a página de login aberta há muito tempo (ou restaurada pelo navegador), o sistema mostrava a tela de erro 403. Agora o login aparece de novo, com o e-mail preenchido.",
+      "Os botões de envio mostram um indicador circular enquanto processam.",
+      "Tela de login: vídeo sem botão de play e sem legenda, e o nome ContHub.",
+      "Novo ícone da aba do navegador com a logo AG."
+    ]
+  },
+  {
     build: 62,
     data: "2026-11-15",
     titulo: "Parâmetro Empresas",
