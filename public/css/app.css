@@ -2971,3 +2971,8 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 /* Vídeo do login: invisível até tocar (sem botão de play, sem título do YouTube) */
 .login-video iframe { opacity: 0; transition: opacity .8s ease; transform: translate(-50%, -50%) scale(1.25); }
 .login-video iframe.tocando { opacity: 1; }
+
+/* Login: logo AG desenhada em vetor (SVG) no lugar do texto "AG" */
+.login-logo { align-items: center; gap: 12px; }
+.login-logo .logo-ag-img { width: 60px; height: 60px; display: block; border-radius: 12px; flex-shrink: 0; }
+.login-logo .logo-hub { font-size: 20px; font-weight: 600; }

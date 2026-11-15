@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 64,
+    data: "2026-11-15",
+    titulo: "Logo AG em vetor",
+    itens: [
+      "A tela de login e o ícone da aba usam a logo AG desenhada em vetor, nítida em qualquer tamanho."
+    ]
+  },
+  {
     build: 63,
     data: "2026-11-15",
     titulo: "Login sem erro 403 e botões com indicador",

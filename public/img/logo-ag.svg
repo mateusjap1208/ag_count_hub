@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250" role="img" aria-label="AG">
+  <rect width="250" height="250" rx="28" fill="#071833"/>
+  <g fill="#FFFFFF">
+    <!-- A (a perna direita fica por trás do G) -->
+    <path fill-rule="evenodd" d="M50 186 L94 66 L127 66 L170 186 L139 186 L130 162 L89 162 L80 186 Z M97 140 L122 140 L109.5 103 Z"/>
+    <!-- G: o miolo na cor do fundo fica por cima do A -->
+    <ellipse cx="165" cy="126" rx="20.5" ry="35.5" fill="#071833"/>
+    <path d="M196.1 83.6 A44 60 0 1 0 208.6 134.4 L184.8 130.9 A20 35 0 1 1 179.1 101.3 Z"/>
+    <rect x="167" y="118" width="42" height="22"/>
+  </g>
+</svg>
