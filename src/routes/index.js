@@ -66,6 +66,17 @@ router.get('/modulos/:slug/exportar.csv', modules.exportCsv);
 router.get('/modulos/:slug/exportar.xlsx', modules.exportXlsx);
 router.get('/api/parametros/conta/:conta', parameters.classify);
 router.get('/api/parametros/:id/linhas', requireAdmin, parameters.rows);
+// Vincular conta "a classificar" a partir da tela (popup no olho das contas)
+router.post('/api/vincular-conta', requireAdmin, express.json({ limit: '5kb' }), verifyCsrf, async (req, res, next) => {
+  try {
+    const r = await require('../models/Parameter').vincularConta(req.body || {}, req.user);
+    pendencias.limpar();
+    res.json({ ok: true, ...r });
+  } catch (e) {
+    if (e instanceof require('../models/Parameter').ParamError) return res.status(400).json({ error: e.message });
+    next(e);
+  }
+});
 router.post('/api/parametros/:id/linhas', requireAdmin, express.json({ limit: '20kb' }), verifyCsrf, parameters.addRow);
 router.put('/api/parametros/:id/linhas/:i', requireAdmin, express.json({ limit: '20kb' }), verifyCsrf, parameters.updateRow);
 router.delete('/api/parametros/:id/linhas/:i', requireAdmin, express.json({ limit: '20kb' }), verifyCsrf, parameters.deleteRow);

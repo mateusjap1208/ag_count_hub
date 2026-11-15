@@ -852,6 +852,92 @@
   /* ---------- Indicadores: ponteiro do velocímetro gira até o valor ---------- */
   document.querySelectorAll('.g-ponteiro[data-ang]').forEach((p) => p.style.setProperty('--ang', `${p.dataset.ang}deg`));
 
+  /* ---------- Vincular conta "a classificar" (administradores): popup com conta de referência ----------
+     Clique numa conta pendente (lista do olho ou linha "a classificar" do BP) → escolha uma conta parecida
+     já classificada; o sistema copia a classificação dela (Plano de Contas e Mapeamento) para a conta nova. */
+  const prefsV = (() => { try { return JSON.parse(document.getElementById('user-prefs')?.textContent || '{}'); } catch { return {}; } })();
+  async function vincularConta(conta) {
+    if (!prefsV.admin) { aviso({ titulo: 'Somente administradores', texto: 'Peça a um administrador para vincular esta conta no Plano de Contas.' }); return; }
+    const d = document.createElement('dialog');
+    d.className = 'modal popup vinc-dialog';
+    d.innerHTML = `<h2>Vincular conta <span class="vinc-conta"></span></h2>
+      <p>Escolha uma conta parecida já classificada. A conta nova recebe a mesma classificação (conta do grupo, N1 a N4, classe BP/DRE e linha do Capital Empregado).</p>
+      <div class="field"><label for="vinc-desc">Descrição da conta (opcional)</label><input class="input" id="vinc-desc" maxlength="120" autocomplete="off"></div>
+      <div class="field"><label for="vinc-busca">Conta de referência</label><input class="input" id="vinc-busca" type="search" placeholder="Buscar por código ou descrição…" autocomplete="off"></div>
+      <ul class="vinc-lista" role="listbox" aria-label="Contas de referência"></ul>
+      <div class="vinc-escolha" hidden></div>
+      <p class="field-error" data-erro hidden></p>
+      <div class="modal-actions popup-acoes"><button type="button" class="btn btn-ghost" data-cancelar>Cancelar</button><button type="button" class="btn btn-primary" data-vincular disabled>Vincular</button></div>`;
+    d.querySelector('.vinc-conta').textContent = conta;
+    document.body.append(d);
+    const busca = d.querySelector('#vinc-busca');
+    const lista = d.querySelector('.vinc-lista');
+    const escolha = d.querySelector('.vinc-escolha');
+    const erro = d.querySelector('[data-erro]');
+    const btn = d.querySelector('[data-vincular]');
+    let ref = null;
+    let t;
+    const fechar = () => { d.close(); d.remove(); };
+    const procurar = async () => {
+      const q = busca.value.trim();
+      lista.innerHTML = '<li class="vinc-vazio">Buscando…</li>';
+      try {
+        const r = await fetch(`/api/parametros/plano-contas/linhas?size=8&q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' } });
+        const dados = await r.json();
+        lista.innerHTML = '';
+        if (!dados.rows?.length) { lista.innerHTML = '<li class="vinc-vazio">Nenhuma conta encontrada.</li>'; return; }
+        dados.rows.forEach((row) => {
+          const li = document.createElement('li');
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'vinc-op';
+          const t1 = document.createElement('strong'); t1.textContent = `${row.conta} · ${row.descricao || ''}`;
+          const t2 = document.createElement('span'); t2.textContent = [row.n4, row.classe].filter(Boolean).join(' · ');
+          b.append(t1, t2);
+          b.addEventListener('click', () => {
+            ref = row;
+            lista.querySelectorAll('.vinc-op').forEach((x) => x.classList.toggle('ativo', x === b));
+            escolha.hidden = false;
+            escolha.textContent = `Vai receber: conta do grupo ${row.contaGrupo} · ${row.n3 || ''} › ${row.n4 || ''} · classe ${row.classe || '—'}`;
+            btn.disabled = false;
+          });
+          li.append(b);
+          lista.append(li);
+        });
+      } catch { lista.innerHTML = '<li class="vinc-vazio">Não foi possível buscar agora.</li>'; }
+    };
+    busca.addEventListener('input', () => { clearTimeout(t); t = setTimeout(procurar, 250); });
+    d.querySelector('[data-cancelar]').addEventListener('click', fechar);
+    d.addEventListener('cancel', (e) => { e.preventDefault(); fechar(); });
+    btn.addEventListener('click', async () => {
+      if (!ref) return;
+      btn.disabled = true; erro.hidden = true;
+      try {
+        const r = await fetch('/api/vincular-conta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'x-csrf-token': prefsV.csrf || '' },
+          body: JSON.stringify({ conta, referencia: ref.conta, descricao: d.querySelector('#vinc-desc').value }),
+        });
+        const res = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(res.error || 'Não foi possível vincular.');
+        fechar();
+        aviso({ titulo: 'Conta vinculada', texto: `A conta ${conta} foi incluída no Plano de Contas${res.mapeamento ? ' e no Mapeamento de Contas' : ''}. Para aparecer classificada nos relatórios, reimporte o FGI0 da competência.` });
+      } catch (e2) { erro.textContent = e2.message; erro.hidden = false; btn.disabled = false; }
+    });
+    d.showModal();
+    // começa sugerindo contas com o mesmo início do código
+    busca.value = conta.replace(/[^0-9]/g, '').slice(0, 5);
+    procurar();
+    busca.focus();
+  }
+  document.addEventListener('click', (e) => {
+    const alvo = e.target.closest && e.target.closest('[data-classificar]');
+    if (!alvo) return;
+    e.preventDefault();
+    e.stopPropagation();
+    vincularConta(alvo.dataset.classificar);
+  });
+
   /* ---------- Busca simples em tabelas da página (ex.: pedidos da conta 2115100000) ---------- */
   $$('[data-filtro-tabela]').forEach((inp) => {
     const tabela = document.querySelector(inp.dataset.filtroTabela);
