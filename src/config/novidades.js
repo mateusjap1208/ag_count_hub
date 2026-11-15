@@ -6,6 +6,12 @@
  */
 module.exports = [
   {
+    build: 50,
+    data: '2026-11-15',
+    titulo: 'Menu',
+    itens: ['No menu, a DRE aparece como Demo do Resultado.'],
+  },
+  {
     build: 49,
     data: '2026-11-15',
     titulo: 'Edição dos parâmetros',
