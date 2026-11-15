@@ -10,6 +10,9 @@
 
   apply(saved() || system());
 
+  // Menu fixado aberto (preferência deste navegador)
+  try { if (localStorage.getItem('agch-menu-fixo') === '1') root.setAttribute('data-menu', 'fixo'); } catch (e) { /* sem armazenamento: menu normal */ }
+
   // Acompanha a troca de tema do sistema enquanto o usuário não escolher manualmente
   if (window.matchMedia) {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');

@@ -2989,3 +2989,29 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
   90% { transform: translateX(1px); }
 }
 @media (prefers-reduced-motion: reduce) { .btn.btn-nao { animation: none; } }
+
+/* =========================================================================
+   Alfinete: fixa o menu aberto (sem abrir/fechar com o mouse) — só no computador
+   ========================================================================= */
+.menu-pin { display: none; }
+@media (min-width: 961px) {
+  .menu-pin {
+    position: absolute; top: 18px; right: 14px; z-index: 2; width: 32px; height: 32px; display: grid; place-items: center;
+    padding: 0; border: 0; border-radius: 8px; background: none; color: var(--sb-muted); cursor: pointer;
+    opacity: 0; transition: opacity .12s ease, background-color .2s ease, color .2s ease;
+  }
+  .menu-pin .icon { width: 17px; height: 17px; transform: rotate(45deg); transition: transform .25s ease; }
+  .sidebar:hover .menu-pin, .sidebar:has(:focus-visible) .menu-pin { opacity: 1; transition: opacity .2s ease .16s, background-color .2s ease, color .2s ease; }
+  .menu-pin:hover, .menu-pin:focus-visible { background: var(--sb-hover); color: var(--sb-strong); outline: none; }
+
+  :root[data-menu="fixo"] { --sidebar-w: calc(var(--sb-open) + 24px); }
+  .main { transition: margin-left .28s cubic-bezier(.4, 0, .2, 1); }
+  :root[data-menu="fixo"] .sidebar { width: var(--sb-open); box-shadow: 0 0 0 1px var(--sb-line), 0 10px 30px rgba(6, 23, 43, .08); }
+  :root[data-theme="dark"][data-menu="fixo"] .sidebar { box-shadow: 0 0 0 1px #1B2E4A, 0 10px 30px rgba(0, 0, 0, .4); }
+  :root[data-menu="fixo"] .sidebar :is(.nav-text, .nav-label, .brand-text, .user-info, .sidebar-tagline, .brand-logo) { opacity: 1; transition: none; }
+  :root[data-menu="fixo"] .sidebar .brand-mini { opacity: 0; }
+  :root[data-menu="fixo"] .sidebar .nav { scrollbar-width: thin; }
+  :root[data-menu="fixo"] .menu-pin { opacity: 1; color: var(--consag-blue); }
+  :root[data-menu="fixo"] .menu-pin .icon { transform: none; }
+}
+@media (min-width: 961px) and (prefers-reduced-motion: reduce) { .main, .menu-pin, .menu-pin .icon { transition: none !important; } }

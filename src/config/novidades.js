@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 67,
+    data: "2026-11-15",
+    titulo: "Fixar o menu",
+    itens: [
+      "No topo do menu, o alfinete fixa o menu aberto: ele para de abrir e fechar com o mouse e o conteúdo se ajusta ao lado. Clique de novo para soltar. A escolha fica salva neste navegador."
+    ]
+  },
+  {
     build: 66,
     data: "2026-11-15",
     titulo: "Painel Contábil",

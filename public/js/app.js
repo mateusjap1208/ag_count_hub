@@ -404,6 +404,28 @@
   }
 
   /* ---------- Painel de filtros: abre ao passar o mouse (CSS); o clique fixa/solta, Esc e clique fora fecham ---------- */
+  /* ---------- Fixar o menu aberto (alfinete) ---------- */
+  const pinBtn = document.getElementById('menu-pin');
+  if (pinBtn) {
+    const html = document.documentElement;
+    const fixo = () => html.getAttribute('data-menu') === 'fixo';
+    const sync = () => {
+      const t = fixo() ? 'Soltar o menu (abrir só ao passar o mouse)' : 'Fixar o menu aberto';
+      pinBtn.setAttribute('aria-pressed', String(fixo()));
+      pinBtn.title = t;
+      pinBtn.setAttribute('aria-label', t);
+    };
+    sync();
+    pinBtn.addEventListener('click', () => {
+      const novo = !fixo();
+      if (novo) html.setAttribute('data-menu', 'fixo'); else html.removeAttribute('data-menu');
+      try { localStorage.setItem('agch-menu-fixo', novo ? '1' : '0'); } catch { /* vale só nesta página */ }
+      sync();
+      if (!novo) pinBtn.blur(); // solta: o menu recolhe ao tirar o mouse
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 320); // gráficos se ajustam à nova largura
+    });
+  }
+
   /* ---------- Avatar do usuário (topo): painel com nome, perfil e Sair ---------- */
   const uMenu = document.getElementById('user-menu');
   const uBtn = document.getElementById('user-btn');
