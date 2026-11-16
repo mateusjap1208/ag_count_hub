@@ -2,6 +2,7 @@ const Report = require('../models/Report');
 const segurosTimeline = require('../services/segurosTimeline');
 const pedidosRecepcao = require('../services/pedidosRecepcao');
 const imobilizadoMapeamento = require('../services/imobilizadoMapeamento');
+const maioresFornecedores = require('../services/maioresFornecedores');
 const { sessionScope } = require('../middlewares/locals');
 
 /**
@@ -65,7 +66,19 @@ exports.show = async (req, res, next) => {
     const comparar = (req.session.comparar[def.slug] || []).filter((p) => p !== scope.period);
     const view = await Report.getModuleView(req.params.slug, scope, { comparar });
     if (def.slug === 'arrendamento' && !view.empty) view.contaArrendamento = await detalheContaArrendamento(scope).catch(() => null);
-    if (def.slug === 'fornecedores' && !view.empty) view.pedidosRecepcao = await pedidosRecepcao.porPedido(await Report.getAllRows(def.slug, scope)).catch(() => null);
+    if (def.slug === 'fornecedores' && !view.empty) {
+      const linhas = await Report.getAllRows(def.slug, scope);
+      view.pedidosRecepcao = await pedidosRecepcao.porPedido(linhas).catch(() => null);
+      view.maioresFornecedores = await maioresFornecedores.ranking(linhas, { tipo: 'fornecedor' }).then((r) => ({ ...r, moeda: scope.moedaContrato || 'BRL' })).catch(() => null);
+    }
+    // Adiantamentos (FGI0, por conta): ranking por fornecedor vem do FAGLL03 de fornecedores
+    if (def.slug === 'adiantamentos' && !view.empty) {
+      view.maioresFornecedores = await (async () => {
+        const { scope: s } = await withModuleCurrency('fornecedores', scope);
+        const r = await maioresFornecedores.ranking(await Report.getAllRows('fornecedores', s), { tipo: 'adiantamento' });
+        return { ...r, moeda: s.moedaContrato || 'BRL' };
+      })().catch(() => null);
+    }
     if (def.slug === 'imobilizado' && !view.empty) view.imobMapeamento = await imobilizadoMapeamento.classificar(await Report.getAllRows(def.slug, scope)).catch(() => null);
     if (def.slug === 'seguros-garantias' && !view.empty) view.contratosSeguro = segurosTimeline.contratos(await Report.getAllRows(def.slug, scope));
     const columns = [

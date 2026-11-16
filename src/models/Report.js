@@ -74,7 +74,7 @@ const scopeKey = (slug, s) => {
   if (def?.source === 'fgi0') return `${slug}|${s.period}|${emp}|${s.moeda}|${juntar(s.estrutura)}|${juntar(s.sigla)}|${juntar(s.centro)}${a}`;
   if (def && rowCurrency(def)) return `${slug}|${s.period}|${emp}|${s.moedaContrato || 'BRL'}|${juntar(s.estrutura)}|${juntar(s.sigla)}|${juntar(s.centro)}${a}`;
   if (def && usesGroupCurrency(def)) return `${slug}|${s.period}|${emp}|${s.moeda}|${rowFilterKey(def, s)}${a}`;
-  return `${slug}|${s.period}|${emp}|-${a}`;
+  return `${slug}|${s.period}|${emp}|-|${rowFilterKey(def, s)}${a}`; // inclui Propriedade/Status Giro (Estoque)
 };
 /** Escopo base (sem filtros de obra). Mantém a permissão e as empresas escolhidas. */
 const baseScope = (s) => ({ period: s.period, company: s.company, empresas: lista(s.empresas), moeda: s.moeda, moedaContrato: s.moedaContrato, allowed: s.allowed, allowedKey: s.allowedKey });

@@ -6,6 +6,17 @@
  */
 module.exports = [
   {
+    build: 78,
+    data: "2026-11-16",
+    titulo: "Maiores fornecedores e tela inteira",
+    itens: [
+      "Adiantamentos: novo card com os maiores adiantamentos por fornecedor (código, nome, valor e % do total).",
+      "Fornecedores: novo card com os maiores fornecedores a pagar (código, nome, valor e % do total).",
+      "As telas passam a usar a largura toda do monitor; em telas grandes, os gráficos ficam em 3 colunas.",
+      "Estoque: corrigido o cache dos filtros Propriedade e Status Giro, que podiam mostrar o resultado de outro filtro."
+    ]
+  },
+  {
     build: 77,
     data: "2026-11-15",
     titulo: "Login no azul da logo",

@@ -1,0 +1,37 @@
+<%# Card "Maiores adiantamentos" / "Maiores fornecedores" (ranking por fornecedor, FAGLL03). Recebe: mf (ranking), fmt %>
+<% const adiant = mf.tipo === 'adiantamento';
+   const moeda = mf.moeda || 'BRL';
+   const idTab = adiant ? 'tab-maiores-adiant' : 'tab-maiores-forn'; %>
+<div class="card maiores-forn bloco-largo" data-ordem-chave="<%= adiant ? 'maiores-adiantamentos' : 'maiores-fornecedores' %>">
+  <div class="card-head">
+    <h2><%= adiant ? 'Maiores adiantamentos a fornecedores' : 'Maiores fornecedores (valor a pagar)' %></h2>
+    <span class="hint">FAGLL03 de fornecedores · valores em <%= moeda %></span>
+  </div>
+  <% if (mf.vazio) { %>
+    <p class="hint"><%= adiant ? 'Sem adiantamentos a fornecedores' : 'Sem valores a pagar a fornecedores' %> nesta seleção.</p>
+  <% } else { %>
+    <p class="conta-arr-resumo">Total: <strong><%= fmt.currency(mf.total, moeda) %></strong> · <%= fmt.number(mf.fornecedores) %> fornecedores · <%= fmt.number(mf.lancamentos) %> lançamentos</p>
+    <div class="tl-picker"><input class="input" type="search" placeholder="Buscar código ou fornecedor" data-filtro-tabela="#<%= idTab %>" aria-label="Buscar código ou fornecedor"></div>
+    <div class="table-wrap conta-arr-wrap">
+      <table id="<%= idTab %>">
+        <thead><tr><th class="num">#</th><th>Código</th><th>Fornecedor</th><th class="num">Lançamentos</th><th class="num">Valor</th><th class="mf-pct-col">% do total</th></tr></thead>
+        <tbody>
+          <% mf.itens.forEach((f, i) => { %>
+            <tr>
+              <td class="num"><%= i + 1 %></td>
+              <td class="mf-cod"><%= f.codigo || '—' %></td>
+              <td><%= f.nome || '(sem nome no cadastro)' %><% if (f.empresas.length) { %><span class="mf-emp" title="Empresas"><%= f.empresas.length > 3 ? f.empresas.length + ' empresas' : f.empresas.join(', ') %></span><% } %></td>
+              <td class="num"><%= fmt.number(f.lancamentos) %></td>
+              <td class="num"><%= fmt.currency(f.valor, moeda) %></td>
+              <td class="mf-pct-col"><div class="mf-pct-wrap"><span class="mf-barra" aria-hidden="true"><span class="mf-barra-cheia" data-pct="<%= (f.pct * 100).toFixed(1) %>"></span></span><span class="mf-pct"><%= (f.pct * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) %>%</span></div></td>
+            </tr>
+          <% }) %>
+        </tbody>
+        <tfoot>
+          <% if (mf.demais.quantidade) { %><tr class="mf-demais"><td></td><td colspan="2">Demais <%= fmt.number(mf.demais.quantidade) %> fornecedores</td><td></td><td class="num"><%= fmt.currency(mf.demais.valor, moeda) %></td><td></td></tr><% } %>
+          <tr><td></td><td colspan="3">Total</td><td class="num"><%= fmt.currency(mf.total, moeda) %></td><td></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  <% } %>
+</div>

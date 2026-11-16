@@ -504,6 +504,9 @@
     aplicar();
   }
 
+  /* ---------- Barras de % dos rankings (largura definida por JS: CSP sem estilo inline) ---------- */
+  $$('.mf-barra-cheia[data-pct]').forEach((el) => el.style.setProperty('width', `${Math.min(100, parseFloat(el.dataset.pct) || 0)}%`));
+
   /* ---------- Fixar o menu aberto (alfinete) ---------- */
   const pinBtn = document.getElementById('menu-pin');
   if (pinBtn) {
