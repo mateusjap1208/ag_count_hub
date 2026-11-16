@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 84,
+    data: "2026-11-16",
+    titulo: "Aviso de pendências animado",
+    itens: [
+      "O ícone de pendências alterna entre preenchido e vazado para chamar a atenção."
+    ]
+  },
+  {
     build: 83,
     data: "2026-11-16",
     titulo: "Notificações no menu do avatar",
