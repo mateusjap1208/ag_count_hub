@@ -6,12 +6,20 @@
  */
 module.exports = [
   {
+    build: 87,
+    data: "2026-11-16",
+    titulo: "Seção Administração",
+    itens: [
+      "Administração virou uma seção do menu, igual a Relatórios e Dados, com Usuários e Mensagens."
+    ]
+  },
+  {
     build: 86,
     data: "2026-11-16",
     titulo: "Upload no topo e menu de Administração",
     itens: [
       "Novo botão Upload ao lado de Filtros, que abre a tela de upload de relatórios.",
-      "Usuários e Mensagens ficam agrupados no submenu Administração."
+      "Usuários e Mensagens ficam na seção Administração do menu."
     ]
   },
   {
