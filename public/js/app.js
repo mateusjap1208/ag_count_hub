@@ -569,6 +569,22 @@
     });
   }
 
+  /* ---------- Submenus do menu lateral (ex.: Administração): abre/fecha e lembra a escolha ---------- */
+  $$('[data-nav-grupo]').forEach((grupo) => {
+    const btn = grupo.querySelector('.nav-grupo-btn');
+    const chave = `agch-nav-${grupo.dataset.navGrupo}`;
+    const aplicar = (aberto) => { grupo.classList.toggle('aberto', aberto); btn.setAttribute('aria-expanded', String(aberto)); };
+    // Página de dentro do grupo: sempre aberto; senão, vale o que o usuário escolheu por último
+    if (!grupo.classList.contains('tem-ativo')) {
+      try { if (localStorage.getItem(chave) === '1') aplicar(true); } catch { /* sem armazenamento */ }
+    }
+    btn.addEventListener('click', () => {
+      const aberto = !grupo.classList.contains('aberto');
+      aplicar(aberto);
+      try { localStorage.setItem(chave, aberto ? '1' : '0'); } catch { /* vale só nesta página */ }
+    });
+  });
+
   /* ---------- Avatar do usuário (topo): painel com nome, perfil e Sair ---------- */
   const uMenu = document.getElementById('user-menu');
   const uBtn = document.getElementById('user-btn');
