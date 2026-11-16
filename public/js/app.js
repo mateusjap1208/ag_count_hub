@@ -441,8 +441,9 @@
         toast.classList.add('saindo');
         toast.addEventListener('animationend', () => toast.remove(), { once: true });
         setTimeout(() => toast.remove(), 400);
-        const bell = $('.notif-bell');
-        if (bell) { bell.classList.remove('has-new'); bell.querySelector('.notif-dot')?.remove(); bell.title = 'Novidades do sistema'; }
+        // Notificações vistas: some o contador do avatar e do item "Notificações"
+        $('.user-badge')?.remove();
+        $('.user-notif .user-novo')?.remove();
       } catch { notifForm.submit(); }
     });
   }

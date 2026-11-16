@@ -57,10 +57,6 @@
         <span class="pend-badge" aria-hidden="true"><%= pend.total %></span>
       </a>
       <% } %>
-      <a class="notif-bell <%= (locals.novidades && locals.novidades.pendente) ? 'has-new' : '' %>" href="/novidades" title="<%= (locals.novidades && locals.novidades.pendente) ? 'Nova atualização: ' + locals.novidades.atual : 'Novidades do sistema' %>" aria-label="Novidades<%= (locals.novidades && locals.novidades.pendente) ? ' (nova atualização)' : '' %>">
-        <%- include('icon', { name: 'bell' }) %>
-        <% if ((locals.novidades && locals.novidades.pendente)) { %><span class="notif-dot" aria-hidden="true"></span><% } %>
-      </a>
       <% if (typeof hideFilters === 'undefined' || !hideFilters) {
            // Filtros de obra/empresa em uso (mostrados no selo do botão)
            const filtrosAtivos = ['estrutura', 'sigla', 'empresa', 'centro'].filter(k => (filter[k] || []).length).length; %>
@@ -128,10 +124,13 @@
       </div>
       <% } %>
       <% const iniciais = (user.name || user.email).trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
-         const perfil = user.role === 'admin' ? 'Administrador' : (user.todosCentros ? 'Consulta' : 'Consulta · ' + user.centros.length + ' centro(s)'); %>
+         const perfil = user.role === 'admin' ? 'Administrador' : (user.todosCentros ? 'Consulta' : 'Consulta · ' + user.centros.length + ' centro(s)');
+         // Notificações não vistas (novas versões): contador no avatar e no item do menu
+         const notifNovas = (locals.novidades && locals.novidades.pendente) ? Math.max(1, (locals.novidades.novas || []).length) : 0; %>
       <div class="user-menu" id="user-menu">
-        <button class="user-btn" type="button" id="user-btn" aria-haspopup="true" aria-expanded="false" aria-controls="user-panel" title="<%= user.name || user.email %> · <%= perfil %>">
+        <button class="user-btn" type="button" id="user-btn" aria-haspopup="true" aria-expanded="false" aria-controls="user-panel" title="<%= user.name || user.email %> · <%= perfil %><%= notifNovas ? ' · ' + notifNovas + ' notificação(ões) nova(s)' : '' %>">
           <span class="avatar"><%= iniciais %></span>
+          <% if (notifNovas) { %><span class="user-badge" aria-label="<%= notifNovas %> notificação(ões) nova(s)"><%= notifNovas > 9 ? '9+' : notifNovas %></span><% } %>
         </button>
         <div class="user-panel" id="user-panel" hidden>
           <div class="user-panel-head">
@@ -140,8 +139,8 @@
           </div>
           <nav class="user-sistema" aria-label="Sistema">
             <a class="user-sair user-link<%= currentPath === '/personalizar' ? ' atual' : '' %>" href="/personalizar"><%- include('icon', { name: 'palette' }) %>Personalizar cores</a>
-            <a class="user-sair user-link<%= currentPath === '/novidades' ? ' atual' : '' %>" href="/novidades"><%- include('icon', { name: 'sparkle' }) %>Novidades<% if (locals.novidades && locals.novidades.pendente) { %><span class="user-novo">nova</span><% } %></a>
             <a class="user-sair user-link<%= currentPath === '/sobre' ? ' atual' : '' %>" href="/sobre"><%- include('icon', { name: 'info' }) %>Sobre</a>
+            <a class="user-sair user-link user-notif<%= currentPath === '/novidades' ? ' atual' : '' %>" href="/novidades"><%- include('icon', { name: 'bell' }) %>Notificações<% if (notifNovas) { %><span class="user-novo"><%= notifNovas > 9 ? '9+' : notifNovas %></span><% } %></a>
           </nav>
           <button class="theme-btn user-tema" type="button" id="theme-toggle" title="Mudar para o tema escuro" aria-label="Mudar para o tema escuro" aria-pressed="false">
             <svg class="tema-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

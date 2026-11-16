@@ -3157,3 +3157,8 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 
 /* Alfinete alinhado ao centro da logo do menu (logo de 60 px, a 26 px do topo) */
 @media (min-width: 961px) { .menu-pin { top: 40px; } }
+
+/* Contador de notificações novas no avatar (o sino saiu da barra e foi para o menu do avatar) */
+.user-btn { position: relative; }
+.user-badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 800; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--surface); pointer-events: none; }
+.user-notif .user-novo { min-width: 20px; text-align: center; text-transform: none; letter-spacing: 0; }

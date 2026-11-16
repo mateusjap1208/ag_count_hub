@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 83,
+    data: "2026-11-16",
+    titulo: "Notificações no menu do avatar",
+    itens: [
+      "O sino saiu da barra superior: as notificações ficam no menu do avatar, abaixo de Sobre.",
+      "Quando há notificações novas, o avatar mostra um contador."
+    ]
+  },
+  {
     build: 82,
     data: "2026-11-16",
     titulo: "Alfinete alinhado",
