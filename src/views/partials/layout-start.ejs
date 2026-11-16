@@ -30,16 +30,9 @@
         <%- navItem('/obras', 'hardhat', 'Obras', currentPath.startsWith('/obras')) %>
         <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
         <%- navItem('/pendencias', 'alerta', 'Pendências', currentPath.startsWith('/pendencias')) %>
-        <% const admAtivo = currentPath.startsWith('/usuarios') || currentPath.startsWith('/mensagens'); %>
-        <div class="nav-grupo<%= admAtivo ? ' aberto tem-ativo' : '' %>" data-nav-grupo="adm">
-          <button class="nav-item nav-grupo-btn" type="button" aria-expanded="<%= admAtivo ? 'true' : 'false' %>" aria-controls="nav-sub-adm"><span class="nav-icon"><%- include('icon', { name: 'gear' }) %></span><span class="nav-text">Administração</span><span class="nav-seta"><%- include('icon', { name: 'chevron' }) %></span></button>
-          <div class="nav-sub" id="nav-sub-adm">
-           <div class="nav-sub-inner">
-            <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
-            <%- navItem('/mensagens', 'megaphone', 'Mensagens', currentPath.startsWith('/mensagens')) %>
-           </div>
-          </div>
-        </div>
+        <hr class="nav-sep"><div class="nav-label">Administração</div>
+        <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
+        <%- navItem('/mensagens', 'megaphone', 'Mensagens', currentPath.startsWith('/mensagens')) %>
       <% } %>
     </nav>
     <div class="sidebar-foot">
