@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 82,
+    data: "2026-11-16",
+    titulo: "Alfinete alinhado",
+    itens: [
+      "O alfinete do menu fica alinhado ao centro da logo Andrade Gutierrez."
+    ]
+  },
+  {
     build: 81,
     data: "2026-11-16",
     titulo: "Arrastar cards ficou mais fácil",
