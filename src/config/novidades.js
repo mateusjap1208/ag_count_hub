@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 86,
+    data: "2026-11-16",
+    titulo: "Upload no topo e menu de Administração",
+    itens: [
+      "Novo botão Upload ao lado de Filtros, que abre a tela de upload de relatórios.",
+      "Usuários e Mensagens ficam agrupados no submenu Administração."
+    ]
+  },
+  {
     build: 85,
     data: "2026-11-16",
     titulo: "Menu mais limpo",

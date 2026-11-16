@@ -29,9 +29,17 @@
         <%- navItem('/upload', 'upload', 'Upload de relatórios', currentPath === '/upload') %>
         <%- navItem('/obras', 'hardhat', 'Obras', currentPath.startsWith('/obras')) %>
         <%- navItem('/parametros', 'database', 'Parâmetros', currentPath.startsWith('/parametros')) %>
-        <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
-        <%- navItem('/mensagens', 'megaphone', 'Mensagens', currentPath.startsWith('/mensagens')) %>
         <%- navItem('/pendencias', 'alerta', 'Pendências', currentPath.startsWith('/pendencias')) %>
+        <% const admAtivo = currentPath.startsWith('/usuarios') || currentPath.startsWith('/mensagens'); %>
+        <div class="nav-grupo<%= admAtivo ? ' aberto tem-ativo' : '' %>" data-nav-grupo="adm">
+          <button class="nav-item nav-grupo-btn" type="button" aria-expanded="<%= admAtivo ? 'true' : 'false' %>" aria-controls="nav-sub-adm"><span class="nav-icon"><%- include('icon', { name: 'gear' }) %></span><span class="nav-text">Administração</span><span class="nav-seta"><%- include('icon', { name: 'chevron' }) %></span></button>
+          <div class="nav-sub" id="nav-sub-adm">
+           <div class="nav-sub-inner">
+            <%- navItem('/usuarios', 'lock', 'Usuários', currentPath.startsWith('/usuarios')) %>
+            <%- navItem('/mensagens', 'megaphone', 'Mensagens', currentPath.startsWith('/mensagens')) %>
+           </div>
+          </div>
+        </div>
       <% } %>
     </nav>
     <div class="sidebar-foot">
@@ -56,6 +64,9 @@
         <%- include('icon', { name: 'alerta' }) %>
         <span class="pend-badge" aria-hidden="true"><%= pend.total %></span>
       </a>
+      <% } %>
+      <% if (user.role === 'admin') { %>
+      <a class="filters-toggle topo-upload<%= currentPath === '/upload' ? ' atual' : '' %>" href="/upload" title="Upload de relatórios" aria-label="Upload de relatórios"><%- include('icon', { name: 'upload' }) %><span class="filters-toggle-text">Upload</span></a>
       <% } %>
       <% if (typeof hideFilters === 'undefined' || !hideFilters) {
            // Filtros de obra/empresa em uso (mostrados no selo do botão)
