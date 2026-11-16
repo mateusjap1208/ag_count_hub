@@ -3110,3 +3110,23 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 :root:not([data-theme="dark"]) .login-intro h1 em { color: var(--login-azul); }
 :root:not([data-theme="dark"]) .login-card .btn-primary:not(.btn-nao) { background: var(--login-azul); border-color: var(--login-azul); }
 :root:not([data-theme="dark"]) .login-card .btn-primary:not(.btn-nao):hover, :root:not([data-theme="dark"]) .login-card .btn-primary:not(.btn-nao):focus-visible { background: var(--login-azul-hover); border-color: var(--login-azul-hover); }
+
+/* Card: maiores adiantamentos / maiores fornecedores */
+.maiores-forn .mf-cod { font-variant-numeric: tabular-nums; color: var(--text-2); white-space: nowrap; }
+.maiores-forn .mf-emp { display: block; font-size: 11px; color: var(--muted); }
+.maiores-forn .mf-pct-col { min-width: 150px; }
+.maiores-forn .mf-pct-col { width: 22%; }
+.mf-pct-wrap { display: flex; align-items: center; gap: 8px; }
+.mf-barra { flex: 1; height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; min-width: 60px; }
+.mf-barra-cheia { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--consag-blue); transition: width .5s ease; }
+.mf-pct { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-2); min-width: 44px; text-align: right; }
+.maiores-forn tr.mf-demais td { color: var(--muted); font-style: italic; }
+
+/* =========================================================================
+   Telas usam a largura toda (sem faixa vazia à direita em monitores grandes)
+   ========================================================================= */
+.content { max-width: none; }
+/* Monitores largos: 3 colunas de quadros/gráficos em vez de 2 (quadros "largos" continuam na linha inteira) */
+@media (min-width: 1760px) {
+  .blocos.grid-2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
