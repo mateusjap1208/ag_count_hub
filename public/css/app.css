@@ -3173,3 +3173,15 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
   .pend-alerta .icon path:first-child, .pend-alerta .icon path:not(:first-child) { animation: none; }
   .pend-alerta .icon path:first-child { fill-opacity: 0; }
 }
+
+/* Menu: item selecionado sem fundo, marcado só por uma linha azul à esquerda */
+:root .sidebar .nav-item { position: relative; }
+:root .sidebar .nav-item.active, :root .sidebar .nav-item.active:hover {
+  background: transparent; box-shadow: none; color: #FFFFFF; font-weight: 600;
+}
+:root .sidebar .nav-item.active:hover { background: var(--sb-hover); }
+:root .sidebar .nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; width: 3px; height: 60%; border-radius: 3px;
+  background: var(--consag-cyan, #4FA3FF); transform: translateY(-50%);
+}
+:root .sidebar .nav-item.active .nav-icon { color: var(--consag-cyan, #4FA3FF); }
