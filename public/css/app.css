@@ -3141,3 +3141,9 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .pend-alerta:hover, .pend-alerta:focus-visible { border-color: #F5A400; background: var(--surface); color: #F5A400; outline: none; }
 :root[data-theme="dark"] .pend-alerta { color: #FFC34D; background: var(--surface); border-color: var(--border); }
 :root[data-theme="dark"] .pend-alerta:hover, :root[data-theme="dark"] .pend-alerta:focus-visible { border-color: #F5A400; }
+
+/* Visão Geral: cards de números com as linhas incompletas centralizadas (mesma largura de antes) */
+.grid.grid-4[data-ordenavel="kpis"] { display: flex; flex-wrap: wrap; justify-content: center; }
+.grid.grid-4[data-ordenavel="kpis"] > * { flex: 0 0 calc((100% - 3 * 18px) / 4); min-width: 0; }
+@media (max-width: 1200px) { .grid.grid-4[data-ordenavel="kpis"] > * { flex-basis: calc((100% - 18px) / 2); } }
+@media (max-width: 560px) { .grid.grid-4[data-ordenavel="kpis"] > * { flex-basis: 100%; } }

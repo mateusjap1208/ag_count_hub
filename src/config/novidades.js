@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 80,
+    data: "2026-11-16",
+    titulo: "Visão Geral centralizada",
+    itens: [
+      "Na Visão Geral, os cards de números da última linha ficam centralizados."
+    ]
+  },
+  {
     build: 79,
     data: "2026-11-16",
     titulo: "Ajustes visuais no topo e no menu",
