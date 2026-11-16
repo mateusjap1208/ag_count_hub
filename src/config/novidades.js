@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 81,
+    data: "2026-11-16",
+    titulo: "Arrastar cards ficou mais fácil",
+    itens: [
+      "Ao arrastar um card pela alça, uma barra azul mostra onde ele vai entrar; ao soltar, ele fica nesse lugar, mesmo entre cards de tamanhos diferentes ou num espaço vazio."
+    ]
+  },
+  {
     build: 80,
     data: "2026-11-16",
     titulo: "Visão Geral centralizada",

@@ -3147,3 +3147,10 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .grid.grid-4[data-ordenavel="kpis"] > * { flex: 0 0 calc((100% - 3 * 18px) / 4); min-width: 0; }
 @media (max-width: 1200px) { .grid.grid-4[data-ordenavel="kpis"] > * { flex-basis: calc((100% - 18px) / 2); } }
 @media (max-width: 560px) { .grid.grid-4[data-ordenavel="kpis"] > * { flex-basis: 100%; } }
+
+/* Arrastar cards: barra azul indicando onde o card vai entrar (lateral ou acima/abaixo) */
+.ordenavel-item.ordem-marca-antes { box-shadow: -5px 0 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.ordem-marca-depois { box-shadow: 5px 0 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.ordem-marca-antes.ordem-marca-vertical { box-shadow: 0 -5px 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.ordem-marca-depois.ordem-marca-vertical { box-shadow: 0 5px 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.arrastando { opacity: .45; }
