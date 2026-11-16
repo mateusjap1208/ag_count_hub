@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 79,
+    data: "2026-11-16",
+    titulo: "Ajustes visuais no topo e no menu",
+    itens: [
+      "O botão de pendências segue o visual do sino de notificações; só o ícone e o contador ficam em amarelo.",
+      "Com o menu fixado, o alfinete fica branco."
+    ]
+  },
+  {
     build: 78,
     data: "2026-11-16",
     titulo: "Maiores fornecedores e tela inteira",

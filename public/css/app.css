@@ -3130,3 +3130,14 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 @media (min-width: 1760px) {
   .blocos.grid-2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Alfinete do menu fixado: branco */
+@media (min-width: 961px) { :root[data-menu="fixo"] .menu-pin { color: #FFFFFF; } }
+
+/* Pendências: mesmo visual do botão de notificações (fundo e borda neutros); só ícone e contador em amarelo */
+.pend-alerta {
+  width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: #E09B00;
+}
+.pend-alerta:hover, .pend-alerta:focus-visible { border-color: #F5A400; background: var(--surface); color: #F5A400; outline: none; }
+:root[data-theme="dark"] .pend-alerta { color: #FFC34D; background: var(--surface); border-color: var(--border); }
+:root[data-theme="dark"] .pend-alerta:hover, :root[data-theme="dark"] .pend-alerta:focus-visible { border-color: #F5A400; }
