@@ -177,23 +177,62 @@
       item.addEventListener('dragend', () => {
         item.classList.remove('arrastando');
         item.draggable = false;
-        $$('.ordem-alvo', box).forEach((x) => x.classList.remove('ordem-alvo'));
-        mudou();
+        limparMarca();
       });
     });
+    // Enquanto arrasta, nada muda de lugar: uma barra mostra onde o card vai entrar (antes/depois do card
+    // mais próximo do cursor, inclusive em espaço vazio). Ao soltar, o card vai para lá e a ordem é salva.
+    let destino = null; // { alvo, depois }
+    const limparMarca = () => {
+      $$('.ordem-marca-antes, .ordem-marca-depois', box).forEach((x) => x.classList.remove('ordem-marca-antes', 'ordem-marca-depois', 'ordem-marca-vertical'));
+      destino = null;
+    };
+    const maisProximo = (x, y, arrastando) => {
+      const larguraBox = box.getBoundingClientRect().width;
+      let melhor = null;
+      for (const el of itens()) {
+        if (el === arrastando) continue;
+        const r = el.getBoundingClientRect();
+        const dx = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+        const dy = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
+        const d = Math.hypot(dx, dy);
+        if (!melhor || d < melhor.d) melhor = { el, r, d };
+      }
+      if (!melhor) return null;
+      const { el, r } = melhor;
+      // card que ocupa a linha inteira: antes/depois pela altura; os demais, pela lateral
+      const largo = r.width > larguraBox * 0.6;
+      let depois;
+      if (y > r.bottom) depois = true;
+      else if (y < r.top) depois = false;
+      else depois = largo ? y > r.top + r.height / 2 : x > r.left + r.width / 2;
+      return { alvo: el, depois, vertical: largo || y > r.bottom || y < r.top };
+    };
     box.addEventListener('dragover', (e) => {
       const arrastando = $('.arrastando', box);
       if (!arrastando) return;
       e.preventDefault();
-      const alvo = e.target.closest('[data-ordem-chave]');
-      if (!alvo || alvo === arrastando || alvo.parentElement !== box) return;
-      $$('.ordem-alvo', box).forEach((x) => x.classList.remove('ordem-alvo'));
-      alvo.classList.add('ordem-alvo');
-      const r = alvo.getBoundingClientRect();
-      const depoisDoAlvo = (e.clientX - r.left) / r.width > 0.5 || (e.clientY - r.top) / r.height > 0.75;
-      box.insertBefore(arrastando, depoisDoAlvo ? alvo.nextSibling : alvo);
+      e.dataTransfer.dropEffect = 'move';
+      const d = maisProximo(e.clientX, e.clientY, arrastando);
+      if (!d) return;
+      if (destino && destino.alvo === d.alvo && destino.depois === d.depois) return;
+      limparMarca();
+      destino = d;
+      d.alvo.classList.add(d.depois ? 'ordem-marca-depois' : 'ordem-marca-antes');
+      if (d.vertical) d.alvo.classList.add('ordem-marca-vertical');
     });
-    box.addEventListener('drop', (e) => { if ($('.arrastando', box)) e.preventDefault(); });
+    box.addEventListener('dragleave', (e) => { if (!box.contains(e.relatedTarget)) limparMarca(); });
+    box.addEventListener('drop', (e) => {
+      const arrastando = $('.arrastando', box);
+      if (!arrastando) return;
+      e.preventDefault();
+      const d = destino || maisProximo(e.clientX, e.clientY, arrastando);
+      limparMarca();
+      if (!d) return;
+      const antes = itens().map(chaveDe).join();
+      box.insertBefore(arrastando, d.depois ? d.alvo.nextSibling : d.alvo);
+      if (itens().map(chaveDe).join() !== antes) mudou();
+    });
   });
   // Os gráficos se ajustam ao novo tamanho do card depois de mudar de lugar
   document.addEventListener('dragend', () => { if (window.Chart) Object.values(Chart.instances).forEach((c) => c.resize()); });

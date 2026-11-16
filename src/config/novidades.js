@@ -6,6 +6,31 @@
  */
 module.exports = [
   {
+    build: 81,
+    data: "2026-11-16",
+    titulo: "Arrastar cards ficou mais fácil",
+    itens: [
+      "Ao arrastar um card pela alça, uma barra azul mostra onde ele vai entrar; ao soltar, ele fica nesse lugar, mesmo entre cards de tamanhos diferentes ou num espaço vazio."
+    ]
+  },
+  {
+    build: 80,
+    data: "2026-11-16",
+    titulo: "Visão Geral centralizada",
+    itens: [
+      "Na Visão Geral, os cards de números da última linha ficam centralizados."
+    ]
+  },
+  {
+    build: 79,
+    data: "2026-11-16",
+    titulo: "Ajustes visuais no topo e no menu",
+    itens: [
+      "O botão de pendências segue o visual do sino de notificações; só o ícone e o contador ficam em amarelo.",
+      "Com o menu fixado, o alfinete fica branco."
+    ]
+  },
+  {
     build: 78,
     data: "2026-11-16",
     titulo: "Maiores fornecedores e tela inteira",

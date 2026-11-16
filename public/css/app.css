@@ -3130,3 +3130,27 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 @media (min-width: 1760px) {
   .blocos.grid-2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Alfinete do menu fixado: branco */
+@media (min-width: 961px) { :root[data-menu="fixo"] .menu-pin { color: #FFFFFF; } }
+
+/* Pendências: mesmo visual do botão de notificações (fundo e borda neutros); só ícone e contador em amarelo */
+.pend-alerta {
+  width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: #E09B00;
+}
+.pend-alerta:hover, .pend-alerta:focus-visible { border-color: #F5A400; background: var(--surface); color: #F5A400; outline: none; }
+:root[data-theme="dark"] .pend-alerta { color: #FFC34D; background: var(--surface); border-color: var(--border); }
+:root[data-theme="dark"] .pend-alerta:hover, :root[data-theme="dark"] .pend-alerta:focus-visible { border-color: #F5A400; }
+
+/* Visão Geral: cards de números com as linhas incompletas centralizadas (mesma largura de antes) */
+.grid.grid-4[data-ordenavel="kpis"] { display: flex; flex-wrap: wrap; justify-content: center; }
+.grid.grid-4[data-ordenavel="kpis"] > * { flex: 0 0 calc((100% - 3 * 18px) / 4); min-width: 0; }
+@media (max-width: 1200px) { .grid.grid-4[data-ordenavel="kpis"] > * { flex-basis: calc((100% - 18px) / 2); } }
+@media (max-width: 560px) { .grid.grid-4[data-ordenavel="kpis"] > * { flex-basis: 100%; } }
+
+/* Arrastar cards: barra azul indicando onde o card vai entrar (lateral ou acima/abaixo) */
+.ordenavel-item.ordem-marca-antes { box-shadow: -5px 0 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.ordem-marca-depois { box-shadow: 5px 0 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.ordem-marca-antes.ordem-marca-vertical { box-shadow: 0 -5px 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.ordem-marca-depois.ordem-marca-vertical { box-shadow: 0 5px 0 0 var(--consag-blue), var(--shadow); }
+.ordenavel-item.arrastando { opacity: .45; }
