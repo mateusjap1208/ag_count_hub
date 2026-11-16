@@ -3154,3 +3154,6 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .ordenavel-item.ordem-marca-antes.ordem-marca-vertical { box-shadow: 0 -5px 0 0 var(--consag-blue), var(--shadow); }
 .ordenavel-item.ordem-marca-depois.ordem-marca-vertical { box-shadow: 0 5px 0 0 var(--consag-blue), var(--shadow); }
 .ordenavel-item.arrastando { opacity: .45; }
+
+/* Alfinete alinhado ao centro da logo do menu (logo de 60 px, a 26 px do topo) */
+@media (min-width: 961px) { .menu-pin { top: 40px; } }
