@@ -3162,3 +3162,26 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .user-btn { position: relative; }
 .user-badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 800; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--surface); pointer-events: none; }
 .user-notif .user-novo { min-width: 20px; text-align: center; text-transform: none; letter-spacing: 0; }
+
+/* Pendências: ícone alterna entre preenchido e vazado (transição suave) */
+.pend-alerta .icon { animation: none; }
+.pend-alerta .icon path:first-child { fill: currentColor; animation: pend-preenche 2.4s ease-in-out infinite; }
+.pend-alerta .icon path:not(:first-child) { animation: pend-exclama 2.4s ease-in-out infinite; }
+@keyframes pend-preenche { 0%, 20%, 100% { fill-opacity: 0; } 45%, 70% { fill-opacity: 1; } }
+@keyframes pend-exclama { 0%, 20%, 100% { stroke: currentColor; } 45%, 70% { stroke: var(--surface); } }
+@media (prefers-reduced-motion: reduce) {
+  .pend-alerta .icon path:first-child, .pend-alerta .icon path:not(:first-child) { animation: none; }
+  .pend-alerta .icon path:first-child { fill-opacity: 0; }
+}
+
+/* Menu: item selecionado sem fundo, marcado só por uma linha azul à esquerda */
+:root .sidebar .nav-item { position: relative; }
+:root .sidebar .nav-item.active, :root .sidebar .nav-item.active:hover {
+  background: transparent; box-shadow: none; color: #FFFFFF; font-weight: 600;
+}
+:root .sidebar .nav-item.active:hover { background: var(--sb-hover); }
+:root .sidebar .nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; width: 3px; height: 60%; border-radius: 3px;
+  background: var(--consag-cyan, #4FA3FF); transform: translateY(-50%);
+}
+:root .sidebar .nav-item.active .nav-icon { color: var(--consag-cyan, #4FA3FF); }
