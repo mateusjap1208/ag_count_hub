@@ -582,9 +582,9 @@ const modules = [
     gauges: (s) => {
       const t = (k) => s.totals?.[k]?.sum ?? 0;
       return [
-        { id: 'receita', nome: 'Receita orçada x receita POC acumulada', orcado: t('precoTotal'), realizado: t('pocAcumulado'), rotuloOrcado: 'Receita orçada (preço total)', rotuloRealizado: 'Receita POC acumulada' },
-        { id: 'custo-direto', nome: 'Custo direto orçado x custo direto acumulado', orcado: t('custoOrcado'), realizado: t('custoAcumulado'), rotuloOrcado: 'Custo direto orçado', rotuloRealizado: 'Custo direto acumulado' },
-        { id: 'custo-indireto', nome: 'Custo indireto orçado x custo indireto acumulado', orcado: t('custoIndiretoOrcado'), realizado: t('custoIndiretoAcumulado'), rotuloOrcado: 'Custo indireto orçado', rotuloRealizado: 'Custo indireto acumulado', hint: 'Uma vez por obra' },
+        { id: 'receita', nome: 'Avanço da receita', orcado: t('precoTotal'), realizado: t('pocAcumulado'), rotuloOrcado: 'Receita orçada (preço total)', rotuloRealizado: 'Receita POC acumulada' },
+        { id: 'custo-direto', nome: 'Avanço do custo direto', orcado: t('custoOrcado'), realizado: t('custoAcumulado'), rotuloOrcado: 'Custo direto orçado', rotuloRealizado: 'Custo direto acumulado' },
+        { id: 'custo-indireto', nome: 'Avanço do custo indireto', orcado: t('custoIndiretoOrcado'), realizado: t('custoIndiretoAcumulado'), rotuloOrcado: 'Custo indireto orçado', rotuloRealizado: 'Custo indireto acumulado', hint: 'Uma vez por obra' },
       ];
     },
     columns: [
