@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 90,
+    data: "2026-11-17",
+    titulo: "Paletas das empresas do grupo",
+    itens: [
+      "Na tela Personalizar, as paletas prontas agora seguem a identidade visual de cada empresa: CONSAG, AGSA, AGCS, MOVAG e VERTIN."
+    ]
+  },
+  {
     build: 89,
     data: "2026-11-16",
     titulo: "Auditoria de login e telas por usuário",
