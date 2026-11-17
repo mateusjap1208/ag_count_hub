@@ -5,6 +5,7 @@
  * Estrutura, sigla, empresa e centro de lucro aceitam seleção múltipla (listas).
  */
 const Report = require('../models/Report');
+const Telas = require('../config/telas');
 const Company = require('../models/Company');
 const fmt = require('../utils/format');
 const novidades = require('../services/novidades');
@@ -79,6 +80,8 @@ async function viewLocals(req, res, next) {
       user: req.session.user,
       coresVersao: req.user?.cores ? require('../config/cores').versao(req.user.cores) : null, // CSS das cores personalizadas
       menu: Report.modules,
+      podeVer: (tela) => Telas.podeVer(req.user, tela), // telas liberadas ao usuário
+      menuModulos: Telas.MODULOS_MENU,
       companies,
       allCompanies,
       periods,

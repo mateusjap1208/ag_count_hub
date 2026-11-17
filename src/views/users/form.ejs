@@ -88,6 +88,24 @@
     </div>
   </div>
 
+  <% const telasSel = form.telas || []; const todasTelas = form.todasTelas !== false; %>
+  <div class="card mt" id="telas-card">
+    <div class="card-head"><h2>Telas liberadas</h2><span class="hint" id="telas-admin-note" <%- isAdmin ? '' : 'hidden' %>>Administradores veem todas as telas</span></div>
+    <div id="telas-body" <%- isAdmin ? 'hidden' : '' %>>
+      <label class="check"><input type="checkbox" name="todasTelas" id="f-todas-telas" <%= todasTelas ? 'checked' : '' %>> Todas as telas (inclusive as que forem criadas depois)</label>
+      <div id="telas-wrap" class="mt <%= errors.telas ? 'has-error' : '' %>" <%- todasTelas ? 'hidden' : '' %>>
+        <div class="picker-head"><span class="help">Marque as telas que o usuário pode abrir. As demais somem do menu e ficam bloqueadas.</span>
+          <span><button class="btn btn-ghost btn-sm" type="button" data-telas="todas">Marcar todas</button> <button class="btn btn-ghost btn-sm" type="button" data-telas="nenhuma">Desmarcar todas</button></span></div>
+        <div class="telas-grid">
+          <% TELAS.forEach(t => { %>
+            <label class="check tela-opcao"><input type="checkbox" name="telas" value="<%= t.id %>" <%= telasSel.includes(t.id) ? 'checked' : '' %>> <%= t.label %></label>
+          <% }) %>
+        </div>
+        <% if (errors.telas) { %><div class="field-error"><%= errors.telas %></div><% } %>
+      </div>
+    </div>
+  </div>
+
   <div class="mt form-actions obra-actions">
     <a class="btn btn-ghost" href="/usuarios">Cancelar</a>
     <button class="btn btn-primary" type="submit"><%= editing ? 'Salvar alterações' : 'Cadastrar usuário' %></button>

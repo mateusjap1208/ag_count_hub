@@ -1,0 +1,57 @@
+<%- include('../partials/layout-start') %>
+
+<% const ok = registros.filter(r => r.sucesso).length, falhas = registros.length - ok;
+   const usuarios = new Set(registros.filter(r => r.sucesso).map(r => r.userId || r.email)).size; %>
+
+<div class="card">
+  <div class="card-head">
+    <h2>Logins <span class="hint">(<%= registros.length %><%= registros.length >= 500 ? ' mais recentes' : '' %>)</span></h2>
+    <form method="get" action="/auditoria-login" class="table-tools auditoria-filtros">
+      <label class="sr-only" for="a-q">Usuário</label>
+      <input class="input" type="search" id="a-q" name="q" value="<%= f.q %>" placeholder="Nome ou e-mail…" autocomplete="off">
+      <label class="auditoria-data">De <input class="input" type="date" name="de" value="<%= f.de %>"></label>
+      <label class="auditoria-data">Até <input class="input" type="date" name="ate" value="<%= f.ate %>"></label>
+      <label class="sr-only" for="a-r">Resultado</label>
+      <select class="select" id="a-r" name="resultado">
+        <option value="" <%= !f.resultado ? 'selected' : '' %>>Todos os resultados</option>
+        <option value="sucesso" <%= f.resultado === 'sucesso' ? 'selected' : '' %>>Somente sucesso</option>
+        <option value="falha" <%= f.resultado === 'falha' ? 'selected' : '' %>>Somente falhas</option>
+      </select>
+      <button class="btn btn-ghost" type="submit"><%- include('../partials/icon', { name: 'search' }) %>Filtrar</button>
+      <% if (f.q || f.de || f.ate || f.resultado) { %><a class="btn btn-ghost" href="/auditoria-login">Limpar</a><% } %>
+    </form>
+  </div>
+
+  <div class="pend-resumo auditoria-resumo">
+    <span class="pend-chip"><%= fmt.number(ok) %> login(s) com sucesso</span>
+    <span class="pend-chip"><%= fmt.number(falhas) %> tentativa(s) com falha</span>
+    <span class="pend-chip"><%= fmt.number(usuarios) %> usuário(s) diferentes</span>
+  </div>
+
+  <% if (!registros.length) { %>
+    <p class="note">Nenhum login registrado para este filtro. Os registros começam a partir desta versão do sistema.</p>
+  <% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Data e hora (Brasília)</th><th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Resultado</th><th>IP</th><th>Navegador</th></tr></thead>
+      <tbody>
+        <% registros.forEach(r => { %>
+          <tr>
+            <td class="num-left"><%= fmt.dateTimeSec(r.at) %></td>
+            <td><%= r.nome || '—' %></td>
+            <td><%= r.email || '—' %></td>
+            <td><%= r.perfil === 'admin' ? 'Administrador' : r.perfil === 'viewer' ? 'Consulta' : '—' %></td>
+            <td><% if (r.sucesso) { %><span class="badge ok">Sucesso</span><% } else { %><span class="badge missing" title="<%= r.motivo || '' %>">Falha</span><% } %></td>
+            <td><%= r.ip || '—' %></td>
+            <td title="<%= r.userAgent %>"><%= dispositivo(r.userAgent) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<p class="hint mt">Cada tentativa de login fica registrada no banco com data e hora (gravadas em UTC e exibidas no horário de Brasília), IP e navegador. A tela mostra os 500 registros mais recentes do filtro.</p>
+
+<%- include('../partials/layout-end') %>

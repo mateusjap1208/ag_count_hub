@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const LoginAudit = require('../models/LoginAudit');
 
 exports.showLogin = (req, res) => {
   res.set('Cache-Control', 'no-store'); // nunca reaproveitar a página com um token antigo
@@ -10,8 +11,10 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.authenticate(email, password);
     if (!user) {
+      await LoginAudit.registrar(req, { email, sucesso: false, motivo: 'E-mail ou senha inválidos (ou usuário inativo)' });
       return res.status(401).render('auth/login', { error: 'E-mail ou senha inválidos.', email: email || '', loginErrado: true });
     }
+    await LoginAudit.registrar(req, { user, sucesso: true });
     const returnTo = req.session.returnTo;
     // Regenera a sessão no login (evita fixação de sessão)
     req.session.regenerate((err) => {

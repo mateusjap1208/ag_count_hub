@@ -24,12 +24,12 @@ module.exports = function createJsonRepositories(dataDir) {
       return all.find((u) => u.email.toLowerCase() === String(email).toLowerCase()) || null;
     },
     async findById(id) { return (await users.list()).find((u) => u.id === id) || null; },
-    async create({ email, name, passwordHash, role = 'viewer', active = true, todosCentros = true, centros = [] }) {
+    async create({ email, name, passwordHash, role = 'viewer', active = true, todosCentros = true, centros = [], todasTelas = true, telas = [] }) {
       return withLock(async () => {
         const all = await users.list();
         if (all.some((u) => u.email.toLowerCase() === email.toLowerCase())) throw new Error('E-mail já cadastrado.');
         const now = new Date().toISOString();
-        const user = { id: crypto.randomUUID(), email, name, passwordHash, role, active, todosCentros, centros, createdAt: now, updatedAt: now };
+        const user = { id: crypto.randomUUID(), email, name, passwordHash, role, active, todosCentros, centros, todasTelas, telas, createdAt: now, updatedAt: now };
         all.push(user);
         await writeJson(usersFile, all);
         return user;
@@ -238,5 +238,26 @@ module.exports = function createJsonRepositories(dataDir) {
     },
   };
 
-  return { users, companies, datasets, params, obras, mensagens };
+  /** Auditoria de login (arquivo login_audit.json, mais recente primeiro) */
+  const loginsFile = path.join(dataDir, 'login_audit.json');
+  const logins = {
+    async add(reg) {
+      return withLock(async () => {
+        const all = await readJson(loginsFile, []);
+        all.push(reg);
+        await writeJson(loginsFile, all.slice(-20000)); // limita o arquivo local
+      });
+    },
+    async list({ q, de, ate, resultado, limit = 500 } = {}) {
+      const termo = String(q || '').toLowerCase();
+      return (await readJson(loginsFile, []))
+        .filter((r) => (!de || r.at >= de) && (!ate || r.at < ate)
+          && (resultado !== 'sucesso' || r.sucesso) && (resultado !== 'falha' || !r.sucesso)
+          && (!termo || `${r.nome || ''} ${r.email || ''}`.toLowerCase().includes(termo)))
+        .sort((a, b) => String(b.at).localeCompare(String(a.at)))
+        .slice(0, limit);
+    },
+  };
+
+  return { users, companies, datasets, params, obras, mensagens, logins };
 };

@@ -8,6 +8,7 @@
  */
 const crypto = require('node:crypto');
 const bcrypt = require('bcryptjs');
+const Telas = require('../config/telas');
 const { users } = require('../repositories');
 
 class UserError extends Error {}
@@ -23,6 +24,9 @@ const publicUser = (u) => ({
   // Usuários antigos (sem o campo) mantêm acesso total
   todosCentros: u.role === 'admin' || u.todosCentros !== false,
   centros: u.centros || [],
+  // Telas liberadas: usuários antigos (sem o campo) e administradores veem todas
+  todasTelas: u.role === 'admin' || u.todasTelas !== false,
+  telas: u.telas || [],
   createdAt: u.createdAt,
   updatedAt: u.updatedAt,
   lastLoginAt: u.lastLoginAt,
@@ -56,10 +60,12 @@ function normalize(input, { creating }) {
     role: input.role === 'admin' ? 'admin' : 'viewer',
     active: input.active !== false,
     todosCentros: !!input.todosCentros,
+    todasTelas: !!input.todasTelas,
+    telas: Telas.normalizar(input.telas),
     centros: [...new Set((Array.isArray(input.centros) ? input.centros : String(input.centros || '').split(/[,;\n]/))
       .map((c) => String(c).trim().toUpperCase()).filter(Boolean))].sort(),
   };
-  if (data.role === 'admin') { data.todosCentros = true; }
+  if (data.role === 'admin') { data.todosCentros = true; data.todasTelas = true; }
   const errors = {};
   if (data.name.length < 3) errors.name = 'Informe o nome completo.';
   if (!EMAIL_RE.test(data.email)) errors.email = 'Informe um e-mail válido.';
@@ -71,6 +77,9 @@ function normalize(input, { creating }) {
   }
   if (data.role === 'viewer' && !data.todosCentros && !data.centros.length) {
     errors.centros = 'Selecione pelo menos um centro de lucro ou marque "Todos os centros de lucro".';
+  }
+  if (data.role === 'viewer' && !data.todasTelas && !data.telas.length) {
+    errors.telas = 'Selecione pelo menos uma tela ou marque "Todas as telas".';
   }
   return { data, pwd, errors };
 }

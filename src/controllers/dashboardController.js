@@ -1,4 +1,5 @@
 const Report = require('../models/Report');
+const Telas = require('../config/telas');
 
 const kpi = (view, label) => {
   if (view.empty) return null;
@@ -9,9 +10,11 @@ const kpi = (view, label) => {
 exports.index = async (req, res, next) => {
   try {
     const { scope } = res.locals;
+    // Só carrega os módulos das telas liberadas ao usuário (os demais ficam como "vazios")
+    const pode = (slug) => Telas.podeVer(req.user, slug);
     const slugs = Report.modules.map((m) => m.slug);
     const views = Object.fromEntries(await Promise.all(
-      slugs.map(async (s) => [s, await Report.getModuleView(s, scope)])));
+      slugs.map(async (s) => [s, pode(s) ? await Report.getModuleView(s, scope) : { empty: true, currency: null }])));
 
     // Passivo + PL: soma dos dois indicadores do BP (deve fechar com o ativo)
     const passivo = kpi(views.bp, 'Passivo total');
@@ -34,7 +37,7 @@ exports.index = async (req, res, next) => {
       { module: 'imobilizado', ...kpi(views.imobilizado, 'Valor contábil'), label: 'Imobilizado (valor contábil)', hint: 'Custo − depreciação' },
     ].filter((h) => h.value !== undefined);
 
-    const dreTrend = await Report.trend('dre', scope);
+    const dreTrend = pode('dre') ? await Report.trend('dre', scope) : [];
     const trend = {
       labels: dreTrend.map((t) => res.locals.fmt.period(t.period)),
       receita: dreTrend.map((t) => t.kpis.find((k) => k.label === 'Receita líquida')?.value ?? 0),
@@ -48,7 +51,7 @@ exports.index = async (req, res, next) => {
 
     const uploads = scope.period ? await Report.listUploads({ period: scope.period }) : [];
     const ct = String(scope.moeda).split(':')[0];
-    const status = Report.modules.filter((m) => !m.inativo).map((m) => {
+    const status = Report.modules.filter((m) => !m.inativo && !m.hideInMenu && pode(m.slug)).map((m) => {
       const list = uploads.filter((u) => u.module === m.slug && (m.source !== 'fgi0' || u.currencyType === ct));
       return { slug: m.slug, title: m.menu, icon: m.icon, companies: list.length, rows: list.reduce((a, u) => a + u.rows, 0) };
     });
@@ -58,8 +61,9 @@ exports.index = async (req, res, next) => {
       highlights,
       status,
       totalCompanies: res.locals.companies.length,
-      currency: views.dre.currency,
-      chartData: { trend, bp: bpChart, agingReceber, agingPagar, currency: views.dre.currency },
+      currency: views.dre.currency || 'BRL',
+      mostra: { dre: pode('dre'), bp: pode('bp'), clientes: pode('clientes'), fornecedores: pode('fornecedores') },
+      chartData: { trend, bp: bpChart, agingReceber, agingPagar, currency: views.dre.currency || 'BRL' },
     });
   } catch (e) { next(e); }
 };

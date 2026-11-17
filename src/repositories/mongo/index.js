@@ -68,6 +68,8 @@ module.exports = function createMongoRepositories(uri, dbName) {
         d.collection('param_rows').createIndex({ id: 1, chunk: 1 }),
         d.collection('obras').createIndex({ centroLucro: 1 }, { unique: true }),
         d.collection('obras').createIndex({ estrutura: 1 }),
+        d.collection('login_audit').createIndex({ at: -1 }),
+        d.collection('login_audit').createIndex({ emailLower: 1, at: -1 }),
       ]);
       return d;
     })().catch((e) => { ready = null; throw e; });
@@ -85,9 +87,9 @@ module.exports = function createMongoRepositories(uri, dbName) {
       const u = await (await col('users')).findOne({ id });
       return u ? strip(u) : null;
     },
-    async create({ email, name, passwordHash, role = 'viewer', id, createdAt, active = true, todosCentros = true, centros = [] }) {
+    async create({ email, name, passwordHash, role = 'viewer', id, createdAt, active = true, todosCentros = true, centros = [], todasTelas = true, telas = [] }) {
       const now = new Date().toISOString();
-      const user = { id: id || crypto.randomUUID(), email, name, passwordHash, role, active, todosCentros, centros, createdAt: createdAt || now, updatedAt: now };
+      const user = { id: id || crypto.randomUUID(), email, name, passwordHash, role, active, todosCentros, centros, todasTelas, telas, createdAt: createdAt || now, updatedAt: now };
       try {
         await (await col('users')).insertOne({ ...user, emailLower: email.toLowerCase() });
       } catch (e) {
@@ -250,6 +252,18 @@ module.exports = function createMongoRepositories(uri, dbName) {
   };
 
   // Mensagens do rodapé: { id, texto, tipo, inicio, fim, ativa, createdAt, updatedAt, updatedBy }
+  /** Auditoria de login: um registro por tentativa (sucesso ou falha), mais recente primeiro */
+  const logins = {
+    async add(reg) { await (await col('login_audit')).insertOne({ ...reg, emailLower: String(reg.email || '').toLowerCase() }); },
+    async list({ q, de, ate, resultado, limit = 500 } = {}) {
+      const f = {};
+      if (de || ate) f.at = { ...(de ? { $gte: de } : {}), ...(ate ? { $lt: ate } : {}) };
+      if (resultado === 'sucesso') f.sucesso = true; else if (resultado === 'falha') f.sucesso = false;
+      if (q) { const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'); f.$or = [{ email: rx }, { nome: rx }]; }
+      return (await col('login_audit')).find(f, { projection: { _id: 0, emailLower: 0 } }).sort({ at: -1 }).limit(limit).toArray();
+    },
+  };
+
   const mensagens = {
     async list() { return (await col('mensagens')).find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).toArray(); },
     async save(m) { await (await col('mensagens')).updateOne({ id: m.id }, { $set: m }, { upsert: true }); return m; },
@@ -257,7 +271,7 @@ module.exports = function createMongoRepositories(uri, dbName) {
   };
 
   return {
-    users, companies, datasets, params, obras, mensagens,
+    users, companies, datasets, params, obras, mensagens, logins,
     /** Uso interno: store de sessão, health check e scripts */
     client, db, dbName,
     async ping() { await (await db()).command({ ping: 1 }); return true; },

@@ -4,6 +4,7 @@
  * de perfil, centros de lucro liberados ou desativação valham imediatamente.
  */
 const User = require('../models/User');
+const Telas = require('../config/telas');
 
 const CACHE_MS = 15 * 1000;
 const cache = new Map(); // id → { user, at }
@@ -42,9 +43,24 @@ function requireAdmin(req, res, next) {
   return next(err);
 }
 
+/**
+ * Bloqueia telas não liberadas para o usuário (cadastro de Usuários → Telas liberadas).
+ * tela: id fixo ('indicadores') ou função (req) => id/slug do módulo.
+ */
+function requireTela(tela) {
+  return (req, res, next) => {
+    const id = typeof tela === 'function' ? tela(req) : tela;
+    if (Telas.podeVer(req.user, id)) return next();
+    if (req.path.startsWith('/api/')) return res.status(403).json({ error: 'Você não tem acesso a esta tela.' });
+    const err = new Error('Você não tem acesso a esta tela. Peça a liberação a um administrador.');
+    err.status = 403;
+    return next(err);
+  };
+}
+
 function redirectIfAuthenticated(req, res, next) {
   if (req.session?.user) return res.redirect('/');
   return next();
 }
 
-module.exports = { requireAuth, requireAdmin, redirectIfAuthenticated, invalidateUser };
+module.exports = { requireAuth, requireAdmin, requireTela, redirectIfAuthenticated, invalidateUser };
