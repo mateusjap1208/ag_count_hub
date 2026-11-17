@@ -6,6 +6,23 @@
  */
 module.exports = [
   {
+    build: 94,
+    data: "2026-11-17",
+    titulo: "Avatar a partir de código SVG",
+    itens: [
+      "No cadastro do avatar comemorativo, agora dá para colar o código SVG gerado pelo ChatGPT ou pelo Claude, além de enviar o arquivo. Uma prévia mostra como ele vai ficar antes de cadastrar."
+    ]
+  },
+  {
+    build: 93,
+    data: "2026-11-17",
+    titulo: "Avatar comemorativo",
+    itens: [
+      "Datas especiais ganham um avatar animado flutuando no canto da tela (por exemplo, uma árvore de Natal com pisca-pisca). Para tirá-lo da tela, é só clicar no X.",
+      "Administradores cadastram o avatar na tela Personalizar: nome, imagem vetorial (.svg) e período de exibição."
+    ]
+  },
+  {
     build: 92,
     data: "2026-11-17",
     titulo: "Logo acompanha a cor do menu",

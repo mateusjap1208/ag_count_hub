@@ -43,6 +43,14 @@
 </aside>
 <% } %>
 
+<% const av = locals.avatarFlutuante; if (av) { %>
+<!-- Avatar comemorativo (cadastro em Personalizar): flutua no canto; cada pessoa pode fechar -->
+<aside class="avatar-flutuante" id="avatar-flutuante" data-avatar-id="<%= av.id %>" aria-label="<%= av.nome %>" hidden>
+  <img src="/avatar/<%= av.id %>.svg?v=<%= encodeURIComponent(av.updatedAt || '') %>" alt="<%= av.nome %>" width="120" height="120" draggable="false">
+  <button class="avatar-fechar" type="button" data-avatar-fechar aria-label="Fechar o avatar <%= av.nome %>" title="Fechar">&times;</button>
+</aside>
+<% } %>
+
 <!-- Aviso: arquivo sem competência no nome (uploads) -->
 <dialog class="modal" id="competencia-dialog" aria-labelledby="cd-title" aria-describedby="cd-text">
   <div class="modal-icon" aria-hidden="true"><%- include('icon', { name: 'clock' }) %></div>

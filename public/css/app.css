@@ -3229,3 +3229,48 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .troca-cores, .troca-cores *, .troca-cores *::before, .troca-cores *::after {
   transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease, box-shadow .4s ease !important;
 }
+
+/* =========================================================================
+   Avatar comemorativo flutuante (cadastro em Personalizar)
+   ========================================================================= */
+.avatar-flutuante {
+  position: fixed; right: 28px; bottom: 96px; z-index: 40; width: 120px; height: 120px;
+  animation: avatar-entra .5s ease-out both, avatar-flutua 4s ease-in-out .5s infinite;
+  filter: drop-shadow(0 10px 18px rgba(6, 23, 43, .25));
+}
+.avatar-flutuante[hidden] { display: none; }
+.avatar-flutuante img { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; }
+.avatar-fechar {
+  position: absolute; top: -6px; right: -6px; width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+  font-size: 17px; line-height: 1; cursor: pointer; display: grid; place-items: center;
+  opacity: 0; transition: opacity .2s ease; box-shadow: 0 2px 8px rgba(6, 23, 43, .18);
+}
+.avatar-flutuante:hover .avatar-fechar, .avatar-fechar:focus-visible { opacity: 1; }
+.avatar-fechar:hover { color: var(--danger); }
+@media (hover: none) { .avatar-fechar { opacity: 1; } }
+.avatar-flutuante.saindo { animation: avatar-sai .25s ease-in forwards; }
+@keyframes avatar-entra { from { opacity: 0; transform: translateY(24px) scale(.85); } to { opacity: 1; transform: none; } }
+@keyframes avatar-flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes avatar-sai { to { opacity: 0; transform: translateY(16px) scale(.85); } }
+@media (max-width: 640px) { .avatar-flutuante { width: 84px; height: 84px; right: 14px; bottom: 84px; } }
+@media (prefers-reduced-motion: reduce) { .avatar-flutuante, .avatar-flutuante.saindo { animation: none; } }
+
+/* Cadastro do avatar na tela Personalizar */
+.avatar-cad { margin-top: 18px; }
+.avatar-cad .form-grid { margin-bottom: 14px; }
+.avatar-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.avatar-item { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; }
+.avatar-item img { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; }
+.avatar-item .avatar-info { flex: 1; min-width: 0; }
+.avatar-item .avatar-info strong { display: block; color: var(--heading); }
+.avatar-cad .avatar-exemplo { font-weight: 600; }
+/* Enquanto o aviso de nova versão está aberto (mesmo canto), o avatar espera */
+body:has(.notif-toast:not([hidden])) .avatar-flutuante { display: none; }
+.avatar-codigo { width: 100%; min-height: 110px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.45; }
+.avatar-ou { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.avatar-ou .input { flex: 1; min-width: 0; }
+.avatar-previa { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 12px; }
+.avatar-previa[hidden] { display: none; }
+.avatar-previa img { width: 96px; height: 96px; object-fit: contain; }
+.avatar-previa-rotulo { font-size: 12px; font-weight: 600; color: var(--text-2); }

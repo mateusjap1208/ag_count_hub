@@ -238,6 +238,28 @@ module.exports = function createJsonRepositories(dataDir) {
     },
   };
 
+  /** Avatares comemorativos (imagem SVG flutuante, com período de exibição) */
+  const avataresFile = path.join(dataDir, 'avatares.json');
+  const avatares = {
+    // A lista vem sem o conteúdo da imagem (svg); a imagem sai só em get()
+    async list() { return (await readJson(avataresFile, [])).map(({ svg, ...a }) => a).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); },
+    async get(id) { return (await readJson(avataresFile, [])).find((a) => a.id === id) || null; },
+    async save(a) {
+      return withLock(async () => {
+        const all = await readJson(avataresFile, []);
+        const i = all.findIndex((x) => x.id === a.id);
+        if (i >= 0) all[i] = a; else all.push(a);
+        await writeJson(avataresFile, all);
+        return a;
+      });
+    },
+    async remove(id) {
+      return withLock(async () => {
+        await writeJson(avataresFile, (await readJson(avataresFile, [])).filter((a) => a.id !== id));
+      });
+    },
+  };
+
   /** Auditoria de login (arquivo login_audit.json, mais recente primeiro) */
   const loginsFile = path.join(dataDir, 'login_audit.json');
   const logins = {
@@ -259,5 +281,5 @@ module.exports = function createJsonRepositories(dataDir) {
     },
   };
 
-  return { users, companies, datasets, params, obras, mensagens, logins };
+  return { users, companies, datasets, params, obras, mensagens, avatares, logins };
 };

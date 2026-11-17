@@ -10,6 +10,7 @@ const Company = require('../models/Company');
 const fmt = require('../utils/format');
 const novidades = require('../services/novidades');
 const Mensagem = require('../models/Mensagem');
+const Avatar = require('../models/Avatar');
 const pendencias = require('../services/pendencias');
 
 const MULTI = ['estrutura', 'sigla', 'empresa', 'centro'];
@@ -97,6 +98,8 @@ async function viewLocals(req, res, next) {
       fmt,
       novidades: novidades.paraUsuario(req.user),
       mensagensRodape: await Mensagem.ativas().catch(() => []),
+      // Avatar comemorativo flutuante (cadastro em Personalizar), igual para todos no período
+      avatarFlutuante: await Avatar.atual().catch(() => null),
       // Selo de pendências no topo (administradores): valor em cache, calculado em segundo plano
       pendencias: req.session.user?.role === 'admin' && f.periodo ? pendencias.resumoRapido(f.periodo) : null,
     });

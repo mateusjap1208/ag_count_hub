@@ -270,8 +270,16 @@ module.exports = function createMongoRepositories(uri, dbName) {
     async remove(id) { await (await col('mensagens')).deleteOne({ id }); },
   };
 
+  const avatares = {
+    // A lista vem sem o conteúdo da imagem (svg); a imagem sai só em get()
+    async list() { return (await col('avatares')).find({}, { projection: { _id: 0, svg: 0 } }).sort({ createdAt: -1 }).toArray(); },
+    async get(id) { return (await col('avatares')).findOne({ id }, { projection: { _id: 0 } }); },
+    async save(a) { await (await col('avatares')).updateOne({ id: a.id }, { $set: a }, { upsert: true }); return a; },
+    async remove(id) { await (await col('avatares')).deleteOne({ id }); },
+  };
+
   return {
-    users, companies, datasets, params, obras, mensagens, logins,
+    users, companies, datasets, params, obras, mensagens, avatares, logins,
     /** Uso interno: store de sessão, health check e scripts */
     client, db, dbName,
     async ping() { await (await db()).command({ ping: 1 }); return true; },
