@@ -13,7 +13,7 @@
   const [t1x, t1y] = ponto(A100, R - 17), [t2x, t2y] = ponto(A100, R + 17), [lx, ly] = ponto(A100, R + 26);
 %>
 <section class="card bloco-largo ind-grupo velocimetros" data-ordem-chave="velocimetros">
-  <div class="card-head"><h2>Orçado x acumulado</h2><span class="hint">Quanto do orçado já foi realizado · <%= cur %></span></div>
+  <div class="card-head"><h2>Execução orçamentária</h2><span class="hint">Realizado acumulado em relação ao orçamento · <%= cur %></span></div>
   <div class="ind-cards">
     <% gauges.forEach(g => {
          const f = g.orcado ? g.realizado / g.orcado : null;

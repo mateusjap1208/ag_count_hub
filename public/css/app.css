@@ -3192,7 +3192,7 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 
 
 /* =========================================================================
- * Velocímetros "orçado x acumulado" (Receita · POC): 0–120% do orçado
+ * Velocímetros de execução orçamentária (Receita · POC): 0–120% do orçado
  * ========================================================================= */
 .g-trilha { stroke: var(--border); }
 .g-excesso { stroke: #B42318; opacity: .22; }
@@ -3200,6 +3200,11 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .g-marca { stroke: var(--heading); stroke-width: 2; }
 .g-marca-txt { font-size: 10px; font-weight: 700; fill: var(--muted); }
 .velocimetros .ind-card header h3 { line-height: 1.3; }
+/* Velocímetros ocupam toda a largura do quadro (sem coluna vazia) e ficam maiores */
+.velocimetros .ind-cards { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.velocimetros .gauge svg,
+.velocimetros .g-limites { max-width: 320px; }
+.velocimetros .g-valores { width: 100%; max-width: 420px; margin-inline: auto; }
 .g-valores { margin: 6px 0 0; display: grid; gap: 4px; font-size: 12px; }
 .g-valores div { display: flex; justify-content: space-between; gap: 8px; }
 .g-valores dt { color: var(--muted); }
