@@ -456,6 +456,13 @@
     let fechado = false;
     try { fechado = localStorage.getItem(chave) === '1'; } catch { /* sem armazenamento: mostra sempre */ }
     if (!fechado) avatarBox.hidden = false;
+    // Clique no avatar: abre ampliado no centro da tela (Esc, X ou clique fora fecham)
+    const zoom = document.getElementById('avatar-zoom');
+    if (zoom?.showModal) {
+      avatarBox.querySelector('[data-avatar-abrir]')?.addEventListener('click', () => zoom.showModal());
+      zoom.querySelector('[data-avatar-zoom-fechar]')?.addEventListener('click', () => zoom.close());
+      zoom.addEventListener('click', (e) => { if (e.target === zoom) zoom.close(); });
+    }
     avatarBox.querySelector('[data-avatar-fechar]')?.addEventListener('click', () => {
       avatarBox.classList.add('saindo');
       try { localStorage.setItem(chave, '1'); } catch { /* vale só nesta página */ }

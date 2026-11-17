@@ -45,10 +45,18 @@
 
 <% const av = locals.avatarFlutuante; if (av) { %>
 <!-- Avatar comemorativo (cadastro em Personalizar): flutua no canto; cada pessoa pode fechar -->
+<% const avSrc = '/avatar/' + av.id + '.svg?v=' + encodeURIComponent(av.updatedAt || ''); %>
 <aside class="avatar-flutuante" id="avatar-flutuante" data-avatar-id="<%= av.id %>" aria-label="<%= av.nome %>" hidden>
-  <img src="/avatar/<%= av.id %>.svg?v=<%= encodeURIComponent(av.updatedAt || '') %>" alt="<%= av.nome %>" width="120" height="120" draggable="false">
+  <button class="avatar-abrir" type="button" data-avatar-abrir aria-label="Ampliar o avatar <%= av.nome %>" title="Clique para ampliar">
+    <img src="<%= avSrc %>" alt="<%= av.nome %>" width="120" height="120" draggable="false">
+  </button>
   <button class="avatar-fechar" type="button" data-avatar-fechar aria-label="Fechar o avatar <%= av.nome %>" title="Fechar">&times;</button>
 </aside>
+<!-- Avatar ampliado no centro da tela (clique no avatar); fecha com Esc, no X ou clicando fora -->
+<dialog class="avatar-zoom" id="avatar-zoom" aria-label="<%= av.nome %>">
+  <img src="<%= avSrc %>" alt="<%= av.nome %>" draggable="false">
+  <button class="avatar-zoom-fechar" type="button" data-avatar-zoom-fechar aria-label="Fechar a imagem ampliada" title="Fechar">&times;</button>
+</dialog>
 <% } %>
 
 <!-- Aviso: arquivo sem competência no nome (uploads) -->
