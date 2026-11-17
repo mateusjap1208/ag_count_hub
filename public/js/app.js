@@ -520,15 +520,17 @@
     }));
     formCores.querySelectorAll('[data-padrao-de]').forEach((b) => b.addEventListener('click', () => {
       const s = seletores.find((x) => x.dataset.chave === b.dataset.padraoDe);
+      window.agchTheme?.fade();
       definir(s.dataset.chave, s.dataset.padrao);
       aplicar();
     }));
-    document.getElementById('pers-restaurar').addEventListener('click', () => { seletores.forEach((s) => definir(s.dataset.chave, s.dataset.padrao)); aplicar(); });
+    document.getElementById('pers-restaurar').addEventListener('click', () => { window.agchTheme?.fade(); seletores.forEach((s) => definir(s.dataset.chave, s.dataset.padrao)); aplicar(); });
     // Paletas prontas: amostras pintadas por JS (a política de segurança não permite estilo no HTML)
     document.querySelectorAll('.paleta-cor[data-cor]').forEach((el) => el.style.setProperty('background', el.dataset.cor));
     document.querySelectorAll('[data-paleta]').forEach((b) => b.addEventListener('click', () => {
       const p = dadosCores.paletas.find((x) => x.id === b.dataset.paleta);
       if (!p) return;
+      window.agchTheme?.fade();
       Object.entries(p.cores).forEach(([k, v]) => definir(k, v));
       document.querySelectorAll('[data-paleta]').forEach((x) => x.classList.toggle('ativa', x === b));
       aplicar();
