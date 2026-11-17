@@ -113,7 +113,7 @@ router.get('/novidades', (req, res) => res.render('novidades/index', {
 const coresCfg = require('../config/cores');
 router.get('/personalizar', (req, res) => res.render('personalizar/index', {
   title: 'Personalizar', subtitle: 'Escolha as cores do sistema', hideFilters: true,
-  campos: coresCfg.CAMPOS, paletas: coresCfg.PALETAS, atuais: req.user.cores || {},
+  campos: coresCfg.CAMPOS, paletas: coresCfg.PALETAS, menu: coresCfg.MENU, menuPadrao: coresCfg.MENU_PADRAO, atuais: req.user.cores || {},
 }));
 router.post('/api/preferencias/cores', express.json({ limit: '2kb' }), verifyCsrf, async (req, res, next) => {
   try {

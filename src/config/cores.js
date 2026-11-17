@@ -35,6 +35,44 @@ const PALETAS = [
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
+/**
+ * Tom do menu: a cor principal um pouco mais saturada e escura, para destacar do fundo da tela.
+ * (A mesma conta existe em public/js/app.js para a prévia ao vivo.)
+ */
+function corMenu(hex) {
+  let [r, g, b] = rgb(hex).map((v) => v / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (d) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h /= 6;
+  }
+  s = Math.min(1, s * 1.15 + 0.05);
+  l *= 0.82;
+  const f = (n) => { const k = (n + h * 12) % 12; const a = s * Math.min(l, 1 - l); return Math.round((l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))) * 255); };
+  return '#' + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+/** Variáveis do menu lateral quando a cor principal é personalizada ('principal' = tom do menu) */
+const MENU = {
+  'menu-bg': 'principal',
+  'menu-item': 'rgba(255, 255, 255, .9)',
+  'menu-label': 'rgba(255, 255, 255, .72)',
+  'menu-line': 'rgba(255, 255, 255, .22)',
+  'menu-hover': 'rgba(255, 255, 255, .14)',
+  'menu-marca': '#FFFFFF',
+};
+/** Menu padrão (azul-escuro), usado na prévia ao voltar a cor principal ao padrão */
+const MENU_PADRAO = {
+  'menu-bg': '#06172B',
+  'menu-item': '#B8C4D6',
+  'menu-label': '#6F7F98',
+  'menu-line': 'rgba(255, 255, 255, .08)',
+  'menu-hover': 'rgba(255, 255, 255, .06)',
+  'menu-marca': 'var(--consag-cyan, #4FA3FF)',
+};
+
 /** Só aceita cores hexadecimais válidas e diferentes do padrão; nada válido → null (volta ao padrão) */
 function normalizar(entrada) {
   if (!entrada || typeof entrada !== 'object') return null;
@@ -58,6 +96,10 @@ function css(cores) {
   if (c.principal) {
     claro.push(`--consag-blue: ${c.principal}`, `--blue-soft: ${rgba(c.principal, 0.1)}`, `--chip-border: ${rgba(c.principal, 0.4)}`, `--section-bg: ${rgba(c.principal, 0.08)}`, `--dropzone-border: ${rgba(c.principal, 0.35)}`);
     escuro.push(`--consag-blue: ${c.principal}`, `--blue-soft: ${rgba(c.principal, 0.18)}`, `--chip-border: ${rgba(c.principal, 0.45)}`, `--section-bg: ${rgba(c.principal, 0.16)}`);
+    // Menu lateral com fundo na cor principal (textos em branco translúcido)
+    const menu = Object.entries(MENU).map(([k, v]) => `--${k}: ${v === 'principal' ? corMenu(c.principal) : v}`);
+    claro.push(...menu);
+    escuro.push(...menu);
   }
   if (c.titulos) claro.push(`--heading: ${c.titulos}`);
   if (c.fundo) claro.push(`--bg: ${c.fundo}`, `--topbar-bg: ${rgba(c.fundo, 0.92)}`);
@@ -72,4 +114,4 @@ function css(cores) {
 /** Versão curta para o endereço do CSS (muda quando as cores mudam) */
 const versao = (cores) => crypto.createHash('sha1').update(JSON.stringify(normalizar(cores) || {})).digest('hex').slice(0, 10);
 
-module.exports = { CAMPOS, PALETAS, normalizar, css, versao };
+module.exports = { CAMPOS, PALETAS, MENU, MENU_PADRAO, corMenu, normalizar, css, versao };
