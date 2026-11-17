@@ -54,6 +54,65 @@
       </div>
     </div>
   </div>
+
+  <% if (avatarAdmin) { const af = avatarForm, v = af.values || {}, er = af.errors || {}; %>
+  <!-- Avatar comemorativo: imagem SVG (pode ser animada) que flutua para todos entre as datas -->
+  <div class="grid grid-2 avatar-cad" id="avatar">
+    <form class="card" method="post" action="/personalizar/avatar" enctype="multipart/form-data" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="card-head"><h2>Avatar comemorativo</h2><span class="hint">Aparece flutuando no canto da tela, para todos</span></div>
+      <% if (af.flash) { %><div class="alert alert-ok"><%= af.flash %></div><% } %>
+      <% if (af.error) { %><div class="alert alert-err"><%= af.error %></div><% } %>
+      <div class="form-grid">
+        <div class="field full <%= er.nome ? 'has-error' : '' %>">
+          <label for="av-nome">Nome *</label>
+          <input class="input" id="av-nome" name="nome" value="<%= v.nome || '' %>" maxlength="60" autocomplete="off" placeholder="Ex.: Natal">
+          <% if (er.nome) { %><div class="field-error"><%= er.nome %></div><% } %>
+        </div>
+        <div class="field full <%= er.arquivo ? 'has-error' : '' %>">
+          <label for="av-arquivo">Imagem vetorial (.svg) *</label>
+          <input class="input" id="av-arquivo" name="arquivo" type="file" accept=".svg,image/svg+xml">
+          <% if (er.arquivo) { %><div class="field-error"><%= er.arquivo %></div><% } else { %><div class="help">Até 300 KB. Pode ter animação (CSS ou SMIL), mas sem scripts nem links externos. <a class="avatar-exemplo" href="/static/img/comemorativos/arvore-natal.svg" download>Baixar exemplo: árvore de Natal com pisca-pisca</a></div><% } %>
+        </div>
+        <div class="field <%= er.inicio ? 'has-error' : '' %>">
+          <label for="av-inicio">Exibir a partir de *</label>
+          <input class="input" id="av-inicio" name="inicio" type="date" value="<%= v.inicio || '' %>">
+          <% if (er.inicio) { %><div class="field-error"><%= er.inicio %></div><% } %>
+        </div>
+        <div class="field <%= er.fim ? 'has-error' : '' %>">
+          <label for="av-fim">Exibir até *</label>
+          <input class="input" id="av-fim" name="fim" type="date" value="<%= v.fim || '' %>">
+          <% if (er.fim) { %><div class="field-error"><%= er.fim %></div><% } %>
+        </div>
+      </div>
+      <div class="msg-form-actions"><button class="btn btn-primary" type="submit">Cadastrar avatar</button></div>
+    </form>
+
+    <div class="card">
+      <div class="card-head"><h2>Avatares cadastrados</h2><span class="hint"><%= avatares.filter(a => a.situacao === 'No ar').length %> no ar</span></div>
+      <% if (!avatares.length) { %>
+        <p class="hint">Nenhum avatar cadastrado ainda.</p>
+      <% } else { %>
+        <ul class="avatar-lista">
+          <% avatares.forEach(a => { %>
+            <li class="avatar-item">
+              <img src="/avatar/<%= a.id %>.svg?v=<%= encodeURIComponent(a.updatedAt || '') %>" alt="" loading="lazy">
+              <div class="avatar-info">
+                <strong><%= a.nome %></strong>
+                <span class="hint"><span class="msg-sit <%= a.situacao === 'No ar' ? 'on' : 'off' %>"><%= a.situacao %></span> · de <%= a.inicio.split('-').reverse().join('/') %> até <%= a.fim.split('-').reverse().join('/') %></span>
+              </div>
+              <form method="post" action="/personalizar/avatar/<%= a.id %>/excluir" data-confirm="Excluir o avatar <%= a.nome %>?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-danger-outline btn-sm" type="submit">Excluir</button>
+              </form>
+            </li>
+          <% }) %>
+        </ul>
+        <p class="hint">Se dois avatares estiverem no ar ao mesmo tempo, aparece o cadastrado por último.</p>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
 </section>
 <script type="application/json" id="pers-dados"><%- JSON.stringify({ paletas: paletas.map(p => ({ id: p.id, cores: p.cores })), menu, menuPadrao }).replace(/</g, '\\u003c') %></script>
 

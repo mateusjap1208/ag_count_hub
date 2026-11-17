@@ -449,6 +449,20 @@
   }
 
   /* ---------- Painel de filtros: abre ao passar o mouse (CSS); o clique fixa/solta, Esc e clique fora fecham ---------- */
+  /* ---------- Avatar comemorativo flutuante: aparece até a pessoa fechar (lembrado neste navegador) ---------- */
+  const avatarBox = document.getElementById('avatar-flutuante');
+  if (avatarBox) {
+    const chave = `agch-avatar-fechado-${avatarBox.dataset.avatarId}`;
+    let fechado = false;
+    try { fechado = localStorage.getItem(chave) === '1'; } catch { /* sem armazenamento: mostra sempre */ }
+    if (!fechado) avatarBox.hidden = false;
+    avatarBox.querySelector('[data-avatar-fechar]')?.addEventListener('click', () => {
+      avatarBox.classList.add('saindo');
+      try { localStorage.setItem(chave, '1'); } catch { /* vale só nesta página */ }
+      setTimeout(() => { avatarBox.hidden = true; }, 250);
+    });
+  }
+
   /* ---------- Personalizar: cores do sistema com prévia ao vivo ---------- */
   const formCores = document.getElementById('form-cores');
   if (formCores) {

@@ -111,10 +111,68 @@ router.get('/novidades', (req, res) => res.render('novidades/index', {
 }));
 // Personalizar cores (preferência de cada usuário)
 const coresCfg = require('../config/cores');
-router.get('/personalizar', (req, res) => res.render('personalizar/index', {
-  title: 'Personalizar', subtitle: 'Escolha as cores do sistema', hideFilters: true,
-  campos: coresCfg.CAMPOS, paletas: coresCfg.PALETAS, menu: coresCfg.MENU, menuPadrao: coresCfg.MENU_PADRAO, atuais: req.user.cores || {},
-}));
+const Avatar = require('../models/Avatar');
+router.get('/personalizar', async (req, res, next) => {
+  try {
+    // Avatar comemorativo: cadastro só para administradores
+    const admin = req.user.role === 'admin';
+    const avatarForm = req.session.avatarForm || null;
+    delete req.session.avatarForm;
+    res.render('personalizar/index', {
+      title: 'Personalizar', subtitle: 'Escolha as cores do sistema', hideFilters: true,
+      campos: coresCfg.CAMPOS, paletas: coresCfg.PALETAS, menu: coresCfg.MENU, menuPadrao: coresCfg.MENU_PADRAO, atuais: req.user.cores || {},
+      avatarAdmin: admin,
+      avatares: admin ? (await Avatar.list()).map((a) => ({ ...a, situacao: Avatar.situacao(a) })) : [],
+      avatarForm: avatarForm || { values: {}, errors: {}, error: null, flash: null },
+    });
+  } catch (e) { next(e); }
+});
+
+// Avatar comemorativo (imagem SVG flutuante para todos, com período de exibição)
+const avatarUploader = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: Avatar.MAX_BYTES, files: 1 },
+  fileFilter: (req, file, cb) => {
+    if (/\.svg$/i.test(file.originalname)) return cb(null, true);
+    return cb(new Error('Envie a imagem em formato vetorial (.svg).'));
+  },
+});
+const voltarAvatar = (req, res, form) => { req.session.avatarForm = form; return res.redirect('/personalizar#avatar'); };
+router.post('/personalizar/avatar', requireAdmin, avatarUploader.single('arquivo'), verifyCsrf, async (req, res, next) => {
+  try {
+    await Avatar.save(req.body, req.file, { actor: req.user });
+    return voltarAvatar(req, res, { values: {}, errors: {}, flash: 'Avatar cadastrado. Ele aparece para todos no período escolhido.' });
+  } catch (e) {
+    if (e instanceof Avatar.AvatarError) return voltarAvatar(req, res, { values: req.body, errors: e.fields || {}, error: e.message });
+    return next(e);
+  }
+}, (err, req, res, next) => {
+  // Erros do envio (arquivo grande demais ou formato errado)
+  if (err instanceof multer.MulterError || /svg/i.test(err?.message || '')) {
+    const msg = err.code === 'LIMIT_FILE_SIZE' ? 'A imagem precisa ter no máximo 300 KB.' : err.message;
+    return voltarAvatar(req, res, { values: {}, errors: { arquivo: msg }, error: 'Verifique os campos destacados.' });
+  }
+  return next(err);
+});
+router.post('/personalizar/avatar/:id/excluir', requireAdmin, verifyCsrf, async (req, res, next) => {
+  try {
+    await Avatar.remove(req.params.id);
+    return voltarAvatar(req, res, { values: {}, errors: {}, flash: 'Avatar excluído.' });
+  } catch (e) { return next(e); }
+});
+// A imagem é servida com CSP própria e restrita: sem scripts e isolada (sandbox), só estilos e animações
+router.get('/avatar/:id.svg', async (req, res, next) => {
+  try {
+    const a = await Avatar.get(req.params.id);
+    if (!a) return res.status(404).end();
+    res.set({
+      'Content-Type': 'image/svg+xml; charset=utf-8',
+      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox",
+      'Cache-Control': req.query.v ? 'private, max-age=31536000, immutable' : 'private, no-cache',
+    });
+    return res.send(a.svg);
+  } catch (e) { return next(e); }
+});
 router.post('/api/preferencias/cores', express.json({ limit: '2kb' }), verifyCsrf, async (req, res, next) => {
   try {
     const cores = await User.saveCores(req.user.id, req.body?.cores);

@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 93,
+    data: "2026-11-17",
+    titulo: "Avatar comemorativo",
+    itens: [
+      "Datas especiais ganham um avatar animado flutuando no canto da tela (por exemplo, uma árvore de Natal com pisca-pisca). Para tirá-lo da tela, é só clicar no X.",
+      "Administradores cadastram o avatar na tela Personalizar: nome, imagem vetorial (.svg) e período de exibição."
+    ]
+  },
+  {
     build: 92,
     data: "2026-11-17",
     titulo: "Logo acompanha a cor do menu",
