@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 95,
+    data: "2026-11-17",
+    titulo: "Avatar ampliado",
+    itens: [
+      "Clique no avatar comemorativo para vê-lo grande, no centro da tela. Para voltar, use o X, a tecla Esc ou clique fora da imagem."
+    ]
+  },
+  {
     build: 94,
     data: "2026-11-17",
     titulo: "Avatar a partir de código SVG",
