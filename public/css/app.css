@@ -3221,3 +3221,11 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .telas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; margin-top: 10px; }
 .tela-opcao { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
 #telas-wrap.has-error .telas-grid { outline: 1px solid var(--danger); outline-offset: 6px; border-radius: 8px; }
+
+/* Logo AG no menu: as peças azul-marinho (e o miolo do G) acompanham o fundo do menu */
+.sidebar .logo-andrade [fill="#0B1730"] { fill: var(--sb-bg, #0B1730); }
+
+/* Troca de tema ou de paleta: as cores mudam com um fade curto (classe ligada só durante a troca) */
+.troca-cores, .troca-cores *, .troca-cores *::before, .troca-cores *::after {
+  transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease, box-shadow .4s ease !important;
+}

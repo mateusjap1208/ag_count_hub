@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 92,
+    data: "2026-11-17",
+    titulo: "Logo acompanha a cor do menu",
+    itens: [
+      "O fundo da logo Andrade Gutierrez no menu lateral agora acompanha a cor do menu.",
+      "A troca entre tema claro e escuro e a escolha de uma paleta em Personalizar agora acontecem com uma transição suave das cores."
+    ]
+  },
+  {
     build: 91,
     data: "2026-11-17",
     titulo: "Menu na cor da paleta",
