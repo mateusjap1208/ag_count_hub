@@ -13,14 +13,24 @@ const CAMPOS = [
   { chave: 'negativo', rotulo: 'Valores negativos', ajuda: 'Valores negativos, prejuízo e alertas.', padrao: '#D2232A' },
 ];
 
-/** Paletas prontas (só preenchem os campos; a pessoa ainda pode ajustar cada cor) */
+/**
+ * Paletas prontas, uma por empresa do grupo, a partir dos manuais de identidade visual
+ * (só preenchem os campos; a pessoa ainda pode ajustar cada cor).
+ * Na cor principal, usamos o azul da marca que funciona nos temas claro e escuro.
+ * Quando o manual não traz uma cor para o campo, usamos a paleta digital do Grupo AG
+ * (positivo #009360 e negativo #D2232A) ou o fundo padrão do sistema (#F4F6FA).
+ */
 const PALETAS = [
+  // CONSAG: azul vivo, azul-escuro principal; verde e vermelho da paleta digital
   { id: 'consag', nome: 'CONSAG (padrão)', cores: { principal: '#3074F6', titulos: '#06172B', fundo: '#F4F6FA', positivo: '#009360', negativo: '#D2232A' } },
-  { id: 'petroleo', nome: 'Petróleo', cores: { principal: '#2D758E', titulos: '#0E2A33', fundo: '#F2F6F7', positivo: '#1E8C5A', negativo: '#C8372D' } },
-  { id: 'esmeralda', nome: 'Esmeralda', cores: { principal: '#0E8F63', titulos: '#0B2A20', fundo: '#F3F7F5', positivo: '#0E8F63', negativo: '#D2232A' } },
-  { id: 'violeta', nome: 'Violeta', cores: { principal: '#6A4CE0', titulos: '#1D1640', fundo: '#F6F5FB', positivo: '#13906A', negativo: '#D2335A' } },
-  { id: 'laranja', nome: 'Laranja', cores: { principal: '#D9570B', titulos: '#2B1A0E', fundo: '#FAF6F2', positivo: '#13804F', negativo: '#C21F2B' } },
-  { id: 'grafite', nome: 'Grafite', cores: { principal: '#3E4C63', titulos: '#111827', fundo: '#F3F4F6', positivo: '#15803D', negativo: '#B91C1C' } },
+  // AGSA: Pantone 312 (principal), Pantone 303 (títulos), Pantone 7534 (fundo)
+  { id: 'agsa', nome: 'AGSA', cores: { principal: '#00A1D4', titulos: '#001434', fundo: '#EDE8DF', positivo: '#009360', negativo: '#D2232A' } },
+  // AGCS: mesmo manual da marca Andrade Gutierrez (mesmas cores da AGSA)
+  { id: 'agcs', nome: 'AGCS', cores: { principal: '#00A1D4', titulos: '#001434', fundo: '#EDE8DF', positivo: '#009360', negativo: '#D2232A' } },
+  // MOVAG: azul vivo e azul-marinho institucional
+  { id: 'movag', nome: 'MOVAG', cores: { principal: '#3074F6', titulos: '#0A182B', fundo: '#F4F6FA', positivo: '#009360', negativo: '#D2232A' } },
+  // VERTIN: azul elétrico e grafite principal
+  { id: 'vertin', nome: 'VERTIN', cores: { principal: '#005CFB', titulos: '#3E3E3D', fundo: '#F4F6FA', positivo: '#009360', negativo: '#D2232A' } },
 ];
 
 const HEX = /^#[0-9a-f]{6}$/i;
