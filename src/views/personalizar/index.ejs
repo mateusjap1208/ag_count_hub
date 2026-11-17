@@ -55,6 +55,6 @@
     </div>
   </div>
 </section>
-<script type="application/json" id="pers-dados"><%- JSON.stringify({ paletas: paletas.map(p => ({ id: p.id, cores: p.cores })) }).replace(/</g, '\\u003c') %></script>
+<script type="application/json" id="pers-dados"><%- JSON.stringify({ paletas: paletas.map(p => ({ id: p.id, cores: p.cores })), menu, menuPadrao }).replace(/</g, '\\u003c') %></script>
 
 <%- include('../partials/layout-end') %>

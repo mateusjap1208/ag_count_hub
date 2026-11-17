@@ -3074,11 +3074,13 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
    Menu sempre azul-escuro (tema claro e escuro) e logo maior
    ========================================================================= */
 :root .sidebar {
-  --sb-bg: #06172B; --sb-text: #B8C4D6; --sb-muted: #6F7F98; --sb-line: rgba(255, 255, 255, .08); --sb-hover: rgba(255, 255, 255, .06); --sb-strong: #FFFFFF;
+  /* --menu-*: vêm das cores do usuário (Personalizar); sem elas, o menu fica azul-escuro */
+  --sb-bg: var(--menu-bg, #06172B); --sb-text: var(--menu-item, #B8C4D6); --sb-muted: var(--menu-label, #6F7F98);
+  --sb-line: var(--menu-line, rgba(255, 255, 255, .08)); --sb-hover: var(--menu-hover, rgba(255, 255, 255, .06)); --sb-strong: #FFFFFF;
   background: var(--sb-bg); box-shadow: 0 0 0 1px #1B2E4A, 0 10px 30px rgba(6, 23, 43, .25);
 }
-:root .sidebar .nav-item, :root .sidebar .brand-mini { color: #B8C4D6; }
-:root .sidebar .nav-label, :root .sidebar .user-info span, :root .sidebar .brand-text span, :root .sidebar .sidebar-tagline { color: #6F7F98; }
+:root .sidebar .nav-item, :root .sidebar .brand-mini { color: var(--sb-text); }
+:root .sidebar .nav-label, :root .sidebar .user-info span, :root .sidebar .brand-text span, :root .sidebar .sidebar-tagline { color: var(--sb-muted); }
 :root .sidebar .nav-item:hover { color: #FFFFFF; }
 :root .sidebar .nav-item.active, :root .sidebar .nav-item.active:hover { color: #FFFFFF; }
 :root .sidebar .nav { scrollbar-color: rgba(255, 255, 255, .14) transparent; }
@@ -3182,9 +3184,9 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 :root .sidebar .nav-item.active:hover { background: var(--sb-hover); }
 :root .sidebar .nav-item.active::before {
   content: ''; position: absolute; left: 0; top: 50%; width: 3px; height: 60%; border-radius: 3px;
-  background: var(--consag-cyan, #4FA3FF); transform: translateY(-50%);
+  background: var(--menu-marca, var(--consag-cyan, #4FA3FF)); transform: translateY(-50%);
 }
-:root .sidebar .nav-item.active .nav-icon { color: var(--consag-cyan, #4FA3FF); }
+:root .sidebar .nav-item.active .nav-icon { color: var(--menu-marca, var(--consag-cyan, #4FA3FF)); }
 
 /* Botão de Upload na barra superior (ao lado de Filtros) */
 .topo-upload { text-decoration: none; }

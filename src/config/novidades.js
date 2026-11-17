@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 91,
+    data: "2026-11-17",
+    titulo: "Menu na cor da paleta",
+    itens: [
+      "Ao escolher uma paleta ou uma cor principal na tela Personalizar, o menu lateral passa a usar essa cor, num tom um pouco mais forte para destacar do fundo da tela. Na cor padrão, o menu continua azul-escuro."
+    ]
+  },
+  {
     build: 90,
     data: "2026-11-17",
     titulo: "Paletas das empresas do grupo",

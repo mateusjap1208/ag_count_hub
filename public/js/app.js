@@ -463,6 +463,21 @@
     const rgbaDe = (h, a) => `rgba(${rgbDe(h).join(', ')}, ${a})`;
     const luz = (h) => { const [r, g, b] = rgbDe(h).map((v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
     const contrasteBranco = (h) => 1.05 / (luz(h) + 0.05);
+    // Tom do menu: cor principal mais saturada e escura (mesma conta de corMenu em src/config/cores.js)
+    const corMenu = (hex) => {
+      const [r, g, b] = rgbDe(hex).map((v) => v / 255);
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+      let h = 0, s = 0, l = (max + min) / 2;
+      if (d) {
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+        h /= 6;
+      }
+      s = Math.min(1, s * 1.15 + 0.05);
+      l *= 0.82;
+      const f = (n) => { const k = (n + h * 12) % 12; const a = s * Math.min(l, 1 - l); return Math.round((l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))) * 255); };
+      return '#' + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+    };
     const valores = () => Object.fromEntries(seletores.map((s) => [s.dataset.chave, s.value.toUpperCase()]));
     let salvo = JSON.stringify(valores());
 
@@ -481,6 +496,10 @@
       set('--topbar-bg', escuro ? null : rgbaDe(v.fundo, 0.92));
       set('--ok', v.positivo);
       set('--danger', v.negativo);
+      // Menu lateral na cor principal (só quando ela foge do padrão; no padrão o menu fica azul-escuro)
+      const padraoPrincipal = seletores.find((s) => s.dataset.chave === 'principal')?.dataset.padrao || '';
+      const menuCor = v.principal !== padraoPrincipal.toUpperCase();
+      Object.entries(dadosCores.menu || {}).forEach(([k, val]) => set(`--${k}`, menuCor ? (val === 'principal' ? corMenu(v.principal) : val) : (dadosCores.menuPadrao || {})[k]));
       aviso2.hidden = contrasteBranco(v.principal) >= 3;
       btnSalvar.disabled = JSON.stringify(v) === salvo;
     };
