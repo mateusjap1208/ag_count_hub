@@ -19,6 +19,7 @@ function money(code = 'BRL', compact = false) {
   return moneyFmt.get(k);
 }
 
+const TZ = 'America/Sao_Paulo';
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const MONTHS_FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -37,7 +38,9 @@ module.exports = {
   /** Empresa para listas: só o código ("1000") sem nome cadastrado, ou "1000 · Nome" (com T001) */
   company: (c) => (!c ? '—' : (!c.name || c.name === c.code || c.name === `Empresa ${c.code}` ? c.code : `${c.code} · ${c.name}`)),
   date: (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '—'),
-  dateTime: (iso) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).replace(',', '') : '—'),
+  // Horário de Brasília: o servidor (Vercel) roda em UTC, então o fuso precisa ser explícito
+  dateTime: (iso) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: TZ }).replace(',', '') : '—'),
+  dateTimeSec: (iso) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium', timeZone: TZ }).replace(',', '') : '—'),
   period: (p) => (p ? `${MONTHS[Number(p.slice(5, 7)) - 1]}/${p.slice(0, 4)}` : '—'),
   periodFull: (p) => (p ? `${MONTHS_FULL[Number(p.slice(5, 7)) - 1]} de ${p.slice(0, 4)}` : '—'),
 };

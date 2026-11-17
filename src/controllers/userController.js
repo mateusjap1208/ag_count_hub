@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Report = require('../models/Report');
 const Company = require('../models/Company');
 const { invalidateUser } = require('../middlewares/auth');
+const Telas = require('../config/telas');
 
 /**
  * Catálogo de centros de lucro para o seletor de permissões:
@@ -38,12 +39,12 @@ async function renderForm(res, { form, editing, errors = {}, error = null }) {
   const catalog = await centrosCatalog();
   res.render('users/form', {
     title: editing ? `Editar usuário` : 'Novo usuário', hideFilters: true, subtitle: 'Usuários',
-    form, editing, errors, error, catalog, ROLES: User.ROLES,
+    form, editing, errors, error, catalog, ROLES: User.ROLES, TELAS: Telas.TELAS,
   });
 }
 
 exports.newForm = async (req, res, next) => {
-  try { await renderForm(res, { form: { role: 'viewer', active: true, todosCentros: false, centros: [] }, editing: null }); } catch (e) { next(e); }
+  try { await renderForm(res, { form: { role: 'viewer', active: true, todosCentros: false, centros: [], todasTelas: true, telas: [] }, editing: null }); } catch (e) { next(e); }
 };
 
 exports.editForm = async (req, res, next) => {
@@ -57,6 +58,7 @@ exports.editForm = async (req, res, next) => {
 const fromBody = (b) => ({
   name: b.name, email: b.email, password: b.password, passwordConfirm: b.passwordConfirm,
   role: b.role, active: b.active === 'on', todosCentros: b.todosCentros === 'on', centros: b.centros,
+  todasTelas: b.todasTelas === 'on', telas: b.telas,
 });
 
 exports.save = async (req, res, next) => {
@@ -72,7 +74,7 @@ exports.save = async (req, res, next) => {
       res.status(422);
       const editing = id ? await User.get(id) : null;
       const centros = String(input.centros || '').split(',').map((c) => c.trim()).filter(Boolean);
-      return renderForm(res, { form: { ...input, centros, password: '', passwordConfirm: '' }, editing, errors: e.fields || {}, error: e.message }).catch(next);
+      return renderForm(res, { form: { ...input, centros, telas: Telas.normalizar(input.telas), password: '', passwordConfirm: '' }, editing, errors: e.fields || {}, error: e.message }).catch(next);
     }
     next(e);
   }

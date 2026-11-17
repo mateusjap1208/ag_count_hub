@@ -2,7 +2,9 @@ const express = require('express');
 const multer = require('multer');
 const rateLimit = require('express-rate-limit');
 const config = require('../config');
-const { requireAuth, requireAdmin, redirectIfAuthenticated, invalidateUser } = require('../middlewares/auth');
+const { requireAuth, requireAdmin, requireTela, redirectIfAuthenticated, invalidateUser } = require('../middlewares/auth');
+const Telas = require('../config/telas');
+const telaModulo = requireTela((req) => req.params.slug);
 const { csrfToken, verifyCsrf } = require('../middlewares/csrf');
 const { viewLocals } = require('../middlewares/locals');
 const novidadesSvc = require('../services/novidades');
@@ -72,10 +74,10 @@ router.post('/logout', csrfToken, csrfLogout, auth.logout);
 // Área autenticada
 router.use(requireAuth, csrfToken);
 
-router.get('/api/modulos/:slug/linhas', modules.rows);
-router.get('/api/seguros/linha-do-tempo', modules.seguroTimeline);
-router.get('/modulos/:slug/exportar.csv', modules.exportCsv);
-router.get('/modulos/:slug/exportar.xlsx', modules.exportXlsx);
+router.get('/api/modulos/:slug/linhas', telaModulo, modules.rows);
+router.get('/api/seguros/linha-do-tempo', requireTela('seguros-garantias'), modules.seguroTimeline);
+router.get('/modulos/:slug/exportar.csv', telaModulo, modules.exportCsv);
+router.get('/modulos/:slug/exportar.xlsx', telaModulo, modules.exportXlsx);
 router.get('/api/parametros/conta/:conta', parameters.classify);
 router.get('/api/parametros/:id/linhas', requireAdmin, parameters.rows);
 // Vincular conta "a classificar" a partir da tela (popup no olho das contas)
@@ -94,7 +96,15 @@ router.put('/api/parametros/:id/linhas/:i', requireAdmin, express.json({ limit: 
 router.delete('/api/parametros/:id/linhas/:i', requireAdmin, express.json({ limit: '20kb' }), verifyCsrf, parameters.deleteRow);
 
 router.use(viewLocals);
-router.get('/', dashboard.index);
+// Visão Geral: sem essa tela liberada, vai para a primeira tela que o usuário pode ver
+router.get('/', (req, res, next) => {
+  if (Telas.podeVer(req.user, 'visao-geral')) return dashboard.index(req, res, next);
+  const t = Telas.primeiraTela(req.user);
+  if (t) return res.redirect(t.path);
+  const err = new Error('Nenhuma tela liberada para o seu usuário. Peça a liberação a um administrador.');
+  err.status = 403;
+  return next(err);
+});
 // Novidades: histórico das versões e "Entendi" do aviso de atualização
 router.get('/novidades', (req, res) => res.render('novidades/index', {
   title: 'Novidades', subtitle: 'O que mudou em cada versão', hideFilters: true, historico: novidadesSvc.historico(),
@@ -140,7 +150,7 @@ router.post('/novidades/visto', verifyCsrf, async (req, res, next) => {
   } catch (e) { return next(e); }
 });
 // Indicadores da análise do balanço (liquidez, rentabilidade, estrutura de capital)
-router.get('/indicadores', async (req, res, next) => {
+router.get('/indicadores', requireTela('indicadores'), async (req, res, next) => {
   try {
     const { scope } = res.locals;
     const ind = scope.period ? await indicadores.calcular(scope) : null;
@@ -178,7 +188,7 @@ router.get('/sobre', (req, res) => res.render('about/index', {
     { nome: 'Mateus Aguiar Paula', github: 'mateusjap1208', email: 'mateus.paula@agnet.com.br' },
   ],
 }));
-router.get('/modulos/:slug', modules.show);
+router.get('/modulos/:slug', telaModulo, modules.show);
 
 router.get('/upload', requireAdmin, upload.index);
 router.get('/upload/modelo/:slug.txt', requireAdmin, upload.template);
@@ -192,6 +202,19 @@ router.post('/usuarios', requireAdmin, verifyCsrf, usersCtl.save);
 router.get('/usuarios/:id/editar', requireAdmin, usersCtl.editForm);
 router.post('/usuarios/:id', requireAdmin, verifyCsrf, usersCtl.save);
 router.post('/usuarios/:id/excluir', requireAdmin, verifyCsrf, usersCtl.remove);
+
+// Auditoria de login (somente administradores)
+router.get('/auditoria-login', requireAdmin, async (req, res, next) => {
+  try {
+    const LoginAudit = require('../models/LoginAudit');
+    const f = { q: String(req.query.q || ''), de: String(req.query.de || ''), ate: String(req.query.ate || ''), resultado: String(req.query.resultado || '') };
+    const registros = await LoginAudit.listar(f);
+    res.render('auditoria/index', {
+      title: 'Auditoria de login', subtitle: 'Quem entrou no sistema, quando e de onde', hideFilters: true,
+      registros, f, dispositivo: LoginAudit.dispositivo,
+    });
+  } catch (e) { next(e); }
+});
 
 // Arrendamento (IFRS 16)
 router.get('/arrendamento/importar', requireAdmin, arrendamentoCtl.index);

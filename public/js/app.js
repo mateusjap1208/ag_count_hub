@@ -1612,10 +1612,19 @@
       const admin = $('input[name="role"]:checked', userForm)?.value === 'admin';
       $('#access-body').hidden = admin;
       $('#admin-note').hidden = !admin;
+      if ($('#telas-body')) { $('#telas-body').hidden = admin; $('#telas-admin-note').hidden = !admin; }
     };
     $$('input[name="role"]', userForm).forEach((r) => r.addEventListener('change', syncRole));
     const todos = $('#f-todos');
     todos.addEventListener('change', () => { $('#picker-wrap').hidden = todos.checked; });
+    // Telas liberadas: "Todas as telas" esconde a lista; atalhos para marcar/desmarcar
+    const todasTelas = $('#f-todas-telas');
+    if (todasTelas) {
+      todasTelas.addEventListener('change', () => { $('#telas-wrap').hidden = todasTelas.checked; });
+      $$('[data-telas]', userForm).forEach((b) => b.addEventListener('click', () => {
+        $$('input[name="telas"]', userForm).forEach((c) => { c.checked = b.dataset.telas === 'todas'; });
+      }));
+    }
 
     const render = () => {
       hidden.value = [...selected].sort().join(',');

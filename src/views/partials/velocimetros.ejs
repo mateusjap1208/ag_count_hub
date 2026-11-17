@@ -1,0 +1,49 @@
+<%#
+  Velocímetros "orçado x acumulado" (ex.: Receita · POC).
+  Escala de 0% a 120% do orçado: até 100% = dentro do orçado; acima de 100% = faixa vermelha (acima do orçado).
+  Recebe: gauges [{ id, nome, orcado, realizado, rotuloOrcado, rotuloRealizado, hint? }], cur, fmt
+%>
+<%
+  const R = 78, CX = 100, CY = 100, MAX = 1.2;
+  const ponto = (graus, r = R) => { const a = graus * Math.PI / 180; return [(CX + r * Math.cos(a)).toFixed(2), (CY - r * Math.sin(a)).toFixed(2)]; };
+  const arco = (de, ate) => { const [x1, y1] = ponto(de); const [x2, y2] = ponto(ate); return `M ${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2}`; };
+  const ang = (f) => 180 - (Math.min(Math.max(f, 0), MAX) / MAX) * 180; // fração do orçado → grau no semicírculo
+  const A100 = ang(1);
+  const pctTxt = (f) => (f * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+  const [t1x, t1y] = ponto(A100, R - 17), [t2x, t2y] = ponto(A100, R + 17), [lx, ly] = ponto(A100, R + 26);
+%>
+<section class="card bloco-largo ind-grupo velocimetros" data-ordem-chave="velocimetros">
+  <div class="card-head"><h2>Orçado x acumulado</h2><span class="hint">Quanto do orçado já foi realizado · <%= cur %></span></div>
+  <div class="ind-cards">
+    <% gauges.forEach(g => {
+         const f = g.orcado ? g.realizado / g.orcado : null;
+         const faixa = f == null ? null : f > 1 ? { id: 'critico', nome: 'Acima do orçado' } : { id: 'saudavel', nome: 'Dentro do orçado' };
+         const fim = f == null ? null : ang(f); %>
+      <article class="ind-card ind-faixa-<%= faixa ? faixa.id : 'sem' %>">
+        <header><h3><%= g.nome %></h3></header>
+        <figure class="gauge" aria-label="<%= g.nome %>: <%= f == null ? 'sem orçado' : pctTxt(f) + ' do orçado, ' + faixa.nome %>">
+          <svg viewBox="0 0 200 118" role="img" aria-hidden="true">
+            <path class="g-arco g-trilha" d="<%= arco(180, A100) %>"/>
+            <path class="g-arco g-excesso" d="<%= arco(A100, 0) %>"/>
+            <% if (fim != null && fim < 180) { %><path class="g-arco g-progresso" d="<%= arco(180, Math.max(fim, A100)) %>"/><% } %>
+            <% if (fim != null && fim < A100) { %><path class="g-arco g-critico" d="<%= arco(A100, fim) %>"/><% } %>
+            <line class="g-marca" x1="<%= t1x %>" y1="<%= t1y %>" x2="<%= t2x %>" y2="<%= t2y %>"/>
+            <text class="g-marca-txt" x="<%= lx %>" y="<%= ly %>" text-anchor="start">100%</text>
+            <% if (f != null) { %>
+              <g class="g-ponteiro" data-ang="<%= (90 - fim).toFixed(1) %>"><line x1="100" y1="100" x2="100" y2="34"/></g>
+            <% } %>
+            <circle class="g-eixo" cx="100" cy="100" r="7"/>
+          </svg>
+          <div class="g-limites"><span>0%</span><span>120%</span></div>
+          <div class="g-valor"><%= f == null ? '—' : pctTxt(f) %></div>
+          <% if (faixa) { %><span class="g-pill g-pill-<%= faixa.id %>"><%= faixa.nome %></span><% } %>
+        </figure>
+        <dl class="g-valores">
+          <div><dt><%= g.rotuloOrcado %></dt><dd><%= fmt.currency(g.orcado, cur) %></dd></div>
+          <div><dt><%= g.rotuloRealizado %></dt><dd><%= fmt.currency(g.realizado, cur) %></dd></div>
+        </dl>
+        <% if (g.hint) { %><span class="ind-direcao"><%= g.hint %></span><% } %>
+      </article>
+    <% }) %>
+  </div>
+</section>

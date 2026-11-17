@@ -3190,3 +3190,27 @@ button.is-busy:disabled { opacity: .85; cursor: progress; }
 .topo-upload { text-decoration: none; }
 .topo-upload.atual { border-color: var(--consag-blue); color: var(--consag-blue); }
 
+
+/* =========================================================================
+ * Velocímetros "orçado x acumulado" (Receita · POC): 0–120% do orçado
+ * ========================================================================= */
+.g-trilha { stroke: var(--border); }
+.g-excesso { stroke: #B42318; opacity: .22; }
+.g-progresso { stroke: #1F5C2C; }
+.g-marca { stroke: var(--heading); stroke-width: 2; }
+.g-marca-txt { font-size: 10px; font-weight: 700; fill: var(--muted); }
+.velocimetros .ind-card header h3 { line-height: 1.3; }
+.g-valores { margin: 6px 0 0; display: grid; gap: 4px; font-size: 12px; }
+.g-valores div { display: flex; justify-content: space-between; gap: 8px; }
+.g-valores dt { color: var(--muted); }
+.g-valores dd { margin: 0; font-weight: 700; color: var(--heading); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Auditoria de login */
+.auditoria-filtros .input[type="search"] { min-width: 220px; }
+.auditoria-data { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.auditoria-resumo { margin: 4px 0 14px; }
+
+/* Telas liberadas (cadastro de usuários) */
+.telas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; margin-top: 10px; }
+.tela-opcao { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
+#telas-wrap.has-error .telas-grid { outline: 1px solid var(--danger); outline-offset: 6px; border-radius: 8px; }

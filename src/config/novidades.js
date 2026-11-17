@@ -6,6 +6,25 @@
  */
 module.exports = [
   {
+    build: 89,
+    data: "2026-11-16",
+    titulo: "Auditoria de login e telas por usuário",
+    itens: [
+      "Datas e horários agora aparecem no horário de Brasília (antes o último acesso aparecia 3 horas adiantado).",
+      "Nova tela Auditoria de login, em Administração (só administradores): cada tentativa de login fica registrada com data, hora, IP e navegador, com filtros por usuário, período e resultado.",
+      "No cadastro de usuários, novo quadro Telas liberadas: o usuário de consulta vê no menu e na Visão Geral só as telas permitidas; as demais ficam bloqueadas."
+    ]
+  },
+  {
+    build: 88,
+    data: "2026-11-16",
+    titulo: "Velocímetros na Receita POC",
+    itens: [
+      "Novo quadro Orçado x acumulado na aba POC da Receita, com três velocímetros: receita orçada x receita POC acumulada, custo direto orçado x acumulado e custo indireto orçado x acumulado.",
+      "O ponteiro mostra quanto do orçado já foi realizado; acima de 100% a faixa fica vermelha (acima do orçado)."
+    ]
+  },
+  {
     build: 87,
     data: "2026-11-16",
     titulo: "Seção Administração",

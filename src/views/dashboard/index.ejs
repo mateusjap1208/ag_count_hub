@@ -17,22 +17,30 @@
   <% } %>
 
   <div class="grid mt blocos blocos-dash" data-ordenavel="blocos" aria-label="Gráficos e status">
+    <% if (mostra.dre) { %>
     <div class="card col-4" data-ordem-chave="tendencia">
       <div class="card-head"><h2>Receita líquida x Lucro líquido</h2><span class="hint">Últimos 12 períodos (DRE)</span></div>
       <div class="chart-box"><canvas id="chart-trend" aria-label="Evolução de receita e lucro"></canvas></div>
     </div>
+    <% } %>
+    <% if (mostra.bp) { %>
     <div class="card col-2" data-ordem-chave="bp">
       <div class="card-head"><h2>Balanço por grupo</h2><span class="hint">BP</span></div>
       <div class="chart-box"><canvas id="chart-bp" aria-label="Balanço por grupo"></canvas></div>
     </div>
+    <% } %>
+    <% if (mostra.clientes) { %>
     <div class="card col-3" data-ordem-chave="aging-receber">
       <div class="card-head"><h2>Aging · contas a receber</h2><a class="hint" href="/modulos/clientes">Ver clientes →</a></div>
       <div class="chart-box"><canvas id="chart-ar" aria-label="Aging contas a receber"></canvas></div>
     </div>
+    <% } %>
+    <% if (mostra.fornecedores) { %>
     <div class="card col-3" data-ordem-chave="aging-pagar">
       <div class="card-head"><h2>Aging · contas a pagar</h2><a class="hint" href="/modulos/fornecedores">Ver fornecedores →</a></div>
       <div class="chart-box"><canvas id="chart-ap" aria-label="Aging contas a pagar"></canvas></div>
     </div>
+    <% } %>
 
   <div class="card col-6" data-ordem-chave="status">
     <div class="card-head">
