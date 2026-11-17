@@ -463,6 +463,34 @@
     });
   }
 
+  /* ---------- Cadastro do avatar: prévia do código SVG colado ou do arquivo escolhido ---------- */
+  const avatarPrevia = document.getElementById('avatar-previa');
+  if (avatarPrevia) {
+    const codigo = document.getElementById('av-svg');
+    const arquivo = document.getElementById('av-arquivo');
+    const img = avatarPrevia.querySelector('img');
+    const msg = avatarPrevia.querySelector('[data-previa-msg]');
+    // Mesma limpeza do servidor: fica só com o trecho <svg ...>...</svg> (a IA costuma mandar texto e ``` em volta)
+    const extrair = (t) => { t = String(t || '').trim(); const i = t.search(/<svg[\s>]/i); const f = t.toLowerCase().lastIndexOf('</svg>'); return i >= 0 && f > i ? t.slice(i, f + 6) : t; };
+    const mostrar = (svg) => {
+      if (!svg) { avatarPrevia.hidden = true; img.removeAttribute('src'); return; }
+      avatarPrevia.hidden = false;
+      if (!/<svg[\s>]/i.test(svg)) { img.removeAttribute('src'); msg.textContent = 'Isso não parece um código SVG: ele precisa ter <svg ...> e </svg>.'; return; }
+      msg.textContent = /<script|\son[a-z]+\s*=|javascript:/i.test(svg) ? 'O código tem scripts: o cadastro vai recusar. Peça à IA uma versão só com CSS.' : 'É assim que o avatar vai aparecer.';
+      // Prévia como imagem (data:): scripts não rodam, animações em CSS/SMIL sim
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    };
+    const atualizar = () => {
+      if (codigo.value.trim()) return mostrar(extrair(codigo.value));
+      const f = arquivo.files?.[0];
+      if (!f) return mostrar(null);
+      f.text().then((t) => mostrar(extrair(t))).catch(() => mostrar(null));
+    };
+    codigo.addEventListener('input', atualizar);
+    arquivo.addEventListener('change', atualizar);
+    atualizar();
+  }
+
   /* ---------- Personalizar: cores do sistema com prévia ao vivo ---------- */
   const formCores = document.getElementById('form-cores');
   if (formCores) {

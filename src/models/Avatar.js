@@ -34,7 +34,7 @@ async function atual(dia = hoje()) {
  * (Além disso, a imagem é exibida com <img> e servida com CSP restrita: mesmo que algo passe, não executa.)
  */
 function validarSvg(buffer) {
-  if (!buffer || !buffer.length) return 'Escolha o arquivo da imagem (.svg).';
+  if (!buffer || !buffer.length) return 'Cole o código SVG ou escolha o arquivo da imagem (.svg).';
   if (buffer.length > MAX_BYTES) return 'A imagem precisa ter no máximo 300 KB.';
   const svg = buffer.toString('utf8').replace(/^﻿/, '').trim();
   if (!/<svg[\s>]/i.test(svg)) return 'O arquivo não é uma imagem vetorial (SVG) válida.';
@@ -43,8 +43,20 @@ function validarSvg(buffer) {
     /\son[a-z]+\s*=/i, /javascript:/i, /@import/i,
     /(href|src)\s*=\s*["']\s*(https?:|\/\/|data:text\/html)/i, /url\(\s*["']?\s*(https?:|\/\/)/i,
   ];
-  if (proibidos.some((re) => re.test(svg))) return 'A imagem tem scripts ou links externos, que não são permitidos. Exporte o SVG sem eles.';
+  if (proibidos.some((re) => re.test(svg))) return 'A imagem tem scripts ou links externos, que não são permitidos. Gere ou exporte o SVG sem eles (só com CSS).';
   return null;
+}
+
+/**
+ * Código SVG colado: aceita a resposta da IA como veio (com ```svg, <?xml ...?> ou texto em volta)
+ * e fica só com o trecho <svg ...>...</svg>. Vazio → null.
+ */
+function extrairSvg(texto) {
+  const t = String(texto || '').trim();
+  if (!t) return null;
+  const ini = t.search(/<svg[\s>]/i);
+  const fim = t.toLowerCase().lastIndexOf('</svg>');
+  return ini >= 0 && fim > ini ? t.slice(ini, fim + 6) : t;
 }
 
 async function save(input, arquivo, { actor } = {}) {
@@ -59,15 +71,18 @@ async function save(input, arquivo, { actor } = {}) {
   if (!data.inicio) errors.inicio = 'Informe a data de início.';
   if (!data.fim) errors.fim = 'Informe a data de fim.';
   else if (data.inicio && data.fim < data.inicio) errors.fim = 'O fim precisa ser depois do início.';
-  const erroSvg = validarSvg(arquivo?.buffer);
+  // A imagem pode vir colada (código SVG gerado por uma IA, por exemplo) ou como arquivo
+  const colado = extrairSvg(input.svgTexto);
+  const buffer = colado ? Buffer.from(colado, 'utf8') : arquivo?.buffer;
+  const erroSvg = validarSvg(buffer);
   if (erroSvg) errors.arquivo = erroSvg;
   if (Object.keys(errors).length) { const e = new AvatarError('Verifique os campos destacados.'); e.fields = errors; throw e; }
 
   const now = new Date().toISOString();
   const a = {
     id: crypto.randomUUID(), ...data,
-    svg: arquivo.buffer.toString('utf8').replace(/^﻿/, '').trim(),
-    arquivo: String(arquivo.originalname || '').slice(0, 120),
+    svg: buffer.toString('utf8').replace(/^﻿/, '').trim(),
+    arquivo: colado ? '(código colado)' : String(arquivo.originalname || '').slice(0, 120),
     createdAt: now, updatedAt: now, updatedBy: actor?.name || actor?.email || '',
   };
   await avatares.save(a);
@@ -77,4 +92,4 @@ async function save(input, arquivo, { actor } = {}) {
 
 async function remove(id) { await avatares.remove(id); limpar(); }
 
-module.exports = { list, get, atual, save, remove, situacao, hoje, MAX_BYTES, AvatarError };
+module.exports = { list, get, atual, save, remove, situacao, hoje, extrairSvg, MAX_BYTES, AvatarError };

@@ -70,9 +70,18 @@
           <% if (er.nome) { %><div class="field-error"><%= er.nome %></div><% } %>
         </div>
         <div class="field full <%= er.arquivo ? 'has-error' : '' %>">
-          <label for="av-arquivo">Imagem vetorial (.svg) *</label>
-          <input class="input" id="av-arquivo" name="arquivo" type="file" accept=".svg,image/svg+xml">
-          <% if (er.arquivo) { %><div class="field-error"><%= er.arquivo %></div><% } else { %><div class="help">Até 300 KB. Pode ter animação (CSS ou SMIL), mas sem scripts nem links externos. <a class="avatar-exemplo" href="/static/img/comemorativos/arvore-natal.svg" download>Baixar exemplo: árvore de Natal com pisca-pisca</a></div><% } %>
+          <label for="av-svg">Código SVG *</label>
+          <textarea class="input avatar-codigo" id="av-svg" name="svgTexto" rows="5" spellcheck="false" autocomplete="off" placeholder="Cole aqui o código gerado pelo ChatGPT ou Claude (de <svg ... até </svg>)"><%= v.svgTexto || '' %></textarea>
+          <div class="avatar-ou">
+            <span>ou envie o arquivo:</span>
+            <input class="input" id="av-arquivo" name="arquivo" type="file" accept=".svg,image/svg+xml" aria-label="Arquivo da imagem (.svg)">
+          </div>
+          <% if (er.arquivo) { %><div class="field-error"><%= er.arquivo %></div><% } else { %><div class="help">Até 300 KB. Pode ter animação (CSS ou SMIL), mas sem scripts nem links externos. Se colar o código e também enviar um arquivo, vale o código colado. <a class="avatar-exemplo" href="/static/img/comemorativos/arvore-natal.svg" download>Baixar exemplo: árvore de Natal com pisca-pisca</a></div><% } %>
+        </div>
+        <div class="field full avatar-previa" id="avatar-previa" hidden>
+          <span class="avatar-previa-rotulo">Prévia</span>
+          <img alt="Prévia do avatar" width="120" height="120">
+          <span class="hint" data-previa-msg></span>
         </div>
         <div class="field <%= er.inicio ? 'has-error' : '' %>">
           <label for="av-inicio">Exibir a partir de *</label>
