@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 88,
+    data: "2026-11-16",
+    titulo: "Velocímetros na Receita POC",
+    itens: [
+      "Novo quadro Orçado x acumulado na aba POC da Receita, com três velocímetros: receita orçada x receita POC acumulada, custo direto orçado x acumulado e custo indireto orçado x acumulado.",
+      "O ponteiro mostra quanto do orçado já foi realizado; acima de 100% a faixa fica vermelha (acima do orçado)."
+    ]
+  },
+  {
     build: 87,
     data: "2026-11-16",
     titulo: "Seção Administração",

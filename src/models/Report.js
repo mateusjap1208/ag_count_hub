@@ -506,6 +506,7 @@ async function getModuleView(slug, scope, { comparar = [] } = {}) {
     currency,
     count: summary.count,
     kpis: def.kpis(summary),
+    gauges: def.gauges ? def.gauges(summary) : null,
     charts: def.breakdowns.filter((b) => b.chart).map((b) => ({
       id: b.id, label: b.label, type: b.chart,
       isCount: b.value === '_count',

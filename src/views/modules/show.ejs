@@ -60,6 +60,7 @@
   <%# Todos os quadros e gráficos da tela num grupo só: o usuário pode reordenar qualquer um %>
   <div class="grid grid-2 mt blocos" data-ordenavel="blocos" aria-label="Quadros e gráficos">
 
+  <% if (view.gauges && view.gauges.length) { %><%- include('../partials/velocimetros', { gauges: view.gauges, cur, fmt }) %><% } %>
   <% if (view.maioresFornecedores) { %><%- include('../partials/maiores-fornecedores', { mf: view.maioresFornecedores, fmt }) %><% } %>
   <% if (view.pedidosRecepcao) { const pr = view.pedidosRecepcao; %>
     <div class="card pedidos-recepcao bloco-largo" data-ordem-chave="pedidos-recepcao">

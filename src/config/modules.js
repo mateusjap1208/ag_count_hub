@@ -577,7 +577,16 @@ const modules = [
         }
       },
     },
-    sumFields: ['custoOrcado', 'resultadoEstimado', 'recebimento', 'recebimentoAcumulado', 'provisaoPis', 'provisaoCofins', 'resultadoAcumulado'],
+    sumFields: ['custoOrcado', 'custoIndiretoOrcado', 'resultadoEstimado', 'recebimento', 'recebimentoAcumulado', 'provisaoPis', 'provisaoCofins', 'resultadoAcumulado'],
+    /** Velocímetros: quanto do orçado já foi realizado (acumulado ÷ orçado). */
+    gauges: (s) => {
+      const t = (k) => s.totals?.[k]?.sum ?? 0;
+      return [
+        { id: 'receita', nome: 'Receita orçada x receita POC acumulada', orcado: t('precoTotal'), realizado: t('pocAcumulado'), rotuloOrcado: 'Receita orçada (preço total)', rotuloRealizado: 'Receita POC acumulada' },
+        { id: 'custo-direto', nome: 'Custo direto orçado x custo direto acumulado', orcado: t('custoOrcado'), realizado: t('custoAcumulado'), rotuloOrcado: 'Custo direto orçado', rotuloRealizado: 'Custo direto acumulado' },
+        { id: 'custo-indireto', nome: 'Custo indireto orçado x custo indireto acumulado', orcado: t('custoIndiretoOrcado'), realizado: t('custoIndiretoAcumulado'), rotuloOrcado: 'Custo indireto orçado', rotuloRealizado: 'Custo indireto acumulado', hint: 'Uma vez por obra' },
+      ];
+    },
     columns: [
       { key: 'obrigacao', label: 'Obrigação de desempenho', type: 'string' },
       { key: 'centroLucro', label: 'Centro de lucro', type: 'string' },
