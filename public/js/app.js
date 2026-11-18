@@ -1111,7 +1111,8 @@
           options: {
             interaction: { mode: 'index', intersect: false },
             animation: reduzMovimento ? false : { duration: 1100, easing: 'easeOutQuart' },
-            plugins: { legend: { position: 'bottom' }, tooltip: tooltipMoneyIn(data.currency) },
+            // Legenda na ordem dos datasets (Receita | Lucro), não pela ordem de desenho
+            plugins: { legend: { position: 'bottom', labels: { sort: (a, b) => a.datasetIndex - b.datasetIndex } }, tooltip: tooltipMoneyIn(data.currency) },
             scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid, border: { display: false }, ticks: { callback: (v) => moneyFmt(data.currency, true).format(v) } } },
           },
         });
