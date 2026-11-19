@@ -6,14 +6,6 @@
  */
 module.exports = [
   {
-    build: 96,
-    data: "2026-11-18",
-    titulo: "Legenda do gráfico Receita x Lucro",
-    itens: [
-      "Na Visão Geral, a legenda do gráfico Receita líquida x Lucro líquido agora segue a ordem do título: primeiro Receita líquida, depois Lucro líquido."
-    ]
-  },
-  {
     build: 95,
     data: "2026-11-17",
     titulo: "Avatar ampliado",
