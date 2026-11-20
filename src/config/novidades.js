@@ -6,6 +6,28 @@
  */
 module.exports = [
   {
+    build: 101,
+    data: "2026-11-20",
+    titulo: "Painel do resultado na DRE",
+    itens: [
+      "Novo painel na Demonstração do Resultado: Receita líquida, Custos, Lucro bruto, Despesas e outros e Lucro líquido, com a margem e a variação contra o mês anterior. Escolha entre o valor do mês e o acumulado no ano.",
+      "Clique em Receita, Custos ou Despesas para ver a composição por natureza (salários, materiais, serviços de terceiros…) e clique numa linha para abrir as contas contábeis.",
+      "Evolução mensal no ano: receita líquida, custos e lucro líquido mês a mês. Clique num mês para ver o resultado dele. O valor de cada mês sai da diferença entre dois FGI0 seguidos.",
+      "Alertas contábeis: contas sem cadastro no Plano de Contas, custos e despesas sem área funcional e contas com sinal fora do padrão no mês.",
+      "Tudo respeita os filtros do topo: com uma obra selecionada, o painel mostra só aquela obra."
+    ]
+  },
+  {
+    build: 100,
+    data: "2026-11-20",
+    titulo: "Balanço na ordem da estrutura BPC",
+    itens: [
+      "O Balanço Patrimonial agora segue a ordem oficial da estrutura BPC (BP BPC - Class NE): no ativo, Caixa e equivalentes, aplicações financeiras, contas a receber de clientes, partes relacionadas, estoques e assim por diante; no passivo e no PL, a mesma lógica.",
+      "As contas dentro de cada linha também aparecem na ordem da estrutura, e não mais pelo valor. Linhas e contas fora da estrutura ficam no fim do seu grupo.",
+      "Totais, comparativo de competências e o detalhe das contas continuam iguais. Não é preciso reimportar o FGI0."
+    ]
+  },
+  {
     build: 99,
     data: "2026-11-20",
     titulo: "Nova tela Relatórios",

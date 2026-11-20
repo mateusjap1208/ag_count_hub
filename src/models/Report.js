@@ -491,6 +491,21 @@ async function getSummary(slug, scope) {
   });
 }
 
+/**
+ * Opções da árvore: no BP (tree.order = 'bpc'), a posição de cada conta na estrutura BPC do Balanço,
+ * para as linhas e contas seguirem a ordem oficial em vez do valor.
+ */
+async function treeOptions(def, summaries) {
+  if (def.tree?.order !== 'bpc' || !def.tree.detail) return {};
+  const labels = new Set();
+  for (const s of summaries) {
+    if (!s) continue;
+    for (const key of Object.keys(s.breakdowns?.[def.tree.detail] || {})) labels.add(key.split('|').slice(3).join('|'));
+    for (const key of Object.keys(s.breakdowns?.[def.tree.breakdown] || {})) labels.add(key.split('|')[2]); // linha que já é a conta
+  }
+  return { contaOrder: await fgi0.bpcOrder([...labels].filter(Boolean)).catch(() => new Map()) };
+}
+
 /** Dados prontos para a tela do módulo: KPIs, gráficos e demonstração */
 async function getModuleView(slug, scope, { comparar = [] } = {}) {
   const def = getModule(slug);
@@ -514,7 +529,7 @@ async function getModuleView(slug, scope, { comparar = [] } = {}) {
     })),
     // DRE: a cascata vira árvore (contas + comparativo) e substitui o quadro simples
     statement: def.statementDetail ? null : def.statementFn ? def.statementFn(summary, scope) : agg.buildStatement(def, summary),
-    tree: def.statementDetail ? agg.buildStatementTree(def, [summary, ...anteriores]) : agg.buildTree(def, [summary, ...anteriores]),
+    tree: def.statementDetail ? agg.buildStatementTree(def, [summary, ...anteriores]) : agg.buildTree(def, [summary, ...anteriores], await treeOptions(def, [summary, ...anteriores])),
     periodos: [scope.period, ...periodos],
     fluxo: def.fluxoFn ? def.fluxoFn(summary, scope) : null,
   };
