@@ -897,6 +897,38 @@
     btn.lastChild.textContent = 'Importando…';
   }));
 
+  /* ---------- Visão Geral: "?" de cada card abre a explicação resumida por cima do próprio card ----------
+     Um aberto por vez; fecha clicando de novo, fora do card ou com Esc. */
+  const fecharAjuda = (btn, foco = false) => {
+    const painel = document.getElementById(btn.dataset.ajuda);
+    if (painel) painel.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    btn.classList.remove('aberto');
+    if (foco) btn.focus();
+  };
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-ajuda]');
+    const abertos = $$('[data-ajuda][aria-expanded="true"]');
+    if (btn) {
+      e.preventDefault();
+      const abrir = btn.getAttribute('aria-expanded') !== 'true';
+      abertos.forEach((b) => fecharAjuda(b));
+      if (abrir) {
+        document.getElementById(btn.dataset.ajuda).hidden = false;
+        btn.setAttribute('aria-expanded', 'true');
+        btn.classList.add('aberto');
+      }
+      return;
+    }
+    // Clique dentro da explicação não navega nem fecha; fora dela, fecha
+    if (e.target.closest('.kpi-ajuda')) { e.preventDefault(); return; }
+    abertos.forEach((b) => fecharAjuda(b));
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    $$('[data-ajuda][aria-expanded="true"]').forEach((b) => fecharAjuda(b, true));
+  });
+
   /* ---------- Confirmações (popup próprio no lugar do confirm do navegador) ---------- */
   $$('form[data-confirm]').forEach((f) => f.addEventListener('submit', async (e) => {
     if (f.dataset.confirmado === '1') { delete f.dataset.confirmado; return; }

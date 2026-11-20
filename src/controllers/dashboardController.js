@@ -23,12 +23,12 @@ exports.index = async (req, res, next) => {
     const passivo = kpi(views.bp, 'Passivo total');
     const pl = kpi(views.bp, 'Patrimônio líquido');
     const passivoPl = passivo && pl
-      ? { label: 'Passivo + PL', value: passivo.value + pl.value, format: 'currency', currency: views.bp.currency, hint: 'Passivo total + patrimônio líquido' }
+      ? { label: 'Passivo + PL', value: passivo.value + pl.value, format: 'currency', currency: views.bp.currency }
       : null;
 
     // Passivo de arrendamento: saldo contábil do BP (contas de arrendamento mercantil CP + LP).
     // Sem BP liberado/importado, cai no saldo do cronograma IFRS 16 (Carteira final do passivo).
-    let arrendamento = { ...kpi(views.arrendamento, 'Passivo de arrendamento'), hint: 'IFRS 16 · cronograma' };
+    let arrendamento = { ...kpi(views.arrendamento, 'Passivo de arrendamento'), ajuda: 'Carteira final do passivo no cronograma de arrendamento (IFRS 16) da competência. Usado quando o BP não está disponível.' };
     if (pode('bp') && !views.bp.empty) {
       const contas = (await Report.getSummary('bp', scope))?.breakdowns?.contas || {};
       // Chave do breakdown: "seção|grupo|linha|conta - descrição"
@@ -38,7 +38,7 @@ exports.index = async (req, res, next) => {
         arrendamento = {
           label: 'Passivo de arrendamento', format: 'currency', currency: views.bp.currency,
           value: achou.reduce((a, k) => a + (contas[k] || 0), 0),
-          hint: `Contas ${CONTAS_ARRENDAMENTO.join(' + ')} (CP + LP)`,
+          ajuda: `Saldo contábil do passivo de arrendamento no Balanço: contas ${CONTAS_ARRENDAMENTO.join(' (curto prazo) + ')} (longo prazo).`,
         };
       }
     }
@@ -47,17 +47,18 @@ exports.index = async (req, res, next) => {
     const estoque = kpi(views.estoque, 'Estoque próprio');
 
     // Ordem: Ativo, Passivo + PL, Receita líquida, Lucro líquido, Capital empregado, Valor em estoque
+    // Cada card tem um "?" com a explicação resumida de como o número é montado (ajuda)
     const highlights = [
-      { module: 'bp', ...kpi(views.bp, 'Ativo total') },
-      { module: 'bp', ...passivoPl },
-      { module: 'dre', ...kpi(views.dre, 'Receita líquida') },
-      { module: 'dre', ...kpi(views.dre, 'Lucro líquido') },
-      { module: 'capital-empregado', ...kpi(views['capital-empregado'], 'Capital empregado') },
-      { module: 'estoque', ...estoque, label: 'Valor em estoque', hint: 'Estoque próprio (sem terceiros)' },
+      { module: 'bp', ...kpi(views.bp, 'Ativo total'), ajuda: 'Soma do ativo circulante e não circulante do Balanço Patrimonial, gerado do FGI0 (saldos contábeis) da competência.' },
+      { module: 'bp', ...passivoPl, ajuda: 'Passivo total + patrimônio líquido do Balanço. Deve fechar com o ativo total; o PL já inclui o resultado do exercício.' },
+      { module: 'dre', ...kpi(views.dre, 'Receita líquida'), ajuda: 'Receita bruta menos as deduções (impostos sobre a receita) da DRE, acumulada de janeiro até a competência.' },
+      { module: 'dre', ...kpi(views.dre, 'Lucro líquido'), ajuda: 'Resultado final da DRE de janeiro até a competência: receita líquida − custos − despesas ± resultado financeiro − IR e CSLL.' },
+      { module: 'capital-empregado', ...kpi(views['capital-empregado'], 'Capital empregado'), ajuda: 'Ativos operacionais + passivos operacionais da estrutura gerencial (QV Capital Empregado), com as contas ligadas pelo Mapeamento de Contas.' },
+      { module: 'estoque', ...estoque, label: 'Valor em estoque', ajuda: 'Valor do estoque próprio no relatório ZL0190 da competência. O estoque de terceiros fica de fora, porque não pertence à empresa.' },
       { module: 'arrendamento', ...arrendamento },
-      { module: 'adiantamentos', ...kpi(views.adiantamentos, 'Total de adiantamentos'), hint: 'Fornecedores, subempreiteiros e funcionários' },
-      { module: 'seguros-garantias', ...kpi(views['seguros-garantias'], 'Saldo a apropriar'), label: 'Seguros a apropriar', hint: 'Despesa antecipada' },
-      { module: 'imobilizado', ...kpi(views.imobilizado, 'Valor contábil'), label: 'Imobilizado (valor contábil)', hint: 'Custo − depreciação' },
+      { module: 'adiantamentos', ...kpi(views.adiantamentos, 'Total de adiantamentos'), ajuda: 'Saldo no Balanço das contas de adiantamento a fornecedores, subempreiteiros e funcionários (classificação N4 do Plano de Contas).' },
+      { module: 'seguros-garantias', ...kpi(views['seguros-garantias'], 'Saldo a apropriar'), label: 'Seguros a apropriar', ajuda: 'Prêmios de seguros e garantias já pagos que ainda vão para o resultado nos próximos meses (despesa antecipada).' },
+      { module: 'imobilizado', ...kpi(views.imobilizado, 'Valor contábil'), label: 'Imobilizado (valor contábil)', ajuda: 'Custo de aquisição dos bens menos a depreciação acumulada, pelo quadro do imobilizado (AR02).' },
     ].filter((h) => h.value !== undefined);
 
     const dreTrend = pode('dre') ? await Report.trend('dre', scope) : [];

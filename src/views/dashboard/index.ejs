@@ -6,12 +6,20 @@
 
   <% if (highlights.length) { %>
   <div class="grid grid-4" data-ordenavel="kpis" aria-label="Indicadores">
-    <% highlights.forEach(k => { %>
-      <a class="card kpi <%= k.tone || '' %>" href="/modulos/<%= k.module %>" data-ordem-chave="<%= k.label %>">
-        <div class="label"><%= k.label %></div>
+    <% highlights.forEach((k, i) => { const idAjuda = `kpi-ajuda-${i}`; %>
+      <%# O card inteiro abre a tela (link "esticado" sobre o card); o "?" mostra a explicação sem sair da página %>
+      <div class="card kpi kpi-link-card <%= k.tone || '' %>" data-ordem-chave="<%= k.label %>">
+        <a class="label kpi-link" href="/modulos/<%= k.module %>"><%= k.label %></a>
         <div class="value" title="<%= fmt.value(k.value, k.format, k.currency) %>"><%= fmt.kpi(k.value, k.format, k.currency) %></div>
-        <div class="meta"><%= fmt.value(k.value, k.format, k.currency) %><%= k.hint ? ' · ' + k.hint : '' %></div>
-      </a>
+        <div class="meta"><%= fmt.value(k.value, k.format, k.currency) %></div>
+        <% if (k.ajuda) { %>
+          <button type="button" class="kpi-ajuda-btn" data-ajuda="<%= idAjuda %>" aria-expanded="false" aria-controls="<%= idAjuda %>" aria-label="O que é <%= k.label %>?" title="O que é este número?">?</button>
+          <div class="kpi-ajuda" id="<%= idAjuda %>" role="note" hidden>
+            <strong><%= k.label %></strong>
+            <p><%= k.ajuda %></p>
+          </div>
+        <% } %>
+      </div>
     <% }) %>
   </div>
   <% } %>
