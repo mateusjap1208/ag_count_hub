@@ -5,6 +5,8 @@
 const { AGING_SCHEMES } = require('../config/modules');
 
 const DAY = 86400000;
+const collator = new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' });
+const codeCmp = (a, b) => collator.compare(String(a), String(b));
 
 /** Último dia do período "AAAA-MM" (data de referência para aging) */
 function periodEnd(period) {
@@ -140,8 +142,11 @@ function buildStatement(moduleDef, summary) {
  * summaries: [atual, comparativo1, ...] — uma coluna de valores por competência (demonstração comparativa).
  * Cada linha traz `values` (um valor por competência, null quando a competência não tem dados) e `value` (= atual).
  * As contas contábeis vêm do breakdown `tree.detail` (chave "seção|grupo|linha|conta - descrição").
+ * itemSort: 'abs' (maior valor primeiro) | 'insertion' | 'ordem' — ordem da estrutura (BP: estrutura BPC),
+ *   com `opts.contaOrder` = Map(rótulo da conta → posição). A linha fica na posição mediana das suas contas;
+ *   contas e linhas sem posição vão para o fim do grupo (pelo valor).
  */
-function buildTree(moduleDef, summaries) {
+function buildTree(moduleDef, summaries, opts = {}) {
   const t = moduleDef.tree;
   if (!t) return null;
   const list = (Array.isArray(summaries) ? summaries : [summaries]);
@@ -174,6 +179,17 @@ function buildTree(moduleDef, summaries) {
   const fin = (arr) => arr.map((x, i) => (has[i] ? round2(x || 0) : null));
   const sum = (arrs) => { const o = Array(n).fill(0); arrs.forEach((a) => a.forEach((x, i) => { o[i] += x || 0; })); return o; };
   const byAbs = (a, b) => Math.abs(b[1][0] || 0) - Math.abs(a[1][0] || 0);
+  const porOrdem = t.itemSort === 'ordem';
+  const pos = opts.contaOrder || new Map();
+  const posOf = (label) => (pos.has(label) ? pos.get(label) : Infinity);
+  const byPos = (pa, pb, a, b) => (pa === pb ? (pa === Infinity ? byAbs(a, b) : codeCmp(a[0], b[0])) : pa - pb);
+  const contaSort = (a, b) => byPos(posOf(a[0]), posOf(b[0]), a, b);
+  // Linha: mediana das posições das suas contas (uma conta de outra parte da estrutura não arrasta a linha);
+  // sem contas, a posição da própria linha quando ela já é a conta (ex.: "a classificar")
+  const itemPos = (item, contas) => {
+    const ps = [...contas.keys()].map(posOf).filter(Number.isFinite).sort((a, b) => a - b);
+    return ps.length ? ps[(ps.length - 1) >> 1] : posOf(item);
+  };
   const line = (o, values) => { const vals = fin(values); return { ...o, values: vals, value: vals[0] }; };
 
   const order = moduleDef.groupOrder || [];
@@ -190,12 +206,16 @@ function buildTree(moduleDef, summaries) {
     for (const grp of groups) {
       const items = [...gm.get(grp)].map(([item, o]) => [item, o.v, o.contas]);
       if (t.itemSort === 'abs') items.sort(byAbs);
+      else if (porOrdem) {
+        const ip = new Map(items.map((x) => [x[0], itemPos(x[0], x[2])]));
+        items.sort((a, b) => byPos(ip.get(a[0]), ip.get(b[0]), a, b));
+      }
       const gTotal = sum(items.map((x) => x[1]));
       secParts.push(gTotal);
       lines.push(line({ label: grp, kind: 'group' }, gTotal));
       for (const [item, v, contas] of items) {
         if (zero(v)) continue;
-        const det = [...contas].filter(([, cv]) => !zero(cv)).sort(byAbs);
+        const det = [...contas].filter(([, cv]) => !zero(cv)).sort(porOrdem ? contaSort : byAbs);
         lines.push(line({ label: item, kind: 'item', contas: det.length }, v));
         for (const [conta, cv] of det) lines.push(line({ label: conta, kind: 'conta' }, cv));
       }
