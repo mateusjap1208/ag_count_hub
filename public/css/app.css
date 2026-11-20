@@ -3378,3 +3378,51 @@ button.dp-tile:hover { border-color: var(--consag-blue); transform: translateY(-
   .dp-tile-valor { font-size: 17px; white-space: normal; overflow-wrap: anywhere; }
   .dp-alerta-lista { grid-template-columns: 1fr; }
 }
+
+/* ---------- DRE: ponte do lucro, Pareto, busca de conta e simulador ---------- */
+.dp-campo { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.dp-campo .select { width: auto; min-width: 96px; }
+.dp-corte { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.dp-corte input[type="range"] { flex: 1; accent-color: var(--consag-blue); }
+.dp-corte output { min-width: 38px; text-align: right; color: var(--heading); }
+
+.dp-busca .input { width: 100%; }
+.dp-busca-lista { list-style: none; margin: 8px 0 0; padding: 0; max-height: 210px; overflow: auto; display: flex; flex-direction: column; gap: 2px; }
+.dp-busca-lista .note { padding: 6px 4px; }
+.dp-busca-item { width: 100%; display: flex; justify-content: space-between; gap: 12px; padding: 7px 10px; border: 0; border-radius: 8px; background: none; color: var(--text-2); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; }
+.dp-busca-item:hover, .dp-busca-item.ativo { background: var(--blue-soft); }
+.dp-busca-item:focus-visible { outline: 2px solid var(--consag-blue); outline-offset: 1px; }
+.dp-busca-item .num { white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dp-busca-detalhe { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.dp-busca-cab { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.dp-busca-cab strong { color: var(--heading); font-size: 13.5px; }
+.dp-busca-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.dp-busca-nums > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); min-width: 0; }
+.dp-busca-nums span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.dp-busca-nums strong { font-size: 14px; color: var(--heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dp-busca-nums small { font-size: 11px; color: var(--muted); }
+.dp-busca-graf { height: 200px; }
+
+.dp-sim-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 20px; align-items: start; }
+.dp-sim-alavancas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+.dp-sim-alavanca label { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.dp-sim-alavanca output { color: var(--consag-blue); font-variant-numeric: tabular-nums; }
+.dp-sim-alavanca input[type="range"] { width: 100%; accent-color: var(--consag-blue); margin: 6px 0 2px; }
+.dp-sim-alavanca small { font-size: 11.5px; color: var(--muted); }
+.dp-sim-alavanca small .pos, .dp-sim-num .pos { color: var(--ok); }
+.dp-sim-alavanca small .neg, .dp-sim-num .neg { color: var(--danger); }
+.dp-sim-resultado { display: flex; flex-direction: column; gap: 8px; }
+.dp-sim-base { margin: 0; font-size: 12px; color: var(--muted); font-weight: 600; }
+.dp-sim-num { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+.dp-sim-num.destaque { background: var(--blue-soft); border-color: var(--chip-border); }
+.dp-sim-num span { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.dp-sim-num strong { font-size: 20px; color: var(--heading); }
+.dp-sim-num small { font-size: 12px; color: var(--muted); }
+
+@media (max-width: 960px) {
+  .dp-sim-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .dp-sim-alavancas { grid-template-columns: 1fr; }
+  .dp-busca-nums { grid-template-columns: 1fr; }
+}

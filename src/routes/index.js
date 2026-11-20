@@ -76,6 +76,7 @@ router.use(requireAuth, csrfToken);
 
 router.get('/api/modulos/:slug/linhas', telaModulo, modules.rows);
 router.get('/api/seguros/linha-do-tempo', requireTela('seguros-garantias'), modules.seguroTimeline);
+router.get('/api/dre/contas', requireTela('dre'), modules.dreContas);
 router.get('/modulos/:slug/exportar.csv', telaModulo, modules.exportCsv);
 router.get('/modulos/:slug/exportar.xlsx', telaModulo, modules.exportXlsx);
 router.get('/api/parametros/conta/:conta', parameters.classify);

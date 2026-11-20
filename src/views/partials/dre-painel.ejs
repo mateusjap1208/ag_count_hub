@@ -45,6 +45,86 @@
   <% } %>
 </div>
 
+<% const carregados = dp.meses.filter(m => m.carregado).slice().reverse(); %>
+<div class="card bloco-largo dp-ponte" data-ordem-chave="dre-ponte" id="dp-ponte">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Ponte do lucro</h2>
+      <span class="hint">O que explica a diferença de lucro entre dois períodos · clique num degrau para ver a composição</span>
+    </div>
+    <div class="dp-controles">
+      <div class="dp-seg" role="group" aria-label="Período da ponte">
+        <button type="button" class="dp-seg-btn" data-ponte-modo="mes" aria-pressed="false">Mês</button>
+        <button type="button" class="dp-seg-btn" data-ponte-modo="ano" aria-pressed="false">Acumulado</button>
+      </div>
+      <label class="dp-campo">De <select class="select" data-ponte-de><% carregados.forEach(m => { %><option value="<%= m.periodo %>"><%= m.rotulo %></option><% }) %></select></label>
+      <label class="dp-campo">Para <select class="select" data-ponte-para><% carregados.forEach(m => { %><option value="<%= m.periodo %>"><%= m.rotulo %></option><% }) %></select></label>
+    </div>
+  </div>
+  <p class="dp-aviso" data-ponte-aviso hidden></p>
+  <div class="chart-box"><canvas id="chart-dre-ponte" aria-label="Ponte do lucro entre dois períodos"></canvas></div>
+</div>
+
+<div class="card dp-pareto" data-ordem-chave="dre-pareto" id="dp-pareto">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Pareto <span data-pareto-titulo></span></h2>
+      <span class="hint" data-pareto-resumo></span>
+    </div>
+  </div>
+  <div class="dp-partes" data-pareto-partes role="group" aria-label="Parte do resultado"></div>
+  <div class="dp-corte">
+    <label for="dp-corte">Corte</label>
+    <input type="range" id="dp-corte" min="50" max="95" step="5" value="80" data-pareto-corte>
+    <output for="dp-corte" data-pareto-corte-valor>80%</output>
+  </div>
+  <div class="chart-box tall"><canvas id="chart-dre-pareto" aria-label="Contas da maior para a menor, com o percentual acumulado"></canvas></div>
+  <p class="note dp-nota" data-pareto-nota hidden></p>
+</div>
+
+<div class="card dp-busca" data-ordem-chave="dre-busca" id="dp-busca">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Buscar conta</h2>
+      <span class="hint">Número ou descrição da conta · valores de jan até <%= dp.meses[dp.meses.length - 1].rotulo %></span>
+    </div>
+  </div>
+  <input class="input" type="search" placeholder="Ex.: 5321600000, salário, aluguel…" autocomplete="off" aria-label="Buscar conta contábil" data-busca-campo>
+  <ul class="dp-busca-lista" data-busca-lista aria-live="polite"></ul>
+  <div class="dp-busca-detalhe" data-busca-detalhe hidden>
+    <div class="dp-busca-cab">
+      <strong data-busca-nome></strong>
+      <span class="hint" data-busca-grupo></span>
+    </div>
+    <div class="dp-busca-nums" data-busca-nums></div>
+    <div class="chart-box dp-busca-graf"><canvas id="chart-dre-conta" aria-label="Valor da conta mês a mês"></canvas></div>
+  </div>
+</div>
+
+<div class="card bloco-largo dp-simulador" data-ordem-chave="dre-simulador" id="dp-simulador">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Simulador "e se"</h2>
+      <span class="hint">Mexa nas alavancas e veja o efeito no lucro · nada é gravado</span>
+    </div>
+    <div class="dp-controles">
+      <label class="dp-campo">Base
+        <select class="select" data-sim-base>
+          <option value="mes">Mês da competência</option>
+          <option value="media3">Média dos últimos 3 meses</option>
+          <option value="ano">Acumulado no ano</option>
+        </select>
+      </label>
+      <button type="button" class="btn btn-ghost" data-sim-zerar>Zerar</button>
+    </div>
+  </div>
+  <p class="dp-aviso" data-sim-aviso hidden></p>
+  <div class="dp-sim-grid">
+    <div class="dp-sim-alavancas" data-sim-alavancas></div>
+    <div class="dp-sim-resultado" data-sim-resultado aria-live="polite"></div>
+  </div>
+</div>
+
 <div class="card bloco-largo dp-alertas" data-ordem-chave="dre-alertas">
   <div class="card-head">
     <h2>Alertas contábeis</h2>

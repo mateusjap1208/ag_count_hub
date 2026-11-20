@@ -6,6 +6,17 @@
  */
 module.exports = [
   {
+    build: 104,
+    data: "2026-11-20",
+    titulo: "Mais cards interativos na DRE",
+    itens: [
+      "Ponte do lucro: escolha dois períodos e veja, degrau por degrau, o que fez o lucro subir ou cair (receita, salários, materiais, serviços…). Clique num degrau para abrir a composição.",
+      "Pareto dos custos e despesas: as contas da maior para a menor, com o percentual acumulado. Ajuste o corte (80%, 90%…) e veja quantas contas concentram o valor. Clique numa barra para ver a conta.",
+      "Buscar conta: digite o número ou a descrição e veja o valor no ano, no mês, o peso no grupo e a evolução mês a mês.",
+      "Simulador \"e se\": mexa em receita, salários, materiais, serviços, demais custos e despesas e veja na hora o efeito no lucro e na margem. Nada é gravado."
+    ]
+  },
+  {
     build: 101,
     data: "2026-11-20",
     titulo: "Painel do resultado na DRE",

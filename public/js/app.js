@@ -1201,7 +1201,9 @@
         tiles();
         composicao();
         if (redesenhar && grafico) { grafico.destroy(); desenharGrafico(); } else if (grafico) grafico.update('none');
+        if (iniciado) pareto(); // o Pareto segue o modo (mês × ano) escolhido no card de resultado
       }
+      let iniciado = false; // gráficos só depois do tema aplicado (drawCharts)
 
       // Eventos delegados (os cards são redesenhados a cada mudança)
       document.addEventListener('click', (e) => {
@@ -1265,8 +1267,345 @@
         });
       }
 
+      /* ---- Gráficos extras do painel (ponte, Pareto, conta): uma instância por canvas, refeita ao trocar dados ou tema ---- */
+      const extras = {};
+      const novoGrafico = (id, cfg) => {
+        try { if (extras[id]) extras[id].destroy(); } catch { /* já destruído na troca de tema */ }
+        const el = document.getElementById(id);
+        extras[id] = el ? new Chart(el, cfg) : null;
+        return extras[id];
+      };
+      const curtoRot = (t, n = 26) => (t.length > n ? `${t.slice(0, n - 1)}…` : t);
+      const sinal = (v) => `${v > 0 ? '+' : ''}${money(v)}`;
+
+      /* ---- Ponte do lucro: lucro do período "de" → variação de cada subgrupo → lucro do período "para" ---- */
+      const ponteRaiz = $('#dp-ponte');
+      const carregados = dp.meses.filter((m) => m.carregado);
+      const pst = { modo: 'mes', de: null, para: dp.periodo, passos: [] };
+      if (ponteRaiz) {
+        const i = carregados.findIndex((m) => m.periodo === dp.periodo);
+        pst.de = (carregados[i - 1] || carregados[i]).periodo;
+        pst.modo = mesDe(pst.de)?.temMes && mesDe(pst.para)?.temMes ? 'mes' : 'ano';
+        $('[data-ponte-de]', ponteRaiz).value = pst.de;
+        $('[data-ponte-para]', ponteRaiz).value = pst.para;
+      }
+      function ponte() {
+        if (!ponteRaiz) return;
+        const mDe = mesDe(pst.de);
+        const mPara = mesDe(pst.para);
+        const mesOk = !!(mDe?.temMes && mPara?.temMes);
+        if (pst.modo === 'mes' && !mesOk) pst.modo = 'ano';
+        $$('[data-ponte-modo]', ponteRaiz).forEach((b) => {
+          const ativo = b.dataset.ponteModo === pst.modo;
+          b.classList.toggle('ativo', ativo);
+          b.setAttribute('aria-pressed', String(ativo));
+          b.disabled = b.dataset.ponteModo === 'mes' && !mesOk;
+          b.title = b.disabled ? 'Para comparar meses, carregue o FGI0 do mês anterior a cada um deles' : '';
+        });
+        const aviso = $('[data-ponte-aviso]', ponteRaiz);
+        const msg = pst.de === pst.para ? 'Escolha dois períodos diferentes.'
+          : !mesOk ? 'Comparando o acumulado no ano: para comparar só os meses, falta o FGI0 do mês anterior a um deles.' : '';
+        aviso.textContent = msg;
+        aviso.hidden = !msg;
+        const dDe = dados(mDe, pst.modo);
+        const dPara = dados(mPara, pst.modo);
+        if (!dDe || !dPara) { pst.passos = []; novoGrafico('chart-dre-ponte', { type: 'bar', data: { labels: [], datasets: [] } }); return; }
+        const lucroDe = totais(dDe.grupos).lucro;
+        const lucroPara = totais(dPara.grupos).lucro;
+        const chaves = new Set([...Object.keys(dDe.subgrupos), ...Object.keys(dPara.subgrupos)]);
+        const nomes = {};
+        [...chaves].forEach((k) => { const s = k.split('|')[1]; nomes[s] = (nomes[s] || 0) + 1; });
+        let passos = [...chaves].map((k) => {
+          const [g, s] = k.split('|');
+          const suf = nomes[s] > 1 ? ` (${g === 'Custos' ? 'custo' : 'desp.'})` : '';
+          return { k, g, rot: `${s}${suf}`, curto: `${curtoRot(s, suf ? 15 : 22)}${suf}`, v: (dPara.subgrupos[k] || 0) - (dDe.subgrupos[k] || 0) };
+        }).filter((x) => !zeroV(x.v)).sort((a, b) => Math.abs(b.v) - Math.abs(a.v));
+        const resto = passos.slice(8);
+        passos = passos.slice(0, 8);
+        const somaResto = resto.reduce((a, x) => a + x.v, 0) + (lucroPara - lucroDe - [...passos, ...resto].reduce((a, x) => a + x.v, 0));
+        if (Math.abs(somaResto) >= 1) { const rot = resto.length ? `Demais ${resto.length} itens` : 'Outros'; passos.push({ k: null, rot, curto: rot, v: somaResto }); }
+        pst.passos = passos;
+        let acc = lucroDe;
+        const barras = [[0, lucroDe]];
+        passos.forEach((x) => { barras.push([acc, acc + x.v]); acc += x.v; });
+        barras.push([0, lucroPara]);
+        const rotulos = [`Lucro ${mDe.rotulo}`, ...passos.map((x) => x.curto), `Lucro ${mPara.rotulo}`];
+        const cores = barras.map((_, i) => (i === 0 || i === barras.length - 1 ? PALETTE[0] : passos[i - 1].v >= 0 ? (cssVar('--ok') || '#009360') : NEG));
+        novoGrafico('chart-dre-ponte', {
+          type: 'bar',
+          data: { labels: rotulos, datasets: [{ data: barras, backgroundColor: cores.map((c) => rgba(c, 0.85)), hoverBackgroundColor: cores, borderRadius: 6, borderSkipped: false, maxBarThickness: 48 }] },
+          options: {
+            animation: entrada(60),
+            onHover: (ev, els) => { ev.native.target.style.cursor = els.length && els[0].index > 0 && els[0].index <= passos.length && passos[els[0].index - 1].k ? 'pointer' : 'default'; },
+            onClick: (_ev, els) => {
+              const x = els.length ? passos[els[0].index - 1] : null;
+              if (!x || !x.k) return;
+              st.parte = dp.partes.find((p) => p.grupos.includes(x.g))?.id || st.parte;
+              st.periodo = pst.para;
+              st.modo = pst.modo;
+              st.aberto = x.k;
+              atualizar({ redesenhar: true });
+              $('.dp-composicao')?.scrollIntoView({ behavior: reduzMovimento ? 'auto' : 'smooth', block: 'center' });
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => { const i = items[0].dataIndex; return i === 0 || i === barras.length - 1 ? rotulos[i] : passos[i - 1].rot; },
+                  label: (c) => { const i = c.dataIndex; return i === 0 || i === barras.length - 1 ? ` ${money(barras[i][1])}` : ` ${sinal(passos[i - 1].v)} no lucro`; },
+                },
+              },
+            },
+            scales: { x: { grid: { display: false }, border: { display: false }, ticks: { autoSkip: false, maxRotation: 40, minRotation: 0 } }, y: { grid, border: { display: false }, ticks: { callback: (v) => curto(v) } } },
+          },
+        });
+      }
+      if (ponteRaiz) {
+        ponteRaiz.addEventListener('change', (e) => {
+          if (e.target.matches('[data-ponte-de]')) pst.de = e.target.value;
+          if (e.target.matches('[data-ponte-para]')) pst.para = e.target.value;
+          ponte();
+        });
+        ponteRaiz.addEventListener('click', (e) => {
+          const b = e.target.closest('[data-ponte-modo]');
+          if (b && !b.disabled) { pst.modo = b.dataset.ponteModo; ponte(); }
+        });
+      }
+
+      /* ---- Pareto: contas de custos (ou despesas) da maior para a menor, com o % acumulado e um corte ajustável ---- */
+      const paretoRaiz = $('#dp-pareto');
+      const pp = { parte: 'custos', corte: 80 };
+      function pareto() {
+        if (!paretoRaiz || !dp.pareto) return;
+        const modo = st.modo === 'mes' && dp.pareto.mes ? 'mes' : 'ano';
+        const fonte = dp.pareto[modo] || {};
+        const disponiveis = ['custos', 'despesas'].filter((id) => fonte[id]);
+        if (!disponiveis.includes(pp.parte) && disponiveis.length) pp.parte = disponiveis[0];
+        $('[data-pareto-partes]', paretoRaiz).innerHTML = disponiveis.map((id) => `<button type="button" class="chip ${id === pp.parte ? 'active' : ''}" data-pareto-parte="${id}" aria-pressed="${id === pp.parte}">${parteDe[id].label}</button>`).join('');
+        const d = fonte[pp.parte];
+        $('[data-pareto-titulo]', paretoRaiz).textContent = d ? `· ${parteDe[pp.parte].label} · ${modo === 'mes' ? ultimo.rotulo : `jan a ${ultimo.rotulo}`}` : '';
+        const nota = $('[data-pareto-nota]', paretoRaiz);
+        const notas = [];
+        if (st.periodo !== dp.periodo) notas.push(`O Pareto mostra a competência escolhida no topo (${ultimo.rotulo}).`);
+        if (d?.demais) notas.push(`Fora do gráfico: mais ${num.format(d.demais.quantidade)} contas, que somam ${money(d.demais.valor)}.`);
+        nota.textContent = notas.join(' ');
+        nota.hidden = !notas.length;
+        if (!d) { $('[data-pareto-resumo]', paretoRaiz).textContent = 'Sem contas nesta seleção.'; novoGrafico('chart-dre-pareto', { type: 'bar', data: { labels: [], datasets: [] } }); return; }
+        let acc = 0;
+        const acum = d.contas.map(([, , v]) => { acc += Math.abs(v); return (acc / d.totalAbs) * 100; });
+        const dentro = (i) => (i === 0 ? 0 : acum[i - 1]) < pp.corte;
+        const n = acum.findIndex((p) => p >= pp.corte) + 1 || d.contas.length;
+        $('[data-pareto-resumo]', paretoRaiz).textContent = `${num.format(n)} de ${num.format(d.quantidade)} contas fazem ${pp.corte}% do valor · clique numa barra para ver a conta`;
+        $('[data-pareto-corte-valor]', paretoRaiz).textContent = `${pp.corte}%`;
+        novoGrafico('chart-dre-pareto', {
+          type: 'bar',
+          data: {
+            labels: d.contas.map(([c]) => c.split(' - ')[0]),
+            datasets: [
+              { type: 'line', label: '% acumulado', data: acum, yAxisID: 'y2', order: 1, borderColor: PALETTE[1], borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, tension: 0.25 },
+              { type: 'line', label: `Corte ${pp.corte}%`, data: acum.map(() => pp.corte), yAxisID: 'y2', order: 2, borderColor: rgba(PALETTE[8] || '#FDB913', 0.9), borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, pointHoverRadius: 0 },
+              { label: 'Valor', data: d.contas.map(([, , v]) => Math.abs(v)), order: 3, backgroundColor: d.contas.map((_, i) => (dentro(i) ? rgba(PALETTE[0], 0.9) : rgba(PALETTE[0], 0.25))), hoverBackgroundColor: PALETTE[0], borderRadius: 3, borderSkipped: false, maxBarThickness: 18 },
+            ],
+          },
+          options: {
+            interaction: { mode: 'index', intersect: false },
+            animation: entrada(12),
+            onHover: (ev, els) => { ev.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+            onClick: (_ev, els) => { if (els.length) buscarConta(d.contas[els[0].index][0].split(' - ')[0], true); },
+            plugins: {
+              legend: { position: 'bottom', labels: { filter: (l) => l.text !== 'Valor' } },
+              tooltip: {
+                callbacks: {
+                  title: (items) => d.contas[items[0].dataIndex][0],
+                  label: (c) => (c.dataset.label === 'Valor' ? ` ${money(d.contas[c.dataIndex][2])} · ${d.contas[c.dataIndex][1]}` : c.dataset.label === '% acumulado' ? ` Acumulado: ${pct(c.parsed.y / 100)}` : null),
+                },
+              },
+            },
+            scales: {
+              x: { grid: { display: false }, border: { display: false }, ticks: { display: false } },
+              y: { grid, border: { display: false }, ticks: { callback: (v) => curto(v) } },
+              y2: { position: 'right', min: 0, max: 100, grid: { display: false }, border: { display: false }, ticks: { callback: (v) => `${v}%` } },
+            },
+          },
+        });
+      }
+      if (paretoRaiz) {
+        paretoRaiz.addEventListener('click', (e) => { const b = e.target.closest('[data-pareto-parte]'); if (b) { pp.parte = b.dataset.paretoParte; pareto(); } });
+        $('[data-pareto-corte]', paretoRaiz).addEventListener('input', (e) => { pp.corte = Number(e.target.value); pareto(); });
+      }
+
+      /* ---- Buscar conta: número ou descrição → valor no ano, no mês, peso no grupo e evolução mês a mês ---- */
+      const buscaRaiz = $('#dp-busca');
+      const bst = { contas: [], escolhida: null, timer: null, pedido: 0 };
+      async function buscarConta(termo, escolherPrimeira = false) {
+        if (!buscaRaiz) return;
+        const campo = $('[data-busca-campo]', buscaRaiz);
+        if (campo.value !== termo) campo.value = termo;
+        const lista = $('[data-busca-lista]', buscaRaiz);
+        if (String(termo).trim().length < 2) { lista.innerHTML = ''; bst.contas = []; return; }
+        const pedido = ++bst.pedido;
+        lista.innerHTML = '<li class="note">Buscando…</li>';
+        try {
+          const r = await fetch(`/api/dre/contas?q=${encodeURIComponent(termo)}`, { headers: { Accept: 'application/json' } });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const j = await r.json();
+          if (pedido !== bst.pedido) return; // chegou uma busca mais nova
+          bst.contas = j.contas || [];
+          if (!bst.contas.length) { lista.innerHTML = '<li class="note">Nenhuma conta encontrada nesta seleção.</li>'; $('[data-busca-detalhe]', buscaRaiz).hidden = true; return; }
+          lista.innerHTML = bst.contas.map((c, i) => { const sep = c.conta.indexOf(' - '); return `<li><button type="button" class="dp-busca-item ${bst.escolhida === c.conta ? 'ativo' : ''}" data-busca-i="${i}"><span class="dp-conta-nome"><span class="pop-cod">${esc(sep > 0 ? c.conta.slice(0, sep) : c.conta)}</span>${esc(sep > 0 ? c.conta.slice(sep + 3) : '')}</span><span class="num ${c.ano < 0 ? 'neg' : ''}">${curto(c.ano)}</span></button></li>`; }).join('');
+          if (escolherPrimeira) mostrarConta(0);
+        } catch (err) {
+          if (pedido === bst.pedido) lista.innerHTML = `<li class="note">Não foi possível buscar agora (${esc(err.message)}).</li>`;
+        }
+      }
+      function mostrarConta(i) {
+        const c = bst.contas[i];
+        if (!c) return;
+        bst.escolhida = c.conta;
+        $$('.dp-busca-item', buscaRaiz).forEach((b) => b.classList.toggle('ativo', Number(b.dataset.buscaI) === i));
+        const det = $('[data-busca-detalhe]', buscaRaiz);
+        det.hidden = false;
+        $('[data-busca-nome]', buscaRaiz).textContent = c.conta;
+        $('[data-busca-grupo]', buscaRaiz).textContent = c.grupos.join(' · ');
+        const cel = (rot, v, extra = '') => `<div><span>${rot}</span><strong class="${v < 0 ? 'neg' : ''}">${v == null ? '—' : money(v)}</strong>${extra}</div>`;
+        $('[data-busca-nums]', buscaRaiz).innerHTML = cel(`Jan a ${ultimo.rotulo}`, c.ano)
+          + cel(`Em ${ultimo.rotulo}`, c.mes, c.mes == null ? '<small>sem o mês anterior</small>' : '')
+          + `<div><span>Peso no grupo</span><strong>${c.pesoGrupo == null ? '—' : pct(c.pesoGrupo)}</strong><small>${esc(c.grupos[0] || '')}</small></div>`;
+        desenharConta();
+        det.scrollIntoView({ behavior: reduzMovimento ? 'auto' : 'smooth', block: 'nearest' });
+      }
+      function desenharConta() {
+        const c = bst.contas.find((x) => x.conta === bst.escolhida);
+        if (!c) return;
+        novoGrafico('chart-dre-conta', {
+          type: 'bar',
+          data: {
+            labels: c.serie.map((x) => x.rotulo.slice(0, 3)),
+            datasets: [
+              { type: 'line', label: 'Acumulado no ano', data: c.serie.map((x) => x.ano), order: 1, borderColor: PALETTE[1], borderWidth: 2, pointRadius: 3, tension: 0.3, spanGaps: true },
+              { label: 'No mês', data: c.serie.map((x) => x.mes), order: 2, backgroundColor: c.serie.map((x) => rgba((x.mes || 0) < 0 ? PALETTE[2] : PALETTE[0], 0.85)), borderRadius: 4, borderSkipped: false, maxBarThickness: 26 },
+            ],
+          },
+          options: {
+            interaction: { mode: 'index', intersect: false },
+            animation: entrada(40),
+            plugins: { legend: { position: 'bottom' }, tooltip: { filter: (x) => x.parsed.y != null, callbacks: { label: (x) => ` ${x.dataset.label}: ${money(x.parsed.y)}` } } },
+            scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid, border: { display: false }, ticks: { callback: (v) => curto(v) } } },
+          },
+        });
+      }
+      if (buscaRaiz) {
+        $('[data-busca-campo]', buscaRaiz).addEventListener('input', (e) => {
+          clearTimeout(bst.timer);
+          bst.timer = setTimeout(() => buscarConta(e.target.value), 300);
+        });
+        buscaRaiz.addEventListener('click', (e) => { const b = e.target.closest('[data-busca-i]'); if (b) mostrarConta(Number(b.dataset.buscaI)); });
+      }
+
+      /* ---- Simulador "e se": variação % em cada alavanca sobre uma base (mês, média de 3 meses ou ano) ---- */
+      const simRaiz = $('#dp-simulador');
+      const ALAVANCAS = [
+        { id: 'receita', rot: 'Receita', ajuda: 'As deduções (impostos) acompanham a receita' },
+        { id: 'salarios', rot: 'Salários e encargos', ajuda: 'Custo de pessoal' },
+        { id: 'materiais', rot: 'Materiais aplicados', ajuda: '' },
+        { id: 'servicos', rot: 'Serviços de terceiros', ajuda: 'Inclui aluguel de equipamentos' },
+        { id: 'outros', rot: 'Demais custos', ajuda: 'Depreciação, viagens, impostos e outros' },
+        { id: 'despesas', rot: 'Despesas operacionais', ajuda: 'G&A, provisões e outras' },
+      ];
+      const sim = { base: dp.meses[dp.meses.length - 1].temMes ? 'mes' : 'ano', ajustes: Object.fromEntries(ALAVANCAS.map((a) => [a.id, 0])) };
+      const norm = (t) => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      /** Divide um período (grupos + subgrupos da DRE) nas alavancas do simulador */
+      function alavancasDe(d) {
+        const v = { receita: 0, salarios: 0, materiais: 0, servicos: 0, outros: 0, despesas: 0, fixo: 0 };
+        for (const [k, x] of Object.entries(d.subgrupos)) {
+          const [g, s] = k.split('|');
+          const n = norm(s);
+          if (parteDe.receita.grupos.includes(g)) v.receita += x;
+          else if (g === 'Custos') {
+            if (n.startsWith('salarios')) v.salarios += x;
+            else if (n.startsWith('materiais')) v.materiais += x;
+            else if (n.startsWith('contratacao de servicos')) v.servicos += x;
+            else v.outros += x;
+          } else if (parteDe.despesas.grupos.includes(g)) v.despesas += x;
+          else v.fixo += x;
+        }
+        // diferença de arredondamento entre grupos e subgrupos fica no que não muda
+        v.fixo += totais(d.grupos).lucro - Object.values(v).reduce((a, x) => a + x, 0);
+        return v;
+      }
+      function baseSim() {
+        if (sim.base === 'ano') return { v: alavancasDe(ultimo.ano), rot: `jan a ${ultimo.rotulo}`, receitaRef: totais(ultimo.ano.grupos).receita };
+        const comMes = dp.meses.filter((m) => m.temMes);
+        if (sim.base === 'mes' || comMes.length <= 1) {
+          if (!ultimo.temMes) return null;
+          return { v: alavancasDe(ultimo.mes), rot: ultimo.rotulo, receitaRef: totais(ultimo.mes.grupos).receita };
+        }
+        const ult3 = comMes.slice(-3);
+        const soma = {};
+        ult3.forEach((m) => Object.entries(alavancasDe(m.mes)).forEach(([k, x]) => { soma[k] = (soma[k] || 0) + x / ult3.length; }));
+        return { v: soma, rot: `média de ${ult3.map((m) => m.rotulo).join(', ')}`, receitaRef: ult3.reduce((a, m) => a + totais(m.mes.grupos).receita, 0) / ult3.length };
+      }
+      function simulador() {
+        if (!simRaiz) return;
+        $('[data-sim-base]', simRaiz).value = sim.base;
+        const b = baseSim();
+        const aviso = $('[data-sim-aviso]', simRaiz);
+        const comMes = dp.meses.filter((m) => m.temMes).length;
+        const msg = !b ? `Sem o FGI0 do mês anterior não dá para separar ${ultimo.rotulo}: use o acumulado no ano.`
+          : sim.base === 'media3' && comMes < 2 ? 'Só há um mês com valor separado: a média usa esse mês.' : '';
+        aviso.textContent = msg;
+        aviso.hidden = !msg;
+        const lista = $('[data-sim-alavancas]', simRaiz);
+        if (!lista.childElementCount) {
+          lista.innerHTML = ALAVANCAS.map((a) => `<div class="dp-sim-alavanca">
+              <label for="sim-${a.id}"><span>${a.rot}</span><output data-sim-out="${a.id}">0%</output></label>
+              <input type="range" id="sim-${a.id}" min="-30" max="30" step="1" value="0" data-sim-ajuste="${a.id}">
+              <small data-sim-efeito="${a.id}">${esc(a.ajuda)}</small>
+            </div>`).join('');
+        }
+        const res = $('[data-sim-resultado]', simRaiz);
+        if (!b) { res.innerHTML = ''; return; }
+        const base = b.v;
+        const lucroBase = Object.values(base).reduce((a, x) => a + x, 0);
+        const fator = (id) => 1 + sim.ajustes[id] / 100;
+        const sim_ = { ...base };
+        ALAVANCAS.forEach((a) => { sim_[a.id] = base[a.id] * fator(a.id); });
+        const lucroSim = Object.values(sim_).reduce((a, x) => a + x, 0);
+        const rlSim = b.receitaRef * fator('receita');
+        const margemBase = b.receitaRef ? lucroBase / b.receitaRef : null;
+        const margemSim = rlSim ? lucroSim / rlSim : null;
+        ALAVANCAS.forEach((a) => {
+          const aj = sim.ajustes[a.id];
+          $(`[data-sim-ajuste="${a.id}"]`, simRaiz).value = aj;
+          $(`[data-sim-out="${a.id}"]`, simRaiz).textContent = `${aj > 0 ? '+' : ''}${aj}%`;
+          const efeito = sim_[a.id] - base[a.id];
+          $(`[data-sim-efeito="${a.id}"]`, simRaiz).innerHTML = aj ? `<b class="${efeito < 0 ? 'neg' : 'pos'}">${sinal(efeito)}</b> no lucro` : `${esc(a.ajuda || '')}${a.ajuda ? ' · ' : ''}base ${curto(base[a.id])}`;
+        });
+        const dif = lucroSim - lucroBase;
+        res.innerHTML = `<p class="dp-sim-base">Base: ${esc(b.rot)}</p>
+          <div class="dp-sim-num"><span>Lucro na base</span><strong class="${lucroBase < 0 ? 'neg' : ''}">${money(lucroBase)}</strong><small>Margem ${margemBase == null ? '—' : pct(margemBase)}</small></div>
+          <div class="dp-sim-num destaque"><span>Lucro simulado</span><strong class="${lucroSim < 0 ? 'neg' : 'pos'}">${money(lucroSim)}</strong><small>Margem ${margemSim == null ? '—' : pct(margemSim)}</small></div>
+          <div class="dp-sim-num"><span>Diferença</span><strong class="${zeroV(dif) ? '' : dif < 0 ? 'neg' : 'pos'}">${zeroV(dif) ? money(0) : sinal(dif)}</strong><small>${margemBase != null && margemSim != null ? `${((margemSim - margemBase) * 100 >= 0 ? '+' : '')}${((margemSim - margemBase) * 100).toFixed(1).replace('.', ',')} p.p. de margem` : ''}</small></div>
+          <p class="note">Cada 1% a mais em salários muda o lucro em ${money(base.salarios / 100)}; cada 1% a mais de receita, em ${money(base.receita / 100)}.</p>`;
+      }
+      if (simRaiz) {
+        simRaiz.addEventListener('input', (e) => { const r = e.target.closest('[data-sim-ajuste]'); if (r) { sim.ajustes[r.dataset.simAjuste] = Number(r.value); simulador(); } });
+        simRaiz.addEventListener('change', (e) => { if (e.target.matches('[data-sim-base]')) { sim.base = e.target.value; simulador(); } });
+        $('[data-sim-zerar]', simRaiz).addEventListener('click', () => { Object.keys(sim.ajustes).forEach((k) => { sim.ajustes[k] = 0; }); simulador(); });
+      }
+
+      /** Redesenha todos os gráficos do painel (primeira carga e troca de tema) */
+      function desenharGraficos() {
+        iniciado = true;
+        desenharGrafico();
+        ponte();
+        pareto();
+        if (bst.escolhida) desenharConta();
+      }
+
       atualizar();
-      return { desenharGrafico };
+      simulador();
+      return { desenharGrafico: desenharGraficos, aoAtualizar: pareto };
     }
     const painelDre = data.dre ? criarPainelDre(data.dre) : null;
 
