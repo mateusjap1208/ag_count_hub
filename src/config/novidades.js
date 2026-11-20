@@ -6,6 +6,18 @@
  */
 module.exports = [
   {
+    build: 101,
+    data: "2026-11-20",
+    titulo: "Painel do resultado na DRE",
+    itens: [
+      "Novo painel na Demonstração do Resultado: Receita líquida, Custos, Lucro bruto, Despesas e outros e Lucro líquido, com a margem e a variação contra o mês anterior. Escolha entre o valor do mês e o acumulado no ano.",
+      "Clique em Receita, Custos ou Despesas para ver a composição por natureza (salários, materiais, serviços de terceiros…) e clique numa linha para abrir as contas contábeis.",
+      "Evolução mensal no ano: receita líquida, custos e lucro líquido mês a mês. Clique num mês para ver o resultado dele. O valor de cada mês sai da diferença entre dois FGI0 seguidos.",
+      "Alertas contábeis: contas sem cadastro no Plano de Contas, custos e despesas sem área funcional e contas com sinal fora do padrão no mês.",
+      "Tudo respeita os filtros do topo: com uma obra selecionada, o painel mostra só aquela obra."
+    ]
+  },
+  {
     build: 100,
     data: "2026-11-20",
     titulo: "Balanço na ordem da estrutura BPC",
