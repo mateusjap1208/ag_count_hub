@@ -1078,10 +1078,203 @@
       });
     }
 
+    /* ---- DRE: painel do resultado (services/painelDre.js) ----
+       Cards ligados entre si: o mês e o modo (mês × acumulado no ano) valem para o resultado, a composição e o gráfico;
+       clicar num card de resultado escolhe a parte exibida na composição; clicar num mês do gráfico troca o mês. */
+    function criarPainelDre(dp) {
+      const raiz = $('#dp-resultado');
+      if (!raiz || !dp.meses.length) return null;
+      const code = data.currency || 'BRL';
+      const money = (v) => moneyFmt(code).format(v);
+      const curto = (v) => moneyFmt(code, true).format(v);
+      const pct = (v) => `${(v * 100).toFixed(1).replace('.', ',')}%`;
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const zeroV = (v) => Math.abs(v || 0) < 0.005;
+      const parteDe = Object.fromEntries(dp.partes.map((p) => [p.id, p]));
+      const mesDe = (p) => dp.meses.find((m) => m.periodo === p);
+      const anterior = (p) => { const i = dp.meses.findIndex((m) => m.periodo === p); return i > 0 ? dp.meses[i - 1] : null; };
+      const ultimo = mesDe(dp.periodo);
+      const st = { periodo: dp.periodo, modo: ultimo && ultimo.temMes ? 'mes' : 'ano', parte: 'custos', aberto: null };
+      let grafico = null;
+
+      const dados = (m, modo = st.modo) => (m ? (modo === 'mes' ? m.mes : m.ano) : null);
+      const somaParte = (grupos, id) => parteDe[id].grupos.reduce((a, g) => a + (grupos[g] || 0), 0);
+      /** Totais do resultado a partir dos grupos da DRE */
+      function totais(grupos) {
+        if (!grupos) return null;
+        const receita = somaParte(grupos, 'receita');
+        const custos = somaParte(grupos, 'custos');
+        const total = Object.values(grupos).reduce((a, v) => a + v, 0);
+        return { receita, custos, lucroBruto: receita + custos, demais: total - receita - custos, lucro: total };
+      }
+      const rotuloPeriodo = (m) => (st.modo === 'mes' ? m.rotulo : `jan a ${m.rotulo}`);
+
+      function tiles() {
+        const m = mesDe(st.periodo);
+        const d = dados(m);
+        const t = totais(d?.grupos);
+        const box = $('[data-dp-tiles]', raiz);
+        $('[data-dp-titulo]', raiz).textContent = `· ${rotuloPeriodo(m)}`;
+        if (!t) { box.innerHTML = '<p class="note">Sem dados para este mês.</p>'; return; }
+        const antM = anterior(st.periodo);
+        const ant = st.modo === 'mes' ? totais(antM?.mes?.grupos) : null;
+        const rl = t.receita;
+        const demaisParte = ['despesas', 'financeiro', 'ir', 'classificar'].find((id) => !zeroV(somaParte(d.grupos, id))) || 'despesas';
+        const cards = [
+          { id: 'receita', label: 'Receita líquida', v: t.receita, meta: 'Receita bruta − deduções', parte: 'receita' },
+          { id: 'custos', label: 'Custos', v: t.custos, meta: rl ? `${pct(Math.abs(t.custos) / Math.abs(rl))} da receita líquida` : '', parte: 'custos' },
+          { id: 'lucroBruto', label: 'Lucro bruto', v: t.lucroBruto, meta: rl ? `Margem bruta ${pct(t.lucroBruto / rl)}` : '', resultado: true },
+          { id: 'demais', label: 'Despesas e outros', v: t.demais, meta: 'Despesas, financeiro, IR e a classificar', parte: demaisParte, grupoPartes: ['despesas', 'financeiro', 'ir', 'classificar'] },
+          { id: 'lucro', label: 'Lucro líquido', v: t.lucro, meta: rl ? `Margem líquida ${pct(t.lucro / rl)}` : '', resultado: true },
+        ];
+        box.innerHTML = cards.map((c) => {
+          const dv = ant ? c.v - ant[c.id] : null;
+          const tom = c.resultado ? (c.v < 0 ? 'neg' : 'pos') : '';
+          const ativo = !!c.parte && (c.parte === st.parte || (c.grupoPartes || []).includes(st.parte));
+          const variacao = dv == null ? '' : `<span class="dp-tile-var ${zeroV(dv) ? '' : dv > 0 ? 'up' : 'down'}">${zeroV(dv) ? '=' : dv > 0 ? '▲' : '▼'} ${curto(Math.abs(dv))} vs ${esc(antM.rotulo)}</span>`;
+          const inner = `<span class="dp-tile-label">${c.label}</span>
+            <strong class="dp-tile-valor" title="${esc(money(c.v))}">${curto(c.v)}</strong>
+            <span class="dp-tile-meta">${esc(c.meta)}</span>${variacao}`;
+          return c.parte
+            ? `<button type="button" class="dp-tile ${ativo ? 'ativo' : ''}" data-dp-parte="${c.parte}" aria-pressed="${ativo}">${inner}</button>`
+            : `<div class="dp-tile resultado ${tom}">${inner}</div>`;
+        }).join('');
+      }
+
+      function composicao() {
+        const m = mesDe(st.periodo);
+        const subs = dados(m)?.subgrupos || {};
+        const daParte = (p) => Object.entries(subs).filter(([k, v]) => p.grupos.includes(k.split('|')[0]) && !zeroV(v));
+        const comDados = dp.partes.filter((p) => daParte(p).length);
+        if (comDados.length && !comDados.some((p) => p.id === st.parte)) st.parte = comDados[0].id;
+        const parte = parteDe[st.parte];
+        $('[data-dp-partes]').innerHTML = comDados.map((p) => `<button type="button" class="chip ${p.id === st.parte ? 'active' : ''}" data-dp-parte="${p.id}" aria-pressed="${p.id === st.parte}">${p.label}</button>`).join('');
+        const itens = daParte(parte).map(([k, v]) => { const [g, s] = k.split('|'); return { k, g, s, v }; }).sort((a, b) => Math.abs(b.v) - Math.abs(a.v));
+        const totalAbs = itens.reduce((a, x) => a + Math.abs(x.v), 0);
+        const max = Math.max(...itens.map((x) => Math.abs(x.v)), 1);
+        $('[data-dp-comp-titulo]').textContent = `· ${parte.label} · ${rotuloPeriodo(m)}`;
+        $('[data-dp-comp-total]').textContent = itens.length ? `Total ${money(itens.reduce((a, x) => a + x.v, 0))}` : '';
+        const varios = parte.grupos.length > 1;
+        const contas = st.periodo === dp.periodo ? dp.contas[st.modo] : null;
+        const lista = $('[data-dp-barras]');
+        if (!itens.length) { lista.innerHTML = '<li class="note">Sem valores nesta parte do resultado.</li>'; return; }
+        lista.innerHTML = itens.map((x, i) => {
+          const aberto = st.aberto === x.k;
+          let det = '';
+          if (aberto) {
+            det = contas && contas[x.k]
+              ? `<ul class="dp-contas">${contas[x.k].map(([c, v]) => { const sep = c.indexOf(' - '); return `<li><span class="dp-conta-nome"><span class="pop-cod">${esc(sep > 0 ? c.slice(0, sep) : c)}</span>${esc(sep > 0 ? c.slice(sep + 3) : '')}</span><span class="num ${v < 0 ? 'neg' : ''}">${money(v)}</span></li>`; }).join('')}</ul>`
+              : `<p class="note dp-contas-nota">O detalhe por conta está disponível na competência escolhida no topo (${esc(ultimo.rotulo)}).</p>`;
+          }
+          return `<li class="dp-barra ${aberto ? 'aberta' : ''}">
+            <button type="button" class="dp-barra-btn" data-dp-sub="${esc(x.k)}" aria-expanded="${aberto}">
+              <span class="dp-barra-nome">${esc(x.s)}${varios ? `<small>${esc(x.g)}</small>` : ''}</span>
+              <span class="dp-barra-valor">${curto(x.v)}<small>${totalAbs ? pct(Math.abs(x.v) / totalAbs) : ''}</small></span>
+              <span class="dp-barra-trilho" aria-hidden="true"><span class="dp-barra-fill ${x.v < 0 ? 'negativo' : ''}" data-w="${(Math.abs(x.v) / max * 100).toFixed(1)}" data-d="${i * 40}"></span></span>
+            </button>${det}</li>`;
+        }).join('');
+        // Largura e atraso da animação via JS (a CSP do app não aceita o atributo style inline)
+        $$('.dp-barra-fill', lista).forEach((b) => { b.style.setProperty('--w', `${b.dataset.w}%`); b.style.setProperty('--d', `${b.dataset.d}ms`); });
+      }
+
+      function controles() {
+        const m = mesDe(st.periodo);
+        const antM = anterior(st.periodo);
+        $$('[data-dp-modo]', raiz).forEach((b) => {
+          const ativo = b.dataset.dpModo === st.modo;
+          b.classList.toggle('ativo', ativo);
+          b.setAttribute('aria-pressed', String(ativo));
+          b.disabled = b.dataset.dpModo === 'mes' && !m.temMes;
+          b.title = b.disabled ? `Sem o FGI0 de ${antM ? antM.rotulo : 'mês anterior'} não dá para separar o valor do mês` : '';
+        });
+        $('[data-dp-mes]', raiz).value = st.periodo;
+        const aviso = $('[data-dp-aviso]', raiz);
+        const msg = !m.temMes && antM ? `Mostrando o acumulado no ano: falta o FGI0 de ${antM.rotulo} para separar o valor de ${m.rotulo}.` : '';
+        aviso.textContent = msg;
+        aviso.hidden = !msg;
+      }
+
+      function atualizar({ redesenhar = false } = {}) {
+        const m = mesDe(st.periodo);
+        if (st.modo === 'mes' && !m.temMes) st.modo = 'ano';
+        controles();
+        tiles();
+        composicao();
+        if (redesenhar && grafico) { grafico.destroy(); desenharGrafico(); } else if (grafico) grafico.update('none');
+      }
+
+      // Eventos delegados (os cards são redesenhados a cada mudança)
+      document.addEventListener('click', (e) => {
+        const parte = e.target.closest('[data-dp-parte]');
+        if (parte) { st.parte = parte.dataset.dpParte; st.aberto = null; atualizar(); return; }
+        const sub = e.target.closest('[data-dp-sub]');
+        if (sub) { st.aberto = st.aberto === sub.dataset.dpSub ? null : sub.dataset.dpSub; composicao(); return; }
+        const modo = e.target.closest('[data-dp-modo]');
+        if (modo && !modo.disabled && modo.dataset.dpModo !== st.modo) { st.modo = modo.dataset.dpModo; st.aberto = null; atualizar({ redesenhar: true }); }
+      });
+      $('[data-dp-mes]', raiz).addEventListener('change', (e) => { st.periodo = e.target.value; st.aberto = null; atualizar(); });
+
+      /** Evolução no ano: barras de receita líquida e custos, linha do lucro líquido; o mês escolhido fica em destaque */
+      function desenharGrafico() {
+        const el = document.getElementById('chart-dre-evolucao');
+        if (!el) return;
+        const serie = (campo) => dp.meses.map((m) => { const t = totais(dados(m)?.grupos); return t ? t[campo] : null; });
+        const lucro = serie('lucro');
+        const realce = (cor) => (ctx) => (dp.meses[ctx.dataIndex]?.periodo === st.periodo ? cor : rgba(cor, 0.35));
+        grafico = new Chart(el, {
+          type: 'bar',
+          data: {
+            labels: dp.meses.map((m) => m.rotulo.slice(0, 3)),
+            datasets: [
+              { label: 'Receita líquida', data: serie('receita'), order: 2, backgroundColor: realce(PALETTE[0]), hoverBackgroundColor: PALETTE[0], borderRadius: 6, borderSkipped: false, maxBarThickness: 34 },
+              { label: 'Custos', data: serie('custos'), order: 3, backgroundColor: realce(PALETTE[2]), hoverBackgroundColor: PALETTE[2], borderRadius: 6, borderSkipped: false, maxBarThickness: 34 },
+              {
+                type: 'line', label: 'Lucro líquido', data: lucro, order: 1, tension: 0.35,
+                borderColor: PALETTE[1], borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7, pointBorderWidth: 2,
+                pointBackgroundColor: lucro.map((v) => (v < 0 ? NEG : (cssVar('--ok') || '#009360'))), pointBorderColor: cssVar('--surface') || '#fff',
+              },
+            ],
+          },
+          options: {
+            interaction: { mode: 'index', intersect: false },
+            animation: entrada(50),
+            onHover: (ev, els) => { ev.native.target.style.cursor = els.length && dp.meses[els[0].index]?.carregado ? 'pointer' : 'default'; },
+            onClick: (_ev, els) => {
+              const m = els.length ? dp.meses[els[0].index] : null;
+              if (!m || !m.carregado) return;
+              st.periodo = m.periodo;
+              st.aberto = null;
+              atualizar();
+            },
+            plugins: {
+              legend: { position: 'bottom', labels: { sort: (a, b) => a.datasetIndex - b.datasetIndex } },
+              tooltip: {
+                filter: (c) => c.parsed.y != null,
+                callbacks: {
+                  label: (c) => ` ${c.dataset.label}: ${money(c.parsed.y)}`,
+                  footer: (items) => {
+                    const m = dp.meses[items[0]?.dataIndex];
+                    const t = totais(dados(m)?.grupos);
+                    return t && t.receita ? `Margem líquida ${pct(t.lucro / t.receita)}` : '';
+                  },
+                },
+              },
+            },
+            scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid, border: { display: false }, ticks: { callback: (v) => curto(v) } } },
+          },
+        });
+      }
+
+      atualizar();
+      return { desenharGrafico };
+    }
+    const painelDre = data.dre ? criarPainelDre(data.dre) : null;
+
     function drawCharts() {
     applyChartTheme();
     // Tela de módulo
     (data.charts || []).forEach((c) => render(`chart-${c.id}`, c));
+    if (painelDre) painelDre.desenharGrafico();
 
     // Dashboard
     if (data.trend) {

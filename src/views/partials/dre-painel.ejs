@@ -1,0 +1,81 @@
+<%# Painel do resultado da DRE (services/painelDre.js). Os cards são preenchidos e ligados entre si por public/js/app.js. %>
+<% const dp = locals.dp; const cur = locals.cur || 'BRL'; const ano = dp.periodo.slice(0, 4); %>
+<div class="card bloco-largo dp-resultado" data-ordem-chave="dre-resultado" id="dp-resultado">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Resultado <span data-dp-titulo></span></h2>
+      <span class="hint">Clique em Receita, Custos ou Despesas para ver a composição · valores em <%= cur %></span>
+    </div>
+    <div class="dp-controles">
+      <div class="dp-seg" role="group" aria-label="Período dos valores">
+        <button type="button" class="dp-seg-btn" data-dp-modo="mes" aria-pressed="false">Mês</button>
+        <button type="button" class="dp-seg-btn" data-dp-modo="ano" aria-pressed="false">Acumulado no ano</button>
+      </div>
+      <label class="sr-only" for="dp-mes">Mês exibido</label>
+      <select class="select dp-mes" id="dp-mes" data-dp-mes>
+        <% dp.meses.filter(m => m.carregado).slice().reverse().forEach(m => { %>
+          <option value="<%= m.periodo %>" <%= m.periodo === dp.periodo ? 'selected' : '' %>><%= m.rotulo %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="dp-tiles" data-dp-tiles role="group" aria-label="Partes do resultado"></div>
+  <p class="dp-aviso" data-dp-aviso hidden></p>
+</div>
+
+<div class="card dp-composicao" data-ordem-chave="dre-composicao">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Composição <span data-dp-comp-titulo></span></h2>
+      <span class="hint" data-dp-comp-total></span>
+    </div>
+  </div>
+  <div class="dp-partes" data-dp-partes role="group" aria-label="Parte do resultado"></div>
+  <ol class="dp-barras" data-dp-barras aria-live="polite"></ol>
+</div>
+
+<div class="card dp-evolucao" data-ordem-chave="dre-evolucao">
+  <div class="card-head">
+    <h2>Evolução mensal · <%= ano %></h2>
+    <span class="hint">Clique num mês para ver o resultado dele</span>
+  </div>
+  <div class="chart-box"><canvas id="chart-dre-evolucao" aria-label="Receita líquida, custos e lucro líquido mês a mês"></canvas></div>
+  <% if (dp.faltando.length) { %>
+    <p class="note dp-nota">Sem FGI0 de <%= dp.faltando.length > 3 ? `${dp.faltando[0]} a ${dp.faltando[dp.faltando.length - 1]}` : dp.faltando.join(', ') %>: esses meses ficam em branco. O valor de um mês só aparece quando o FGI0 do mês anterior também está carregado.</p>
+  <% } %>
+</div>
+
+<div class="card bloco-largo dp-alertas" data-ordem-chave="dre-alertas">
+  <div class="card-head">
+    <h2>Alertas contábeis</h2>
+    <span class="hint"><%= fmt.periodFull(dp.periodo) %> · valores em <%= cur %></span>
+  </div>
+  <% if (!dp.alertas.length) { %>
+    <p class="dp-ok"><%- include('icon', { name: 'check' }) %>Nenhum ponto de atenção nesta seleção: sem contas a classificar, sem custos sem área funcional e sem sinal fora do padrão no mês.</p>
+  <% } else { %>
+    <div class="dp-alerta-lista">
+      <% dp.alertas.forEach(a => { %>
+        <details class="dp-alerta nivel-<%= a.nivel %>">
+          <summary>
+            <span class="dp-alerta-titulo"><%= a.titulo %></span>
+            <span class="dp-alerta-qtd"><%= fmt.number(a.quantidade) %> conta<%= a.quantidade > 1 ? 's' : '' %> · <%= fmt.currency(a.total, cur) %></span>
+          </summary>
+          <p class="note"><%= a.texto %></p>
+          <table class="pop-table dp-alerta-tabela">
+            <thead><tr><th>Conta</th><th>Grupo</th><th class="num">Valor</th></tr></thead>
+            <tbody>
+              <% a.contas.forEach(c => { const sep = c.conta.indexOf(' - '); const cod = (sep > 0 ? c.conta.slice(0, sep) : c.conta).replace(/[^0-9A-Za-z]/g, ''); %>
+                <tr<%- a.vincular ? ` data-classificar="${cod}" class="pop-vincular" title="Clique para vincular esta conta"` : '' %>>
+                  <td><span class="pop-cod"><%= sep > 0 ? c.conta.slice(0, sep) : c.conta %></span><%= sep > 0 ? c.conta.slice(sep + 3) : '' %></td>
+                  <td><%= c.grupo %></td>
+                  <td class="num <%= c.valor < 0 ? 'neg' : '' %>"><%= fmt.currency(c.valor, cur) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (a.quantidade > a.contas.length) { %><p class="note">Mostrando as <%= a.contas.length %> maiores de <%= fmt.number(a.quantidade) %>.</p><% } %>
+        </details>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
