@@ -1,0 +1,46 @@
+<%- include('../partials/layout-start') %>
+
+<% if (!filter.periodo) { %>
+  <%- include('../partials/empty', { heading: 'Nenhuma competência selecionada', text: 'Escolha a competência nos filtros do topo para extrair os relatórios.' }) %>
+<% } else if (!relatorios.length) { %>
+  <%- include('../partials/empty', { heading: 'Nenhum relatório liberado', text: 'Peça a um administrador a liberação das telas que você precisa analisar.' }) %>
+<% } else { %>
+  <div class="card mt">
+    <div class="card-head">
+      <h2>Detalhamentos disponíveis</h2>
+      <span class="hint">Competência <%= fmt.periodFull(filter.periodo) %> · os filtros do topo (empresa, obra e moeda) valem para a extração</span>
+    </div>
+    <div class="table-wrap">
+      <table class="rel-tabela">
+        <thead><tr>
+          <th>Tema</th>
+          <th>Relatório</th>
+          <th class="num">Linhas</th>
+          <th>Moeda</th>
+          <th class="rel-acoes">Extrair</th>
+        </tr></thead>
+        <tbody>
+          <% relatorios.forEach(r => { %>
+            <tr>
+              <td><span class="rel-tema"><%- include('../partials/icon', { name: r.icon }) %><a href="/modulos/<%= r.slug %>"><%= r.tema %></a></span></td>
+              <td><%= r.titulo %><% if (r.aba) { %> <span class="badge"><%= r.aba %></span><% } %>
+                <span class="hint"> · <%= r.colunas %> colunas</span></td>
+              <td class="num"><% if (r.linhas) { %><%= fmt.number(r.linhas) %><% } else { %><span class="badge missing">Sem dados</span><% } %></td>
+              <td><%= r.moeda || '—' %></td>
+              <td class="rel-acoes">
+                <% if (r.linhas) { %>
+                  <a class="btn btn-ghost" href="/modulos/<%= r.slug %>/exportar.csv" title="Baixar <%= r.titulo %> em CSV"><%- include('../partials/icon', { name: 'download' }) %>CSV</a>
+                  <a class="btn btn-ghost" href="/modulos/<%= r.slug %>/exportar.xlsx" title="Baixar <%= r.titulo %> em Excel"><%- include('../partials/icon', { name: 'download' }) %><%= r.excelLabel %></a>
+                <% } else { %>
+                  <span class="hint">Suba o arquivo da competência</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-end') %>

@@ -22,6 +22,8 @@
         <%- navItem('/modulos/' + m.slug, m.icon, m.menu, ativo) %>
         <% if (m.slug === 'dre' && podeVer('indicadores')) { %><%- navItem('/indicadores', 'gauge', 'Indicadores', currentPath === '/indicadores') %><% } %>
       <% }) %>
+      <% // Relatórios (extração dos detalhamentos): logo após o Arrendamento, último tema do menu %>
+      <% if (podeVer('relatorios')) { %><%- navItem('/relatorios', 'download', 'Relatórios', currentPath === '/relatorios') %><% } %>
       <% if (user.role === 'admin') { %>
         <hr class="nav-sep"><div class="nav-label">Dados</div>
         <%- navItem('/upload', 'upload', 'Upload de relatórios', currentPath === '/upload') %>

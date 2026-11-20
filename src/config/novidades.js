@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 98,
+    data: "2026-11-20",
+    titulo: "Nova tela Relatórios",
+    itens: [
+      "Novo item Relatórios no menu, logo depois de Arrendamento: um só lugar para extrair os detalhamentos (relatórios analíticos) de cada tema, em CSV ou Excel.",
+      "A extração respeita os filtros do topo (competência, empresa, obra e moeda) e mostra só os temas liberados ao seu usuário."
+    ]
+  },
+  {
     build: 97,
     data: "2026-11-20",
     titulo: "Cards de Estoque e Arrendamento",
