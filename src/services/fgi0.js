@@ -348,4 +348,32 @@ async function buildReports(fgiRows, { ignorePrefixes = config.fgi0IgnorePrefixe
   };
 }
 
-module.exports = { readFgi0, buildReports, periodFromName, currencyTypeFrom, Fgi0Error };
+/* ------------------------------------------------- ordem da estrutura BPC */
+
+/**
+ * Posição de cada conta do razão na estrutura BPC do Balanço ("BP BPC - Class NE").
+ * Conta do razão → conta do grupo (Plano de Contas ou Mapeamento) → ordem da linha da conta no parâmetro bpc-bp.
+ * Recebe os rótulos "conta - descrição" (ou só a conta) e devolve Map(rótulo → ordem); fora da estrutura = sem entrada.
+ */
+async function bpcOrder(labels) {
+  const out = new Map();
+  if (!labels.length || !(await Parameter.all('bpc-bp').catch(() => [])).length) return out;
+  const ordemDoGrupo = async (cg) => {
+    const r = (await Parameter.find('bpc-bp', cg)).find((x) => x.tipo === 'conta');
+    return r ? Number(r.ordem) : null;
+  };
+  for (const label of new Set(labels)) {
+    const conta = str(label).split(' - ')[0].trim();
+    if (!conta) continue;
+    const plano = (await Parameter.find('plano-contas', conta).catch(() => []))[0];
+    const mapa = plano ? null : (await Parameter.find('mapeamento-contas', conta).catch(() => []))[0];
+    let ordem = null;
+    for (const cg of [plano?.contaGrupo, mapa?.contaGrupo, conta]) {
+      if (cg && (ordem = await ordemDoGrupo(cg)) != null) break;
+    }
+    if (ordem != null && Number.isFinite(ordem)) out.set(label, ordem);
+  }
+  return out;
+}
+
+module.exports = { readFgi0, buildReports, bpcOrder, periodFromName, currencyTypeFrom, Fgi0Error };

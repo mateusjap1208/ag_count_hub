@@ -72,7 +72,9 @@ const modules = [
     tree: {
       breakdown: 'arvore',
       detail: 'contas',
-      itemSort: 'abs',
+      // Linhas e contas na ordem da estrutura BPC do Balanço (parâmetro bpc-bp); sem posição → fim do grupo
+      itemSort: 'ordem',
+      order: 'bpc',
       sections: [
         { key: 'Ativo', label: 'Ativo', total: 'Total do ativo' },
         { key: 'Passivo e PL', label: 'Passivo e patrimônio líquido', total: 'Total do passivo e patrimônio líquido' },

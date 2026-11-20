@@ -6,6 +6,16 @@
  */
 module.exports = [
   {
+    build: 100,
+    data: "2026-11-20",
+    titulo: "Balanço na ordem da estrutura BPC",
+    itens: [
+      "O Balanço Patrimonial agora segue a ordem oficial da estrutura BPC (BP BPC - Class NE): no ativo, Caixa e equivalentes, aplicações financeiras, contas a receber de clientes, partes relacionadas, estoques e assim por diante; no passivo e no PL, a mesma lógica.",
+      "As contas dentro de cada linha também aparecem na ordem da estrutura, e não mais pelo valor. Linhas e contas fora da estrutura ficam no fim do seu grupo.",
+      "Totais, comparativo de competências e o detalhe das contas continuam iguais. Não é preciso reimportar o FGI0."
+    ]
+  },
+  {
     build: 99,
     data: "2026-11-20",
     titulo: "Nova tela Relatórios",
