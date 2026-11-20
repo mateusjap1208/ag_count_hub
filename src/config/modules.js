@@ -123,8 +123,9 @@ const modules = [
       'Provisões para Perdas e Riscos', 'Outras Receitas (Despesas) Operacionais', 'Resultado Financeiro', 'IR e CSLL', 'A classificar'],
     breakdowns: [
       { id: 'grupo', label: 'Resultado por grupo', field: 'grupo', value: 'valor', chart: 'bar' },
-      { id: 'subgrupo', label: 'Principais subgrupos (N3)', field: 'subgrupo', value: 'valor', chart: 'hbar', top: 10 },
-      { id: 'centro', label: 'Resultado por centro de lucro (maiores)', field: 'centroLucro', value: 'valor', chart: 'hbar', top: 10 },
+      // Sem gráfico na tela (a composição e a comparação ficam no painel do resultado). "centro" alimenta os filtros de obra.
+      { id: 'subgrupo', field: 'subgrupo', value: 'valor', chart: null },
+      { id: 'centro', field: 'centroLucro', value: 'valor', chart: null },
       // Contas contábeis de cada linha da DRE (abre ao clicar na linha)
       { id: 'contas', spread: (r) => (r.conta ? [[`${r.grupo}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.valor || 0]] : []), chart: null },
       // Painel do resultado (services/painelDre.js): composição grupo › subgrupo › conta e contas sem área funcional

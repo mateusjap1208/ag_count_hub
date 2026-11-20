@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 106,
+    data: "2026-11-20",
+    titulo: "DRE mais enxuta",
+    itens: [
+      "Saíram da Demonstração do Resultado os gráficos \"Principais subgrupos (N3)\" e \"Resultado por centro de lucro (maiores)\". A composição por natureza e as contas ficam no painel do resultado."
+    ]
+  },
+  {
     build: 105,
     data: "2026-11-20",
     titulo: "Explicação dos cards da Visão Geral",
