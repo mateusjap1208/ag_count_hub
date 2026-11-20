@@ -190,6 +190,16 @@ exports.exportCsv = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+/** API JSON: busca de conta contábil na DRE (painel do resultado), com o valor mês a mês no ano */
+exports.dreContas = async (req, res, next) => {
+  try {
+    const scope = sessionScope(req);
+    const data = await painelDre.buscarContas(scope, String(req.query.q || '').slice(0, 80), { getSummary: Report.getSummary, periods: Report.periods });
+    res.set('Cache-Control', 'private, no-store');
+    res.json(data);
+  } catch (e) { next(e); }
+};
+
 /** API JSON: linha do tempo mensal de apropriação de um contrato de Seguros e Garantias */
 exports.seguroTimeline = async (req, res, next) => {
   try {

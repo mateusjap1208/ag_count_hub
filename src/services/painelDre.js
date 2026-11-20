@@ -74,6 +74,28 @@ function contasPorSubgrupo(comp) {
   return out;
 }
 
+const TOP_PARETO = 60;
+/**
+ * Pareto de uma parte do resultado (custos ou despesas): contas da maior para a menor, em valor absoluto.
+ * Vão as TOP_PARETO maiores; as demais vêm somadas, para o % acumulado continuar exato.
+ */
+function pareto(comp, grupos) {
+  const contas = Object.entries(comp || {})
+    .map(([k, v]) => { const [g, s, ...rest] = k.split('|'); return { g, s, c: rest.join('|'), v }; })
+    .filter((x) => grupos.includes(x.g) && !zero(x.v))
+    .sort((a, b) => Math.abs(b.v) - Math.abs(a.v));
+  if (!contas.length) return null;
+  const top = contas.slice(0, TOP_PARETO);
+  const resto = contas.slice(TOP_PARETO);
+  return {
+    totalAbs: round2(contas.reduce((a, x) => a + Math.abs(x.v), 0)),
+    quantidade: contas.length,
+    contas: top.map((x) => [x.c, x.s, round2(x.v)]),
+    demais: resto.length ? { quantidade: resto.length, valor: round2(resto.reduce((a, x) => a + x.v, 0)) } : null,
+  };
+}
+const paretos = (comp) => (comp ? Object.fromEntries(['custos', 'despesas'].map((id) => [id, pareto(comp, PARTES.find((p) => p.id === id).grupos)])) : null);
+
 /** "grupo|conta - descrição" → [{ grupo, conta, valor }] */
 const contasDe = (map, filtro = () => true) => Object.entries(map || {})
   .filter(([, v]) => !zero(v))
@@ -167,7 +189,55 @@ async function montar(scope, { getSummary, periods }) {
     // Contas de cada subgrupo: só da competência escolhida no topo (no ano e, se houver o mês anterior, no mês)
     contas: { ano: contasPorSubgrupo(atual.breakdowns.composicao), mes: compMes ? contasPorSubgrupo(compMes) : null },
     alertas: alertas(atual, contasMes, ultimo.temMes),
+    pareto: { ano: paretos(atual.breakdowns.composicao), mes: compMes ? paretos(compMes) : null },
   };
 }
 
-module.exports = { montar, PARTES };
+const semAcento = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/**
+ * Busca de conta contábil na DRE do escopo: valor de cada mês do ano (acumulado e, quando há o mês anterior, do mês)
+ * e o peso da conta no seu grupo na competência. Até 20 contas (as de maior valor no ano).
+ */
+async function buscarContas(scope, termo, { getSummary, periods }) {
+  const P = scope.period;
+  const q = semAcento(termo).trim();
+  if (!P || q.length < 2) return { periodo: P, contas: [] };
+  const ano = P.slice(0, 4);
+  const carregadas = new Set((await periods()).filter((p) => p.startsWith(ano) && p <= P));
+  const mesFinal = Number(P.slice(5, 7));
+  const resumos = new Map();
+  await Promise.all([...carregadas].map(async (p) => resumos.set(p, await getSummary('dre', { ...scope, period: p }).catch(() => null))));
+  const atual = resumos.get(P);
+  if (!atual) return { periodo: P, contas: [] };
+  const termos = q.split(/\s+/);
+  // Contas que casam com a busca (número ou descrição), em qualquer mês do ano
+  const achadas = new Map(); // conta → Set(grupo)
+  for (const s of resumos.values()) {
+    for (const k of Object.keys(s?.breakdowns?.contas || {})) {
+      const i = k.indexOf('|');
+      const conta = k.slice(i + 1);
+      const alvo = semAcento(conta);
+      if (termos.every((t) => alvo.includes(t))) (achadas.get(conta) || achadas.set(conta, new Set()).get(conta)).add(k.slice(0, i));
+    }
+  }
+  const valorEm = (s, conta, grupos) => (s ? [...grupos].reduce((a, g) => a + (s.breakdowns.contas[`${g}|${conta}`] || 0), 0) : null);
+  const contas = [...achadas].map(([conta, grupos]) => {
+    const serie = [];
+    for (let m = 1; m <= mesFinal; m++) {
+      const p = `${ano}-${pad(m)}`;
+      const s = resumos.get(p);
+      const ant = m === 1 ? null : resumos.get(`${ano}-${pad(m - 1)}`);
+      const vAno = valorEm(s, conta, grupos);
+      const vMes = s && (m === 1 || ant) ? vAno - (m === 1 ? 0 : valorEm(ant, conta, grupos)) : null;
+      serie.push({ periodo: p, rotulo: rotuloMes(p), ano: vAno == null ? null : round2(vAno), mes: vMes == null ? null : round2(vMes) });
+    }
+    const gs = [...grupos];
+    const totalGrupo = gs.reduce((a, g) => a + (atual.breakdowns.grupo[g] || 0), 0);
+    const ult = serie[serie.length - 1];
+    return { conta, grupos: gs, serie, ano: ult.ano || 0, mes: ult.mes, pesoGrupo: totalGrupo ? round2((ult.ano || 0) / totalGrupo) : null };
+  }).sort((a, b) => Math.abs(b.ano) - Math.abs(a.ano)).slice(0, 20);
+  return { periodo: P, contas };
+}
+
+module.exports = { montar, buscarContas, PARTES };
