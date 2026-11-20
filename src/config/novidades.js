@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 97,
+    data: "2026-11-20",
+    titulo: "Cards de Estoque e Arrendamento",
+    itens: [
+      "Na Visão Geral, o card Valor em estoque passa a mostrar só o estoque próprio (sem o estoque de terceiros).",
+      "O card Passivo de arrendamento agora usa o saldo contábil das contas 2159000020 (Arrendamento Mercantil Curto Prazo) + 2959000020 (Longo Prazo)."
+    ]
+  },
+  {
     build: 96,
     data: "2026-11-18",
     titulo: "Legenda do gráfico Receita x Lucro",

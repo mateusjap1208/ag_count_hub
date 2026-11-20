@@ -1,6 +1,9 @@
 const Report = require('../models/Report');
 const Telas = require('../config/telas');
 
+// Arrendamento Mercantil Curto Prazo + Longo Prazo (saldo do passivo de arrendamento no balancete)
+const CONTAS_ARRENDAMENTO = ['2159000020', '2959000020'];
+
 const kpi = (view, label) => {
   if (view.empty) return null;
   const k = view.kpis.find((x) => x.label === label);
@@ -23,6 +26,26 @@ exports.index = async (req, res, next) => {
       ? { label: 'Passivo + PL', value: passivo.value + pl.value, format: 'currency', currency: views.bp.currency, hint: 'Passivo total + patrimônio líquido' }
       : null;
 
+    // Passivo de arrendamento: saldo contábil do BP (contas de arrendamento mercantil CP + LP).
+    // Sem BP liberado/importado, cai no saldo do cronograma IFRS 16 (Carteira final do passivo).
+    let arrendamento = { ...kpi(views.arrendamento, 'Passivo de arrendamento'), hint: 'IFRS 16 · cronograma' };
+    if (pode('bp') && !views.bp.empty) {
+      const contas = (await Report.getSummary('bp', scope))?.breakdowns?.contas || {};
+      // Chave do breakdown: "seção|grupo|linha|conta - descrição"
+      const contaDa = (k) => String(k.split('|')[3] || '').split(' - ')[0].trim().replace(/^0+/, '');
+      const achou = Object.keys(contas).filter((k) => CONTAS_ARRENDAMENTO.includes(contaDa(k)));
+      if (achou.length) {
+        arrendamento = {
+          label: 'Passivo de arrendamento', format: 'currency', currency: views.bp.currency,
+          value: achou.reduce((a, k) => a + (contas[k] || 0), 0),
+          hint: `Contas ${CONTAS_ARRENDAMENTO.join(' + ')} (CP + LP)`,
+        };
+      }
+    }
+
+    // Estoque: só o estoque próprio (o de terceiros não compõe o BP)
+    const estoque = kpi(views.estoque, 'Estoque próprio');
+
     // Ordem: Ativo, Passivo + PL, Receita líquida, Lucro líquido, Capital empregado, Valor em estoque
     const highlights = [
       { module: 'bp', ...kpi(views.bp, 'Ativo total') },
@@ -30,8 +53,8 @@ exports.index = async (req, res, next) => {
       { module: 'dre', ...kpi(views.dre, 'Receita líquida') },
       { module: 'dre', ...kpi(views.dre, 'Lucro líquido') },
       { module: 'capital-empregado', ...kpi(views['capital-empregado'], 'Capital empregado') },
-      { module: 'estoque', ...kpi(views.estoque, 'Valor em estoque') },
-      { module: 'arrendamento', ...kpi(views.arrendamento, 'Passivo de arrendamento'), hint: 'IFRS 16' },
+      { module: 'estoque', ...estoque, label: 'Valor em estoque', hint: 'Estoque próprio (sem terceiros)' },
+      { module: 'arrendamento', ...arrendamento },
       { module: 'adiantamentos', ...kpi(views.adiantamentos, 'Total de adiantamentos'), hint: 'Fornecedores, subempreiteiros e funcionários' },
       { module: 'seguros-garantias', ...kpi(views['seguros-garantias'], 'Saldo a apropriar'), label: 'Seguros a apropriar', hint: 'Despesa antecipada' },
       { module: 'imobilizado', ...kpi(views.imobilizado, 'Valor contábil'), label: 'Imobilizado (valor contábil)', hint: 'Custo − depreciação' },
