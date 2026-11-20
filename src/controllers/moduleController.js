@@ -201,3 +201,43 @@ exports.seguroTimeline = async (req, res, next) => {
     return res.json({ ...tl, moeda: scope.moedaContrato });
   } catch (e) { return next(e); }
 };
+
+/**
+ * Relatórios: central de extração dos detalhamentos (relatórios analíticos) de cada tema do menu.
+ * Usa os mesmos filtros do topo (competência, empresa, obra, moeda) e as mesmas exportações das telas.
+ */
+exports.relatorios = async (req, res, next) => {
+  try {
+    const Telas = require('../config/telas');
+    const base = res.locals.scope;
+    const itens = [];
+    for (const m of Telas.MODULOS_MENU) {
+      if (m.inativo || !Telas.podeVer(req.user, m.slug)) continue;
+      const abas = m.tabs?.length ? m.tabs : [{ slug: m.slug }];
+      for (const t of abas) {
+        const def = Report.getModule(t.slug);
+        if (def && !def.inativo) itens.push({ m, def, aba: m.tabs?.length ? t.label : null });
+      }
+    }
+    const relatorios = await Promise.all(itens.map(async ({ m, def, aba }) => {
+      let linhas = 0;
+      let moeda = null;
+      if (base.period) {
+        const { scope } = await withModuleCurrency(def.slug, base).catch(() => ({ scope: base }));
+        linhas = (await Report.getSummary(def.slug, scope).catch(() => null))?.count || 0;
+        moeda = await Report.displayCurrency(def, scope).catch(() => null);
+      }
+      const giro = (def.rowFilters || []).some((f) => f.param === 'giro');
+      return {
+        slug: def.slug, tema: m.menu, aba, titulo: def.title, icon: m.icon,
+        colunas: def.columns.length, linhas, moeda,
+        excelLabel: giro ? 'Excel (Status Giro)' : 'Excel',
+      };
+    }));
+    res.render('relatorios/index', {
+      title: 'Relatórios',
+      subtitle: 'Extraia os detalhamentos analíticos de cada tema',
+      relatorios,
+    });
+  } catch (e) { next(e); }
+};

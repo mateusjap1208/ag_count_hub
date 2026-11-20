@@ -3294,3 +3294,12 @@ body:has(.notif-toast:not([hidden])) .avatar-flutuante { display: none; }
 .avatar-zoom-fechar:hover { color: var(--danger); }
 @keyframes avatar-zoom-entra { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .avatar-zoom[open] { animation: none; } }
+
+/* Relatórios: central de extração dos detalhamentos */
+.rel-tabela td { vertical-align: middle; }
+.rel-tema { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.rel-tema svg { width: 17px; height: 17px; color: var(--consag-blue); flex: none; }
+.rel-tema a { color: inherit; text-decoration: none; }
+.rel-tema a:hover { color: var(--consag-blue); text-decoration: underline; }
+.rel-acoes { text-align: right; white-space: nowrap; }
+.rel-acoes .btn + .btn { margin-left: 6px; }

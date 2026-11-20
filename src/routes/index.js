@@ -207,6 +207,8 @@ router.post('/novidades/visto', verifyCsrf, async (req, res, next) => {
     return res.redirect(volta.startsWith('/') && !volta.startsWith('//') ? volta : '/');
   } catch (e) { return next(e); }
 });
+// Relatórios: extração dos detalhamentos (relatórios analíticos) de cada tema
+router.get('/relatorios', requireTela('relatorios'), modules.relatorios);
 // Indicadores da análise do balanço (liquidez, rentabilidade, estrutura de capital)
 router.get('/indicadores', requireTela('indicadores'), async (req, res, next) => {
   try {
