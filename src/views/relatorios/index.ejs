@@ -24,7 +24,20 @@
             <tr>
               <td><span class="rel-tema"><%- include('../partials/icon', { name: r.icon }) %><a href="/modulos/<%= r.slug %>"><%= r.tema %></a></span></td>
               <td><%= r.titulo %><% if (r.aba) { %> <span class="badge"><%= r.aba %></span><% } %>
-                <span class="hint"> · <%= r.colunas %> colunas</span></td>
+                <span class="hint"> · <%= r.colunas %> colunas</span>
+                <% if (r.filtros.length) { %>
+                  <form class="rel-filtros" method="get" action="/relatorios">
+                    <% r.filtros.forEach(f => { %>
+                      <label><span><%= f.label %></span>
+                        <select class="select" name="<%= f.param %>">
+                          <option value="">Todos</option>
+                          <% f.options.forEach(o => { %><option value="<%= o %>" <%= f.atual === o ? 'selected' : '' %>><%= o %></option><% }) %>
+                        </select>
+                      </label>
+                    <% }) %>
+                    <button class="btn btn-ghost" type="submit">Aplicar</button>
+                  </form>
+                <% } %></td>
               <td class="num"><% if (r.linhas) { %><%= fmt.number(r.linhas) %><% } else { %><span class="badge missing">Sem dados</span><% } %></td>
               <td><%= r.moeda || '—' %></td>
               <td class="rel-acoes">
@@ -32,7 +45,7 @@
                   <a class="btn btn-ghost" href="/modulos/<%= r.slug %>/exportar.csv" title="Baixar <%= r.titulo %> em CSV"><%- include('../partials/icon', { name: 'download' }) %>CSV</a>
                   <a class="btn btn-ghost" href="/modulos/<%= r.slug %>/exportar.xlsx" title="Baixar <%= r.titulo %> em Excel"><%- include('../partials/icon', { name: 'download' }) %><%= r.excelLabel %></a>
                 <% } else { %>
-                  <span class="hint">Suba o arquivo da competência</span>
+                  <span class="hint"><%= r.filtros.some(f => f.atual) ? 'Nenhum item com esse filtro' : 'Suba o arquivo da competência' %></span>
                 <% } %>
               </td>
             </tr>
