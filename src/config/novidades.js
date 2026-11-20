@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 105,
+    data: "2026-11-20",
+    titulo: "Explicação dos cards da Visão Geral",
+    itens: [
+      "Cada card da Visão Geral ganhou um \"?\" no canto. Clique nele para ver, em poucas linhas, o que o número representa e como ele é montado.",
+      "A linha de baixo dos cards ficou só com o valor completo. Clicar no restante do card continua abrindo a tela do tema."
+    ]
+  },
+  {
     build: 104,
     data: "2026-11-20",
     titulo: "Mais cards interativos na DRE",
