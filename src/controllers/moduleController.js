@@ -228,8 +228,10 @@ exports.relatorios = async (req, res, next) => {
         moeda = await Report.displayCurrency(def, scope).catch(() => null);
       }
       const giro = (def.rowFilters || []).some((f) => f.param === 'giro');
+      // Filtros próprios do tema (ex.: Estoque: Propriedade e Status Giro), aplicados também na extração
+      const filtros = (def.rowFilters || []).map((f) => ({ param: f.param, label: f.label, options: f.options, atual: base.rowFilters?.[f.param] || '' }));
       return {
-        slug: def.slug, tema: m.menu, aba, titulo: def.title, icon: m.icon,
+        slug: def.slug, tema: m.menu, aba, titulo: def.title, icon: m.icon, filtros,
         colunas: def.columns.length, linhas, moeda,
         excelLabel: giro ? 'Excel (Status Giro)' : 'Excel',
       };
