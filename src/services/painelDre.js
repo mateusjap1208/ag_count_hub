@@ -4,7 +4,6 @@
  *  - Resultado (receita líquida, custos, lucro bruto, demais itens e lucro líquido), no mês ou no ano;
  *  - Composição de cada parte do resultado: grupo › subgrupo (N3 do Plano de Contas) › conta;
  *  - Evolução mensal no ano da competência;
- *  - Alertas contábeis (contas a classificar, sem área funcional e sinal fora do padrão no mês).
  *
  * O FGI0 traz o saldo ACUMULADO NO ANO. O valor de um mês = acumulado do mês − acumulado do mês anterior
  * (janeiro = o próprio acumulado). Sem o FGI0 do mês anterior, o mês fica só com o acumulado.
@@ -24,8 +23,6 @@ const PARTES = [
 ];
 
 const TOP_CONTAS = 15; // contas por subgrupo na composição (as demais somadas em "outras contas")
-const TOP_ALERTA = 12;
-const LIMIAR = 1000; // valores menores que isso (na moeda da tela) não viram alerta de sinal
 
 const round2 = (n) => Math.round(n * 100) / 100;
 const zero = (v) => Math.abs(v || 0) < 0.005;
@@ -96,53 +93,6 @@ function pareto(comp, grupos) {
 }
 const paretos = (comp) => (comp ? Object.fromEntries(['custos', 'despesas'].map((id) => [id, pareto(comp, PARTES.find((p) => p.id === id).grupos)])) : null);
 
-/** "grupo|conta - descrição" → [{ grupo, conta, valor }] */
-const contasDe = (map, filtro = () => true) => Object.entries(map || {})
-  .filter(([, v]) => !zero(v))
-  .map(([k, v]) => { const i = k.indexOf('|'); return { grupo: k.slice(0, i), conta: k.slice(i + 1), valor: round2(v) }; })
-  .filter(filtro)
-  .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor));
-
-/**
- * Alertas da competência:
- *  - contas "a classificar" (sem cadastro no Plano de Contas): distorcem a DRE da obra;
- *  - custos e despesas sem área funcional (a área decide custo × despesa);
- *  - sinal fora do padrão no mês: receita negativa ou custo/despesa positivo (estornos, lançamentos invertidos).
- */
-function alertas(atual, contasMes, temMes) {
-  const out = [];
-  const classificar = contasDe(atual.breakdowns.contas, (c) => c.grupo === 'A classificar');
-  if (classificar.length) {
-    out.push({
-      id: 'classificar', nivel: 'alto', titulo: 'Contas sem cadastro no Plano de Contas',
-      texto: 'Entram na DRE como "A classificar". Vincule cada conta no Plano de Contas para que caia no grupo certo.',
-      total: round2(classificar.reduce((a, c) => a + c.valor, 0)), quantidade: classificar.length,
-      contas: classificar.slice(0, TOP_ALERTA), vincular: true,
-    });
-  }
-  const semArea = contasDe(atual.breakdowns.semArea);
-  if (semArea.length) {
-    out.push({
-      id: 'sem-area', nivel: 'medio', titulo: 'Custos e despesas sem área funcional',
-      texto: 'A área funcional define se o gasto é custo ou despesa. Sem ela, as contas que podem ser as duas coisas vão para custo.',
-      total: round2(semArea.reduce((a, c) => a + c.valor, 0)), quantidade: semArea.length, contas: semArea.slice(0, TOP_ALERTA),
-    });
-  }
-  if (temMes) {
-    const invertidas = contasDe(contasMes, (c) => Math.abs(c.valor) >= LIMIAR && (
-      (c.grupo === 'Receita Bruta' && c.valor < 0)
-      || (['Custos', 'Despesas Gerais e Administrativas'].includes(c.grupo) && c.valor > 0)));
-    if (invertidas.length) {
-      out.push({
-        id: 'sinal', nivel: 'medio', titulo: 'Sinal fora do padrão no mês',
-        texto: 'Receita negativa ou custo/despesa positivo no mês: confira estornos e lançamentos invertidos.',
-        total: round2(invertidas.reduce((a, c) => a + c.valor, 0)), quantidade: invertidas.length, contas: invertidas.slice(0, TOP_ALERTA),
-      });
-    }
-  }
-  return out;
-}
-
 /**
  * Monta o painel para o escopo da tela.
  * deps: { getSummary(slug, scope), periods() } — do model Report (injetado para evitar dependência circular).
@@ -179,7 +129,6 @@ async function montar(scope, { getSummary, periods }) {
   const ultimo = meses[meses.length - 1];
   const antP = mesFinal > 1 ? resumos.get(`${ano}-${pad(mesFinal - 1)}`) : null;
   const compMes = ultimo.temMes ? (mesFinal === 1 ? atual.breakdowns.composicao : diff(atual.breakdowns.composicao, antP.breakdowns.composicao)) : null;
-  const contasMes = ultimo.temMes ? (mesFinal === 1 ? atual.breakdowns.contas : diff(atual.breakdowns.contas, antP.breakdowns.contas)) : null;
 
   return {
     periodo: P,
@@ -188,7 +137,6 @@ async function montar(scope, { getSummary, periods }) {
     faltando: meses.filter((x) => !x.carregado).map((x) => x.rotulo),
     // Contas de cada subgrupo: só da competência escolhida no topo (no ano e, se houver o mês anterior, no mês)
     contas: { ano: contasPorSubgrupo(atual.breakdowns.composicao), mes: compMes ? contasPorSubgrupo(compMes) : null },
-    alertas: alertas(atual, contasMes, ultimo.temMes),
     pareto: { ano: paretos(atual.breakdowns.composicao), mes: compMes ? paretos(compMes) : null },
   };
 }

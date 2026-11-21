@@ -79,7 +79,7 @@
 
     <section class="card vg-checklist" aria-label="Checklist do fechamento">
       <% const rel = checklist.relatorios; const feitos = rel.filter(r => r.feito).length; const pct = rel.length ? feitos / rel.length : 0;
-         const tudo = feitos === rel.length && !checklist.pendencias.length; %>
+         const tudo = feitos === rel.length; %>
       <div class="card-head"><h2>Checklist do fechamento</h2><span class="hint"><%= fmt.periodFull(checklist.periodo) %></span></div>
       <div class="vg-check-topo">
         <svg class="vg-anel" viewBox="0 0 44 44" aria-hidden="true">
@@ -88,15 +88,12 @@
         </svg>
         <div>
           <strong><%= tudo ? 'Fechamento em dia ✔' : `${feitos} de ${rel.length} relatórios carregados` %></strong>
-          <span class="hint"><%= checklist.pendencias.length ? `${checklist.pendencias.length} ${checklist.pendencias.length === 1 ? 'pendência contábil' : 'pendências contábeis'}` : 'Sem pendências contábeis' %></span>
+          <span class="hint"><%= tudo ? 'Todos os relatórios da competência estão carregados' : `Faltam ${rel.length - feitos}` %></span>
         </div>
       </div>
       <ul class="vg-check-lista">
         <% rel.filter(r => !r.feito).forEach(r => { %>
           <li class="pendente"><span class="vg-check-marca" aria-hidden="true"></span><a href="<%= user.role === 'admin' ? '/upload' : '/modulos/' + r.slug %>"><%= r.nome %></a><span class="hint">carregar</span></li>
-        <% }) %>
-        <% checklist.pendencias.forEach(p => { %>
-          <li class="alerta"><span class="vg-check-marca" aria-hidden="true">!</span><a href="<%= p.link %>"><%= p.nome %></a><span class="hint"><%= p.detalhe %></span></li>
         <% }) %>
         <% rel.filter(r => r.feito).forEach(r => { %>
           <li class="feito"><span class="vg-check-marca" aria-hidden="true">✓</span><a href="/modulos/<%= r.slug %>"><%= r.nome %></a></li>
