@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 111,
+    data: "2026-11-21",
+    titulo: "Capital Empregado: posição de liquidação da obra",
+    itens: [
+      "O card \"Quanto custa encerrar a obra hoje\" passa a se chamar \"Posição de liquidação da obra\": obrigações exigíveis × recursos realizáveis, com premissas de realização ajustáveis e o resultado como superávit ou déficit de liquidação.",
+      "\"O que a obra deve\" passa a se chamar \"Obrigações da obra\"."
+    ]
+  },
+  {
     build: 110,
     data: "2026-11-20",
     titulo: "Balanço com visão contábil e Capital Empregado com visão de obra",

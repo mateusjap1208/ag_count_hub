@@ -1,7 +1,7 @@
 /**
  * Temas do balanço (folha, tributos, fornecedores) e visões complementares:
  *  - BP (visão contábil): notas explicativas por tema e índices de liquidez/endividamento;
- *  - Capital Empregado (visão de obra): "o que a obra deve" por tema e "quanto custa encerrar a obra hoje".
+ *  - Capital Empregado (visão de obra): "obrigações da obra" por tema e "posição de liquidação da obra".
  *
  * O plano de contas não detalha esses assuntos (folha é um N4 só), então os subtemas saem da descrição da conta.
  * Valores apresentados como OBRIGAÇÃO: passivo positivo; ativo do mesmo tema (ex.: imposto a recuperar) entra negativo.
@@ -147,7 +147,7 @@ function liquidezDe(summary) {
   };
 }
 
-/* --------------------------------------------- CE: encerrar a obra hoje */
+/* ------------------------------------- CE: posição de liquidação da obra */
 
 /**
  * Linhas do Capital Empregado viram "recursos" (o que a obra tem para receber/realizar) ou "obrigações" (o que deve).
