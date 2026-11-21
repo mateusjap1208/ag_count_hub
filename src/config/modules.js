@@ -182,8 +182,9 @@ const modules = [
     ],
     breakdowns: [
       { id: 'lado', field: 'lado', value: 'valor', chart: null },
-      { id: 'grupo', label: 'Capital empregado por grupo', field: 'grupo', value: 'valor', chart: 'bar', keepOrder: true },
-      { id: 'linha', label: 'Principais linhas', field: 'linha', value: 'valor', chart: 'hbar', top: 10 },
+      // Sem gráfico na tela (a composição e a ponte ficam no painel patrimonial)
+      { id: 'grupo', field: 'grupo', value: 'valor', chart: null, keepOrder: true },
+      { id: 'linha', field: 'linha', value: 'valor', chart: null },
       { id: 'arvore', field: 'arvore', value: 'valor', chart: null },
       // Contas contábeis de cada linha do Capital Empregado (popup do olho)
       { id: 'contas', spread: (r) => (r.conta ? [[`${r.arvore}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.valor || 0]] : []), chart: null },
