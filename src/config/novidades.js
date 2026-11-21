@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 109,
+    data: "2026-11-20",
+    titulo: "Capital Empregado sem os gráficos antigos",
+    itens: [
+      "Saíram da tela do Capital Empregado os gráficos \"Capital empregado por grupo\" e \"Principais linhas\". A composição, a variação e as contas de cada linha ficam nos cards de capital de giro, composição e ponte."
+    ]
+  },
+  {
     build: 108,
     data: "2026-11-20",
     titulo: "Balanço sem o gráfico de saldo por grupo",
