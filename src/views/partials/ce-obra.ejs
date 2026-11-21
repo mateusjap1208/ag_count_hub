@@ -1,0 +1,28 @@
+<%# Capital Empregado · visão de obra (services/temasBalanco.js): encerrar a obra hoje e o que a obra deve. Preenchido por public/js/app.js. %>
+<% const tb = locals.tb; const cur = locals.cur || 'BRL'; %>
+<% if (tb.liquidacao) { %>
+<div class="card bloco-largo tb-encerrar" data-ordem-chave="ce-encerrar" id="tb-encerrar">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Quanto custa encerrar a obra hoje</h2>
+      <span class="hint">Se a obra parasse em <%= tb.rotulo %>: o que precisa pagar × com quanto conta · ajuste quanto de cada recurso vira dinheiro · valores em <%= cur %></span>
+    </div>
+    <div class="dp-controles"><button type="button" class="btn btn-ghost" data-enc-zerar>Voltar ao padrão</button></div>
+  </div>
+  <div class="tb-enc-grid">
+    <div class="tb-enc-ajustes" data-enc-ajustes></div>
+    <div class="tb-enc-resultado" data-enc-resultado aria-live="polite"></div>
+  </div>
+  <p class="note dp-nota">Estimativa a partir dos saldos contábeis: não inclui custos de desmobilização, multas contratuais ou rescisões que não estejam provisionados (use o ajuste de rescisão adicional para simular).<% if (tb.liquidacao.semCaixa) { %> Sem o Balanço desta seleção, o caixa ficou de fora.<% } %></p>
+</div>
+<% } %>
+
+<div class="card bloco-largo tb-deve" data-ordem-chave="ce-deve" id="tb-deve">
+  <div class="card-head dp-head">
+    <div>
+      <h2>O que a obra deve</h2>
+      <span class="hint">Pessoal, fornecedores e impostos em <%= tb.rotulo %><%= tb.rotuloAnterior ? `, com a variação contra ${tb.rotuloAnterior}` : '' %> · clique num item para ver as contas</span>
+    </div>
+  </div>
+  <div class="tb-deve-grid" data-deve></div>
+</div>

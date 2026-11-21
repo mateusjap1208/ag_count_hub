@@ -6,6 +6,17 @@
  */
 module.exports = [
   {
+    build: 110,
+    data: "2026-11-20",
+    titulo: "Balanço com visão contábil e Capital Empregado com visão de obra",
+    itens: [
+      "Balanço Patrimonial: notas explicativas de Folha de pagamento e encargos, Tributos e Fornecedores, com subtemas (férias, 13º, rescisão; retidos, a recuperar, parcelamentos; recepção e conferência, retenções…), contas, comparativo, variação e análise vertical, no padrão contábil (negativos entre parênteses).",
+      "Balanço Patrimonial: índices de liquidez (corrente, seca, imediata e geral) e de endividamento, com a competência anterior e se melhorou ou piorou.",
+      "Capital Empregado: \"Quanto custa encerrar a obra hoje\": o que a obra precisa pagar × com quanto conta, com ajuste de quanto de cada recurso vira dinheiro (estoque, a faturar, imobilizado…) e simulação de rescisão adicional em meses de folha.",
+      "Capital Empregado: \"O que a obra deve\": pessoal, fornecedores e impostos em linguagem de obra, com destaques como meses de folha, material recebido sem nota ou medição e impostos retidos a repassar."
+    ]
+  },
+  {
     build: 109,
     data: "2026-11-20",
     titulo: "Capital Empregado sem os gráficos antigos",
