@@ -1,6 +1,7 @@
 const Report = require('../models/Report');
 const agg = require('../services/aggregator');
 const Telas = require('../config/telas');
+const apresentacaoSvc = require('../services/apresentacao');
 
 // Arrendamento Mercantil Curto Prazo + Longo Prazo (saldo do passivo de arrendamento no balancete)
 const CONTAS_ARRENDAMENTO = ['2159000020', '2959000020'];
@@ -88,8 +89,19 @@ exports.index = async (req, res, next) => {
       return { slug: m.slug, title: m.menu, icon: m.icon, companies: list.length, rows: list.reduce((a, u) => a + u.rows, 0) };
     });
 
+    // Apresentação do mês em "stories": poucos slides, um número e uma frase cada, com link para a tela
+    const apresentacao = await apresentacaoSvc.montar({
+      scope,
+      deps: { getSummary: Report.getSummary, periods: Report.periods, getModule: Report.getModule },
+      pode,
+      subtitulo: res.locals.companyName || '',
+      telas: Telas.MODULOS_MENU.filter((m) => !m.inativo && pode(m.slug)).map((m) => ({ slug: m.slug, nome: m.menu, icon: m.icon })),
+    }).catch(() => null);
+
     res.render('dashboard/index', {
       title: 'Visão Geral',
+      apresentacao,
+      apresentacaoMoeda: views.dre.currency || views.bp.currency || 'BRL',
       highlights,
       status,
       totalCompanies: res.locals.companies.length,

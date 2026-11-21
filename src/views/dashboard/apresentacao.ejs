@@ -1,0 +1,49 @@
+<%# Visão Geral · resumo do mês em "stories" (services/apresentacao.js). Avanço, toque, deslize e teclado: public/js/app.js. %>
+<% const ap = locals.ap; const cur = locals.cur || 'BRL';
+   const dinheiro = (v) => fmt.kpi(v, 'currency', cur);
+   const pctTxt = (v) => (v * 100).toFixed(0) + '%';
+   const numero = (s) => s.formato === 'moeda' ? dinheiro(s.valor) : s.formato === 'pct' ? pctTxt(s.valor) : fmt.number(s.valor);
+   const frase = (t) => String(t || '').replace(/§(-?[\d.e+-]+)§/g, (m, n) => dinheiro(Number(n))); %>
+<section class="ap-stories" id="ap-stories" data-periodo="<%= ap.periodo %>" data-moeda="<%= cur %>" aria-roledescription="carrossel" aria-label="Resumo de <%= ap.nomeMes %>" tabindex="0">
+  <div class="ap-progresso" aria-hidden="true">
+    <% ap.slides.forEach(() => { %><span class="ap-seg"><i></i></span><% }) %>
+  </div>
+  <header class="ap-topo">
+    <span class="ap-avatar" aria-hidden="true">AG</span>
+    <div class="ap-quem"><strong>AG ContHub</strong><small>Resumo de <%= ap.nomeMes %></small></div>
+    <div class="ap-acoes">
+      <button type="button" class="ap-btn" data-ap-pausar aria-label="Pausar" title="Pausar">❚❚</button>
+      <button type="button" class="ap-btn" data-ap-ocultar aria-label="Ocultar o resumo" title="Ocultar">✕</button>
+    </div>
+  </header>
+  <div class="ap-palco">
+    <% ap.slides.forEach((s, i) => { %>
+      <article class="ap-slide tema-<%= s.tema %> <%= i === 0 ? 'ativo' : '' %>" data-ap-slide="<%= i %>" aria-roledescription="slide" aria-label="<%= i + 1 %> de <%= ap.slides.length %>: <%= s.sobre %>" <%- i === 0 ? '' : 'aria-hidden="true"' %>>
+        <p class="ap-sobre"><%= s.sobre %></p>
+        <% if (s.valor != null) { %>
+          <p class="ap-numero" data-ap-valor="<%= s.valor %>" data-ap-formato="<%= s.formato %>"><%= numero(s) %></p>
+        <% } else { %>
+          <p class="ap-titulo"><%= s.texto %></p>
+        <% } %>
+        <% if (s.frase) { %><p class="ap-frase"><%= frase(s.frase) %></p><% } %>
+        <% if (s.barras) { %>
+          <div class="ap-barras" aria-hidden="true"><% s.barras.forEach((b, j) => { %><span class="ap-barra b<%= j %>" data-w="<%= (b.pct * 100).toFixed(1) %>"></span><% }) %></div>
+          <ul class="ap-legenda"><% s.barras.forEach((b, j) => { %><li><i class="b<%= j %>"></i><%= b.nome %> <b><%= pctTxt(b.pct) %></b></li><% }) %></ul>
+        <% } %>
+        <% if (s.chips && s.chips.length) { %>
+          <ul class="ap-chips"><% s.chips.forEach(c => { %><li><%= c %></li><% }) %></ul>
+        <% } %>
+        <% if (s.telas) { %>
+          <nav class="ap-telas" aria-label="Temas">
+            <% s.telas.forEach(t => { %><a href="/modulos/<%= t.slug %>"><%- include('../partials/icon', { name: t.icon }) %><span><%= t.nome %></span></a><% }) %>
+          </nav>
+        <% } %>
+        <% if (s.link) { %><a class="ap-link" href="<%= s.link %>"><%= s.linkRotulo %> →</a><% } %>
+        <% if (i === 0) { %><p class="ap-dica">Toque à direita para avançar · à esquerda para voltar</p><% } %>
+      </article>
+    <% }) %>
+    <button type="button" class="ap-zona ap-ant" data-ap-ant aria-label="Slide anterior"></button>
+    <button type="button" class="ap-zona ap-prox" data-ap-prox aria-label="Próximo slide"></button>
+  </div>
+</section>
+<button type="button" class="ap-reabrir" data-ap-reabrir hidden><span aria-hidden="true">▶</span> Ver o resumo de <%= ap.nomeMes %></button>

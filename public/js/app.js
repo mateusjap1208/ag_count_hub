@@ -904,6 +904,96 @@
     btn.lastChild.textContent = 'Importando…';
   }));
 
+  /* ---------- Visão Geral: resumo do mês em "stories" ----------
+     Barras de progresso no topo, troca automática, toque/clique à direita avança e à esquerda volta, deslizar no
+     celular, setas do teclado. Pausa ao passar o mouse, ao focar ou com a aba escondida. Pode ser ocultado
+     (lembrado por competência neste navegador). Sem animação automática para quem prefere menos movimento. */
+  (function stories() {
+    const raiz = $('#ap-stories');
+    if (!raiz) return;
+    const slides = $$('[data-ap-slide]', raiz);
+    const segs = $$('.ap-seg i', raiz);
+    const reabrir = $('[data-ap-reabrir]');
+    const moeda = raiz.dataset.moeda || 'BRL';
+    const DURACAO = 5500;
+    const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const chave = 'ag-stories-oculto';
+    let i = 0; let inicio = 0; let decorrido = 0; let pausado = false; let pausaUsuario = false; let raf = 0;
+    const ler = () => { try { return localStorage.getItem(chave); } catch { return null; } };
+    const gravar = (v) => { try { if (v) localStorage.setItem(chave, v); else localStorage.removeItem(chave); } catch { /* sem armazenamento */ } };
+    const formatar = (v, f) => (f === 'moeda' ? moneyFmt(moeda, true).format(v) : f === 'pct' ? `${Math.round(v * 100)}%` : num.format(Math.round(v)));
+    const contar = (el) => {
+      const alvo = Number(el.dataset.apValor);
+      const f = el.dataset.apFormato;
+      if (semMovimento || !Number.isFinite(alvo)) { el.textContent = formatar(alvo, f); return; }
+      const t0 = performance.now();
+      const passo = (t) => {
+        const p = Math.min(1, (t - t0) / 900);
+        el.textContent = formatar(alvo * (1 - Math.pow(1 - p, 3)), f);
+        if (p < 1) requestAnimationFrame(passo);
+      };
+      requestAnimationFrame(passo);
+    };
+    const ir = (n) => {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach((s, k) => { s.classList.toggle('ativo', k === i); if (k === i) s.removeAttribute('aria-hidden'); else s.setAttribute('aria-hidden', 'true'); });
+      segs.forEach((g, k) => g.style.setProperty('--p', k < i ? '100%' : '0%'));
+      const s = slides[i];
+      $$('[data-ap-valor]', s).forEach(contar);
+      $$('.ap-barra[data-w]', s).forEach((b) => { b.style.setProperty('--w', '0%'); requestAnimationFrame(() => b.style.setProperty('--w', `${b.dataset.w}%`)); });
+      decorrido = 0; inicio = performance.now();
+    };
+    const tick = (t) => {
+      if (!pausado && !pausaUsuario && !semMovimento && i < slides.length - 1) {
+        const p = Math.min(1, (decorrido + (t - inicio)) / DURACAO);
+        segs[i].style.setProperty('--p', `${(p * 100).toFixed(1)}%`);
+        if (p >= 1) ir(i + 1);
+      } else if (i === slides.length - 1 && segs[i]) segs[i].style.setProperty('--p', '100%');
+      raf = requestAnimationFrame(tick);
+    };
+    const pausar = (sim) => {
+      if (sim && !pausado) decorrido += performance.now() - inicio;
+      if (!sim && pausado) inicio = performance.now();
+      pausado = sim;
+    };
+    const btnPausa = $('[data-ap-pausar]', raiz);
+    const alternarPausa = () => {
+      if (pausaUsuario) inicio = performance.now(); else decorrido += performance.now() - inicio;
+      pausaUsuario = !pausaUsuario;
+      btnPausa.textContent = pausaUsuario ? '▶' : '❚❚';
+      btnPausa.setAttribute('aria-label', pausaUsuario ? 'Continuar' : 'Pausar');
+      btnPausa.title = pausaUsuario ? 'Continuar' : 'Pausar';
+    };
+    raiz.addEventListener('click', (e) => {
+      if (e.target.closest('[data-ap-prox]')) ir(i + 1);
+      else if (e.target.closest('[data-ap-ant]')) ir(i - 1);
+      else if (e.target.closest('[data-ap-pausar]')) alternarPausa();
+      else if (e.target.closest('[data-ap-ocultar]')) { raiz.hidden = true; reabrir.hidden = false; gravar(raiz.dataset.periodo); }
+    });
+    reabrir?.addEventListener('click', () => { gravar(null); raiz.hidden = false; reabrir.hidden = true; ir(0); raiz.focus(); });
+    raiz.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); ir(i + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); ir(i - 1); }
+    });
+    raiz.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') pausar(true); });
+    raiz.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') pausar(false); });
+    raiz.addEventListener('focusin', () => pausar(true));
+    raiz.addEventListener('focusout', (e) => { if (!raiz.contains(e.relatedTarget)) pausar(false); });
+    document.addEventListener('visibilitychange', () => pausar(document.hidden));
+    // Deslizar (celular): para a esquerda avança, para a direita volta
+    let x0 = null;
+    raiz.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') x0 = e.clientX; });
+    raiz.addEventListener('pointerup', (e) => {
+      if (x0 == null) return;
+      const dx = e.clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 45) { e.preventDefault(); ir(dx < 0 ? i + 1 : i - 1); }
+    });
+    if (ler() === raiz.dataset.periodo) { raiz.hidden = true; reabrir.hidden = false; }
+    ir(0);
+    raf = requestAnimationFrame(tick);
+  }());
+
   /* ---------- Visão Geral: "?" de cada card abre a explicação resumida por cima do próprio card ----------
      Um aberto por vez; fecha clicando de novo, fora do card ou com Esc. */
   const fecharAjuda = (btn, foco = false) => {
