@@ -60,8 +60,9 @@
   <div class="grid grid-2 mt blocos" data-ordenavel="blocos" aria-label="Quadros e gráficos">
 
   <% if (view.painelDre) { %><%- include('../partials/dre-painel', { dp: view.painelDre, cur }) %><% } %>
-  <% if (view.temasBalanco && view.def.slug === 'capital-empregado') { %><%- include('../partials/ce-obra', { tb: view.temasBalanco, cur }) %><% } %>
+  <%# Cards novos entram depois dos que já existem (ordem de criação), antes da demonstração %>
   <% if (view.painelPatrimonial) { %><%- include('../partials/patrimonial-painel', { pp: view.painelPatrimonial, cur }) %><% } %>
+  <% if (view.temasBalanco && view.def.slug === 'capital-empregado') { %><%- include('../partials/ce-obra', { tb: view.temasBalanco, cur }) %><% } %>
   <% if (view.temasBalanco && view.def.slug === 'bp') { %><%- include('../partials/bp-contabil', { tb: view.temasBalanco, cur }) %><% } %>
   <% if (view.gauges && view.gauges.length) { %><%- include('../partials/velocimetros', { gauges: view.gauges, cur, fmt }) %><% } %>
   <% if (view.maioresFornecedores) { %><%- include('../partials/maiores-fornecedores', { mf: view.maioresFornecedores, fmt }) %><% } %>
