@@ -27,7 +27,57 @@ function resultado(dp) {
   return { mes, rotulo: mes ? ult.rotulo : `jan a ${ult.rotulo}`, receita, lucro, custos, totalCustos };
 }
 
-async function montar({ scope, deps, pode, subtitulo, telas }) {
+/**
+ * Feed "O que mudou": posts curtos gerados dos números (variações do mês, alertas, última carga e novidade do painel).
+ * Valores em dinheiro vão como §valor§ e são formatados na tela.
+ */
+function postsDo({ dp, bp, ce, r, extras }) {
+  const posts = [];
+  const relevante = (delta, base) => Math.abs(delta) >= 1000 && Math.abs(delta) >= Math.abs(base || 0) * 0.01;
+  if (dp) {
+    const n = dp.meses.length;
+    const ult = dp.meses[n - 1];
+    const ant = n > 1 ? dp.meses[n - 2] : null;
+    const rec = (m) => (m?.mes ? (m.mes.grupos['Receita Bruta'] || 0) + (m.mes.grupos['Deduções da Receita'] || 0) : null);
+    const a = rec(ult); const b = rec(ant);
+    if (a != null && b != null && Math.abs(b) >= 0.005) {
+      const v = (a - b) / Math.abs(b);
+      posts.push({ icone: 'trend', tom: v >= 0 ? 'pos' : 'neg', texto: `Receita líquida de ${ult.rotulo} ${v >= 0 ? 'subiu' : 'caiu'} ${pct(Math.abs(v))} em relação a ${ant.rotulo}`, link: '/modulos/dre' });
+    } else if (r && !zero(r.receita)) {
+      posts.push({ icone: 'trend', tom: 'info', texto: `Receita líquida de ${r.rotulo}: §${r.receita}§, com ${r.lucro >= 0 ? 'lucro' : 'prejuízo'} de §${Math.abs(r.lucro)}§`, link: '/modulos/dre' });
+    }
+  }
+  // Ordem do feed: resultado → alertas → liquidação → variações de saldo → carga → novidade
+  (dp?.alertas || []).forEach((a) => posts.push({ icone: 'alerta', tom: 'warn', texto: `${a.titulo}: ${a.quantidade} ${a.quantidade === 1 ? 'conta' : 'contas'}`, link: '/modulos/dre' }));
+  if (ce?.liquidacao) {
+    const L = ce.liquidacao;
+    const rec = L.recursos.reduce((a, x) => a + (x.fixo ? 0 : x.valor * (x.realizacao / 100)), 0);
+    const obr = L.obrigacoes.reduce((a, x) => a + x.valor, 0);
+    if (!zero(rec - obr)) posts.push({ icone: 'layers', tom: rec >= obr ? 'pos' : 'neg', texto: `Posição de liquidação: ${rec >= obr ? 'superávit' : 'déficit'} de §${Math.abs(rec - obr)}§ com as premissas padrão`, link: '/modulos/capital-empregado' });
+  }
+  if (bp && bp.periodos.length > 1) {
+    const per = bp.periodos[bp.periodos.length - 1];
+    const ant = bp.periodos[bp.periodos.length - 2];
+    const d = (k) => (per.destaques[k] || 0) - (ant.destaques[k] || 0);
+    const frases = {
+      receber: (x) => (x < 0 ? `A receber de clientes caiu §${-x}§ desde ${ant.rotulo}: entrou dinheiro na obra` : `A receber de clientes subiu §${x}§ desde ${ant.rotulo}: mais valores para cobrar`),
+      fornecedores: (x) => (x < 0 ? `Fornecedores a pagar caiu §${-x}§ desde ${ant.rotulo}: pagamentos em dia` : `Fornecedores a pagar subiu §${x}§ desde ${ant.rotulo}`),
+      estoque: (x) => (x < 0 ? `Estoque caiu §${-x}§ desde ${ant.rotulo}: material aplicado na obra` : `Estoque subiu §${x}§ desde ${ant.rotulo}: confira se não há material parado`),
+      caixa: (x) => `Caixa ${x >= 0 ? 'subiu' : 'caiu'} §${Math.abs(x)}§ desde ${ant.rotulo}`,
+    };
+    for (const k of ['receber', 'fornecedores', 'estoque', 'caixa']) {
+      const x = d(k); // no BP, fornecedores (passivo) também é positivo
+      if (!relevante(x, per.destaques[k])) continue;
+      const bom = k === 'caixa' ? x > 0 : x < 0; // caixa subir é bom; receber, fornecedores e estoque caírem é bom
+      posts.push({ icone: k === 'estoque' ? 'box' : k === 'fornecedores' ? 'truck' : 'scale', tom: bom ? 'pos' : 'warn', texto: frases[k](x), link: '/modulos/bp' });
+    }
+  }
+  if (extras?.ultimaCarga) posts.push({ icone: 'upload', tom: 'info', texto: extras.ultimaCarga, link: null });
+  if (extras?.novidade) posts.push({ icone: 'sparkle', tom: 'info', texto: `Novo no painel: ${extras.novidade}`, link: '/novidades' });
+  return posts;
+}
+
+async function montar({ scope, deps, pode, subtitulo, telas, extras }) {
   const P = scope.period;
   if (!P) return null;
   const mesNome = MESES[Number(P.slice(5, 7)) - 1];
@@ -100,8 +150,9 @@ async function montar({ scope, deps, pode, subtitulo, telas }) {
     });
   }
   slides.push({ id: 'explorar', tema: 'explorar', sobre: 'Agora é com você', valor: null, texto: 'Explore os temas', telas });
-  // Só abertura e "explorar": sem dados para contar uma história
-  return slides.length > 2 ? { periodo: P, nomeMes, slides } : null;
+  const posts = postsDo({ dp, bp, ce, r, extras });
+  // Só abertura e "explorar": sem dados para contar uma história (o feed e o checklist continuam)
+  return { periodo: P, nomeMes, slides: slides.length > 2 ? slides : null, posts, alertas: dp ? dp.alertas : [] };
 }
 
 module.exports = { montar };

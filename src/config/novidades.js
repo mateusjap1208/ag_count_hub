@@ -6,6 +6,17 @@
  */
 module.exports = [
   {
+    build: 115,
+    data: "2026-11-21",
+    titulo: "Nova Visão Geral: destaques, busca, feed e checklist",
+    itens: [
+      "Destaques: os números principais numa faixa que desliza para o lado, com a variação contra o mês anterior e uma linhazinha de tendência. O \"?\" de cada card continua.",
+      "Busca rápida: digite um tema (estoque, folha, liquidação…) ou uma conta (número ou descrição) e vá direto para a tela. A conta abre já detalhada na DRE.",
+      "O que mudou: um feed com o que aconteceu no mês, como variação da receita, alertas contábeis, posição de liquidação, movimentos de clientes, fornecedores, estoque e caixa, a última carga do FGI0 e a novidade mais recente do painel.",
+      "Checklist do fechamento: quantos relatórios da competência já foram carregados, o que falta e as pendências contábeis. Saíram os gráficos de receita × lucro, balanço por grupo, aging e o status da carga."
+    ]
+  },
+  {
     build: 114,
     data: "2026-11-21",
     titulo: "Resumo do mês em stories na Visão Geral",
