@@ -6,7 +6,7 @@ const novidadesSvc = require('../services/novidades');
 /** Palavras-chave de cada tela para a busca rápida da Visão Geral (sem acento) */
 const PALAVRAS = {
   bp: 'balanco patrimonial ativo passivo caixa liquidez notas explicativas folha tributos impostos fornecedores patrimonio',
-  dre: 'dre demonstracao resultado receita custo despesa lucro margem pareto simulador ponte alertas',
+  dre: 'dre demonstracao resultado receita custo despesa lucro margem pareto simulador ponte',
   'capital-empregado': 'capital empregado capital de giro liquidacao obrigacoes prazos ciclo financeiro',
   clientes: 'clientes contas a receber aging cobranca',
   adiantamentos: 'adiantamentos fornecedores funcionarios',
@@ -94,7 +94,7 @@ exports.index = async (req, res, next) => {
       delete h.serie;
     }
 
-    // Checklist do fechamento: relatórios da competência carregados (moeda do filtro) e pendências contábeis
+    // Checklist do fechamento: relatórios da competência carregados (moeda do filtro)
     const uploads = scope.period ? await Report.listUploads({ period: scope.period }) : [];
     const ct = String(scope.moeda).split(':')[0];
     const relatorios = Report.modules.filter((m) => !m.inativo && !m.hideInMenu && pode(m.slug)).map((m) => {
@@ -118,8 +118,6 @@ exports.index = async (req, res, next) => {
       extras: { ultimaCarga, novidade },
     }).catch(() => null);
 
-    const pendencias = (apresentacao?.alertas || []).map((a) => ({ nome: a.titulo, detalhe: `${a.quantidade} ${a.quantidade === 1 ? 'conta' : 'contas'}`, link: '/modulos/dre' }));
-
     // Busca rápida: telas liberadas com palavras-chave; as contas contábeis vêm da API da DRE
     const telasBusca = [
       ...Telas.MODULOS_MENU.filter((m) => !m.inativo && pode(m.slug)).map((m) => ({ nome: m.menu, url: `/modulos/${m.slug}`, icon: m.icon, palavras: PALAVRAS[m.slug] || '' })),
@@ -134,7 +132,7 @@ exports.index = async (req, res, next) => {
       posts: apresentacao?.posts || [],
       apresentacaoMoeda: views.dre.currency || views.bp.currency || 'BRL',
       highlights,
-      checklist: { relatorios, pendencias, periodo: scope.period },
+      checklist: { relatorios, periodo: scope.period },
       chartData: { busca: { telas: telasBusca, contas: pode('dre') } },
     });
   } catch (e) { next(e); }

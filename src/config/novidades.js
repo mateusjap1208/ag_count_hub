@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 116,
+    data: "2026-11-21",
+    titulo: "Sem os alertas contábeis",
+    itens: [
+      "Saíram os alertas contábeis (contas sem cadastro, custos sem área funcional e sinal fora do padrão no mês): o card da Demonstração do Resultado, o story \"Pontos de atenção\", os posts do feed e as pendências do checklist da Visão Geral.",
+      "O checklist do fechamento passa a mostrar só os relatórios da competência carregados e os que faltam."
+    ]
+  },
+  {
     build: 115,
     data: "2026-11-21",
     titulo: "Nova Visão Geral: destaques, busca, feed e checklist",

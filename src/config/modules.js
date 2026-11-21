@@ -129,9 +129,8 @@ const modules = [
       { id: 'centro', field: 'centroLucro', value: 'valor', chart: null },
       // Contas contábeis de cada linha da DRE (abre ao clicar na linha)
       { id: 'contas', spread: (r) => (r.conta ? [[`${r.grupo}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.valor || 0]] : []), chart: null },
-      // Painel do resultado (services/painelDre.js): composição grupo › subgrupo › conta e contas sem área funcional
+      // Painel do resultado (services/painelDre.js): composição grupo › subgrupo › conta
       { id: 'composicao', spread: (r) => (r.conta ? [[`${r.grupo}|${r.subgrupo || 'Sem subgrupo'}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.valor || 0]] : []), chart: null },
-      { id: 'semArea', spread: (r) => (r.conta && r.areaFuncional === 'Não atribuída' && ['Custos', 'Despesas Gerais e Administrativas'].includes(r.grupo) ? [[`${r.grupo}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.valor || 0]] : []), chart: null },
     ],
     statementDetail: 'contas',
     statement: [

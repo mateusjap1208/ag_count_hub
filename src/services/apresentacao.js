@@ -28,7 +28,7 @@ function resultado(dp) {
 }
 
 /**
- * Feed "O que mudou": posts curtos gerados dos números (variações do mês, alertas, última carga e novidade do painel).
+ * Feed "O que mudou": posts curtos gerados dos números (variações do mês, última carga e novidade do painel).
  * Valores em dinheiro vão como §valor§ e são formatados na tela.
  */
 function postsDo({ dp, bp, ce, r, extras }) {
@@ -47,8 +47,7 @@ function postsDo({ dp, bp, ce, r, extras }) {
       posts.push({ icone: 'trend', tom: 'info', texto: `Receita líquida de ${r.rotulo}: §${r.receita}§, com ${r.lucro >= 0 ? 'lucro' : 'prejuízo'} de §${Math.abs(r.lucro)}§`, link: '/modulos/dre' });
     }
   }
-  // Ordem do feed: resultado → alertas → liquidação → variações de saldo → carga → novidade
-  (dp?.alertas || []).forEach((a) => posts.push({ icone: 'alerta', tom: 'warn', texto: `${a.titulo}: ${a.quantidade} ${a.quantidade === 1 ? 'conta' : 'contas'}`, link: '/modulos/dre' }));
+  // Ordem do feed: resultado → liquidação → variações de saldo → carga → novidade
   if (ce?.liquidacao) {
     const L = ce.liquidacao;
     const rec = L.recursos.reduce((a, x) => a + (x.fixo ? 0 : x.valor * (x.realizacao / 100)), 0);
@@ -140,19 +139,10 @@ async function montar({ scope, deps, pode, subtitulo, telas, extras }) {
       });
     }
   }
-  if (dp) {
-    const pontos = dp.alertas.map((a) => a.titulo);
-    slides.push({
-      id: 'atencao', tema: pontos.length ? 'atencao' : 'positivo', sobre: pontos.length ? 'Pontos de atenção' : 'Tudo em ordem',
-      valor: pontos.length, formato: 'inteiro',
-      frase: pontos.length ? `${pontos.length === 1 ? 'ponto' : 'pontos'} para olhar na contabilidade da seleção` : 'nenhum alerta contábil nesta seleção',
-      chips: pontos, link: pontos.length ? '/modulos/dre' : null, linkRotulo: 'Ver os alertas',
-    });
-  }
   slides.push({ id: 'explorar', tema: 'explorar', sobre: 'Agora é com você', valor: null, texto: 'Explore os temas', telas });
   const posts = postsDo({ dp, bp, ce, r, extras });
   // Só abertura e "explorar": sem dados para contar uma história (o feed e o checklist continuam)
-  return { periodo: P, nomeMes, slides: slides.length > 2 ? slides : null, posts, alertas: dp ? dp.alertas : [] };
+  return { periodo: P, nomeMes, slides: slides.length > 2 ? slides : null, posts };
 }
 
 module.exports = { montar };
