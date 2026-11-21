@@ -6,6 +6,17 @@
  */
 module.exports = [
   {
+    build: 107,
+    data: "2026-11-20",
+    titulo: "Cards interativos no Balanço e no Capital Empregado",
+    itens: [
+      "Capital de giro: cards de caixa, contas a receber, estoque, adiantamentos, fornecedores e adiantamentos de clientes, com a variação contra a competência anterior e se ela consumiu ou liberou caixa (ou capital). Clique num card para ver só as linhas dele.",
+      "Composição dos ativos (e do passivo): cada linha com o saldo, o peso e a variação. Ordene pelo maior saldo ou pela maior variação e clique numa linha para ver as contas, com o valor do mês anterior.",
+      "Ponte entre duas competências: no Balanço, de onde veio e para onde foi o caixa; no Capital Empregado, o que fez o capital subir ou cair. Clique num degrau para ver a composição.",
+      "Evolução dos saldos mês a mês e prazos médios em dias (recebimento, pagamento, estoque e ciclo financeiro), calculados com a DRE do mês."
+    ]
+  },
+  {
     build: 106,
     data: "2026-11-20",
     titulo: "DRE mais enxuta",

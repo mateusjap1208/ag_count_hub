@@ -60,6 +60,7 @@
   <div class="grid grid-2 mt blocos" data-ordenavel="blocos" aria-label="Quadros e gráficos">
 
   <% if (view.painelDre) { %><%- include('../partials/dre-painel', { dp: view.painelDre, cur }) %><% } %>
+  <% if (view.painelPatrimonial) { %><%- include('../partials/patrimonial-painel', { pp: view.painelPatrimonial, cur }) %><% } %>
   <% if (view.gauges && view.gauges.length) { %><%- include('../partials/velocimetros', { gauges: view.gauges, cur, fmt }) %><% } %>
   <% if (view.maioresFornecedores) { %><%- include('../partials/maiores-fornecedores', { mf: view.maioresFornecedores, fmt }) %><% } %>
   <% if (view.pedidosRecepcao) { const pr = view.pedidosRecepcao; %>

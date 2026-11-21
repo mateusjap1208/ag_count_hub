@@ -1,0 +1,69 @@
+<%# Painel patrimonial do BP e do Capital Empregado (services/painelPatrimonial.js). Preenchido e ligado por public/js/app.js. %>
+<% const pp = locals.pp; const cur = locals.cur || 'BRL'; const ehBp = pp.slug === 'bp'; %>
+<div class="card bloco-largo pp-destaques" data-ordem-chave="pat-destaques" id="pp-destaques">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Capital de giro <span data-pp-titulo></span></h2>
+      <span class="hint">Clique num card para ver as linhas e contas · seta: efeito no caixa em relação à competência anterior · valores em <%= cur %></span>
+    </div>
+    <div class="dp-controles">
+      <label class="sr-only" for="pp-mes">Competência exibida</label>
+      <select class="select dp-mes" id="pp-mes" data-pp-mes>
+        <% pp.periodos.slice().reverse().forEach(p => { %><option value="<%= p.periodo %>" <%= p.periodo === pp.periodo ? 'selected' : '' %>><%= p.rotulo %></option><% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="dp-tiles pp-tiles" data-pp-tiles role="group" aria-label="Destaques do capital de giro"></div>
+</div>
+
+<div class="card bloco-largo pp-composicao" data-ordem-chave="pat-composicao" id="pp-composicao">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Composição <span data-pp-comp-titulo></span></h2>
+      <span class="hint" data-pp-comp-total></span>
+    </div>
+    <div class="dp-controles">
+      <div class="dp-seg" role="group" aria-label="Ordenar por">
+        <button type="button" class="dp-seg-btn ativo" data-pp-ordem="valor" aria-pressed="true">Maior saldo</button>
+        <button type="button" class="dp-seg-btn" data-pp-ordem="variacao" aria-pressed="false">Maior variação</button>
+      </div>
+    </div>
+  </div>
+  <div class="dp-partes" data-pp-secoes role="group" aria-label="Seção"></div>
+  <div class="pp-foco" data-pp-foco hidden></div>
+  <ol class="dp-barras pp-barras" data-pp-barras aria-live="polite"></ol>
+</div>
+
+<div class="card bloco-largo pp-ponte" data-ordem-chave="pat-ponte" id="pp-ponte">
+  <div class="card-head dp-head">
+    <div>
+      <h2><%= pp.ponte.titulo %></h2>
+      <span class="hint"><%= ehBp ? 'Aumento de ativo consome caixa; aumento de passivo ou PL gera caixa' : 'Aumento de ativos consome capital; aumento de passivos (fornecedores, adiantamentos de clientes) libera' %> · clique num degrau para ver a composição</span>
+    </div>
+    <div class="dp-controles">
+      <label class="dp-campo">De <select class="select" data-pp-ponte-de><% pp.periodos.slice().reverse().forEach(p => { %><option value="<%= p.periodo %>"><%= p.rotulo %></option><% }) %></select></label>
+      <label class="dp-campo">Para <select class="select" data-pp-ponte-para><% pp.periodos.slice().reverse().forEach(p => { %><option value="<%= p.periodo %>"><%= p.rotulo %></option><% }) %></select></label>
+    </div>
+  </div>
+  <p class="dp-aviso" data-pp-ponte-aviso hidden></p>
+  <div class="chart-box"><canvas id="chart-pp-ponte" aria-label="<%= pp.ponte.titulo %>"></canvas></div>
+</div>
+
+<div class="card pp-evolucao" data-ordem-chave="pat-evolucao">
+  <div class="card-head">
+    <h2>Evolução dos saldos</h2>
+    <span class="hint">Clique na legenda para mostrar ou esconder</span>
+  </div>
+  <div class="chart-box"><canvas id="chart-pp-evolucao" aria-label="Evolução mês a mês dos saldos do capital de giro"></canvas></div>
+  <% if (pp.periodos.length < 3) { %><p class="note dp-nota">Com mais competências carregadas, a evolução mostra a tendência de cada saldo.</p><% } %>
+</div>
+
+<div class="card pp-prazos" data-ordem-chave="pat-prazos" id="pp-prazos">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Prazos médios · <span data-pp-prazos-mes></span></h2>
+      <span class="hint" data-pp-prazos-base></span>
+    </div>
+  </div>
+  <div class="pp-prazos-grid" data-pp-prazos></div>
+</div>

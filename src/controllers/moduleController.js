@@ -4,6 +4,7 @@ const pedidosRecepcao = require('../services/pedidosRecepcao');
 const imobilizadoMapeamento = require('../services/imobilizadoMapeamento');
 const maioresFornecedores = require('../services/maioresFornecedores');
 const painelDre = require('../services/painelDre');
+const painelPatrimonial = require('../services/painelPatrimonial');
 const { sessionScope } = require('../middlewares/locals');
 
 /**
@@ -83,6 +84,10 @@ exports.show = async (req, res, next) => {
     if (def.slug === 'imobilizado' && !view.empty) view.imobMapeamento = await imobilizadoMapeamento.classificar(await Report.getAllRows(def.slug, scope)).catch(() => null);
     // DRE: painel do resultado (cards interativos: resultado, composição, evolução mensal e alertas)
     if (def.slug === 'dre' && !view.empty) view.painelDre = await painelDre.montar(scope, { getSummary: Report.getSummary, periods: Report.periods }).catch(() => null);
+    // BP e Capital Empregado: painel patrimonial (destaques, composição dos ativos, ponte, evolução e prazos)
+    if (['bp', 'capital-empregado'].includes(def.slug) && !view.empty) {
+      view.painelPatrimonial = await painelPatrimonial.montar(def.slug, scope, { getSummary: Report.getSummary, periods: Report.periods, getModule: Report.getModule }).catch(() => null);
+    }
     if (def.slug === 'seguros-garantias' && !view.empty) view.contratosSeguro = segurosTimeline.contratos(await Report.getAllRows(def.slug, scope));
     const columns = [
       ...(scope.company === Report.ALL ? [{ key: 'empresa', label: 'Empresa', type: 'string' }] : []),
@@ -96,7 +101,7 @@ exports.show = async (req, res, next) => {
       currency: view.currency,
       showCurrency: view.def.source === 'fgi0',
       comparacao: { disponiveis: disponiveis.filter((p) => p !== scope.period), escolhidas: comparar, max: MAX_COMPARAR },
-      chartData: view.empty ? null : { charts: view.charts, currency: view.currency, dre: view.painelDre || null },
+      chartData: view.empty ? null : { charts: view.charts, currency: view.currency, dre: view.painelDre || null, patrimonial: view.painelPatrimonial || null },
     });
   } catch (e) { next(e); }
 };

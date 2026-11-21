@@ -1641,11 +1641,257 @@
     }
     const painelDre = data.dre ? criarPainelDre(data.dre) : null;
 
+    /* ---- BP e Capital Empregado: painel patrimonial (services/painelPatrimonial.js) ----
+       Destaques do capital de giro → filtram a composição; composição por seção (ativos por padrão) com variação e contas;
+       ponte entre competências (BP: caixa; CE: capital empregado); evolução dos saldos; prazos médios com a DRE do mês. */
+    function criarPainelPatrimonial(pp) {
+      const raiz = $('#pp-destaques');
+      if (!raiz || !pp.periodos.length) return null;
+      const code = data.currency || 'BRL';
+      const money = (v) => moneyFmt(code).format(v);
+      const curto = (v) => moneyFmt(code, true).format(v);
+      const pct = (v) => `${(v * 100).toFixed(1).replace('.', ',')}%`;
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const zeroV = (v) => Math.abs(v || 0) < 0.005;
+      const ehBp = pp.slug === 'bp';
+      const recurso = ehBp ? 'caixa' : 'capital';
+      const perDe = (p) => pp.periodos.find((x) => x.periodo === p);
+      const antDe = (p) => { const i = pp.periodos.findIndex((x) => x.periodo === p); return i > 0 ? pp.periodos[i - 1] : null; };
+      const mostra = (d, v) => (d.tipo === 'passivo' ? Math.abs(v || 0) : (v || 0));
+      const secaoLabel = (key) => pp.secoes.find((s) => s.key === key)?.label || key;
+      const st = { periodo: pp.periodo, secao: pp.secaoPadrao, ordem: 'valor', foco: null, aberto: null };
+      const graf = {};
+      const novoGrafico = (id, cfg) => {
+        try { if (graf[id]) graf[id].destroy(); } catch { /* já destruído na troca de tema */ }
+        const el = document.getElementById(id);
+        graf[id] = el ? new Chart(el, cfg) : null;
+        return graf[id];
+      };
+
+      function tiles() {
+        const p = perDe(st.periodo);
+        const a = antDe(st.periodo);
+        $('[data-pp-titulo]', raiz).textContent = `· ${p.rotulo}`;
+        $('[data-pp-mes]', raiz).value = st.periodo;
+        $('[data-pp-tiles]', raiz).innerHTML = pp.destaques.map((d) => {
+          const v = mostra(d, p.destaques[d.chave]);
+          const va = a ? mostra(d, a.destaques[d.chave]) : null;
+          const dv = va == null ? null : v - va;
+          const consome = dv == null || zeroV(dv) ? null : (d.tipo === 'ativo') === (dv > 0);
+          const variacao = dv == null ? '' : zeroV(dv) ? `<span class="dp-tile-var">= vs ${esc(a.rotulo)}</span>`
+            : d.neutro ? `<span class="dp-tile-var">${dv > 0 ? '▲' : '▼'} ${curto(Math.abs(dv))} vs ${esc(a.rotulo)}</span>`
+            : `<span class="dp-tile-var ${consome ? 'down' : 'up'}">${dv > 0 ? '▲' : '▼'} ${curto(Math.abs(dv))} vs ${esc(a.rotulo)} · ${consome ? 'consumiu' : 'liberou'} ${recurso}</span>`;
+          const ativo = st.foco === d.chave;
+          return `<button type="button" class="dp-tile ${ativo ? 'ativo' : ''}" data-pp-destaque="${d.chave}" aria-pressed="${ativo}">
+            <span class="dp-tile-label">${esc(d.rotulo)}</span>
+            <strong class="dp-tile-valor" title="${esc(money(v))}">${curto(v)}</strong>
+            <span class="dp-tile-meta">${d.tipo === 'ativo' ? 'Ativo' : 'Passivo'} · ${esc(money(v))}</span>${variacao}</button>`;
+        }).join('');
+      }
+
+      function composicao() {
+        const p = perDe(st.periodo);
+        const a = antDe(st.periodo);
+        const foco = st.foco ? pp.destaques.find((d) => d.chave === st.foco) : null;
+        const secoesComDados = pp.secoes.filter((s) => Object.keys(p.linhas).some((k) => k.startsWith(`${s.key}|`)));
+        if (foco) { const s = foco.linhas[0]?.split('|')[0]; if (s) st.secao = s; }
+        if (!secoesComDados.some((s) => s.key === st.secao) && secoesComDados.length) st.secao = secoesComDados[0].key;
+        const box = $('#pp-composicao');
+        $('[data-pp-secoes]', box).innerHTML = secoesComDados.map((s) => `<button type="button" class="chip ${s.key === st.secao ? 'active' : ''}" data-pp-secao="${esc(s.key)}" aria-pressed="${s.key === st.secao}">${esc(s.label)}</button>`).join('');
+        const focoBox = $('[data-pp-foco]', box);
+        focoBox.hidden = !foco;
+        focoBox.innerHTML = foco ? `Mostrando só <strong>${esc(foco.rotulo)}</strong> <button type="button" class="btn btn-ghost" data-pp-foco-limpar>Ver todas as linhas</button>` : '';
+        $$('[data-pp-ordem]', box).forEach((b) => { const at = b.dataset.ppOrdem === st.ordem; b.classList.toggle('ativo', at); b.setAttribute('aria-pressed', String(at)); });
+        const chaves = new Set([...Object.keys(p.linhas), ...(a ? Object.keys(a.linhas) : [])]);
+        let itens = [...chaves].filter((k) => k.startsWith(`${st.secao}|`) && (!foco || foco.linhas.includes(k)))
+          .map((k) => { const [, g, l] = k.split('|'); const v = p.linhas[k] || 0; const va = a ? (a.linhas[k] || 0) : null; return { k, g, l, v, va, dv: va == null ? null : v - va }; })
+          .filter((x) => !zeroV(x.v) || (x.dv != null && !zeroV(x.dv)));
+        itens.sort(st.ordem === 'variacao' && a ? (x, y) => Math.abs(y.dv) - Math.abs(x.dv) : (x, y) => Math.abs(y.v) - Math.abs(x.v));
+        const total = itens.reduce((s, x) => s + x.v, 0);
+        const totalAbs = itens.reduce((s, x) => s + Math.abs(x.v), 0);
+        const max = Math.max(...itens.map((x) => Math.abs(x.v)), 1);
+        $('[data-pp-comp-titulo]', box).textContent = `· ${secaoLabel(st.secao)} · ${p.rotulo}`;
+        $('[data-pp-comp-total]', box).textContent = itens.length ? `Total ${money(total)}${a ? ` · variação vs ${a.rotulo}: ${money(total - itens.reduce((s, x) => s + (x.va || 0), 0))}` : ''}` : '';
+        const lista = $('[data-pp-barras]', box);
+        if (!itens.length) { lista.innerHTML = '<li class="note">Sem saldos nesta seleção.</li>'; return; }
+        const contas = st.periodo === pp.periodo ? pp.contas : null;
+        lista.innerHTML = itens.map((x, i) => {
+          const aberto = st.aberto === x.k;
+          let det = '';
+          if (aberto) {
+            const cs = contas && contas[x.k];
+            det = cs ? `<table class="pop-table pp-contas"><thead><tr><th>Conta</th><th class="num">${esc(p.rotulo)}</th>${pp.anterior ? `<th class="num">${esc(perDe(pp.anterior).rotulo)}</th><th class="num">Variação</th>` : ''}</tr></thead><tbody>${cs.map(([c, v, va]) => { const sep = c.indexOf(' - '); return `<tr><td><span class="pop-cod">${esc(sep > 0 ? c.slice(0, sep) : c)}</span>${esc(sep > 0 ? c.slice(sep + 3) : '')}</td><td class="num ${v < 0 ? 'neg' : ''}">${money(v)}</td>${pp.anterior ? `<td class="num ${va < 0 ? 'neg' : ''}">${money(va)}</td><td class="num">${zeroV(v - va) ? '—' : money(v - va)}</td>` : ''}</tr>`; }).join('')}</tbody></table>`
+              : `<p class="note dp-contas-nota">${contas ? 'Esta linha não tem contas detalhadas.' : `O detalhe por conta está disponível na competência escolhida no topo (${esc(perDe(pp.periodo).rotulo)}).`}</p>`;
+          }
+          const varTxt = x.dv == null ? '' : zeroV(x.dv) ? '<span class="pp-var">=</span>' : `<span class="pp-var ${x.dv > 0 ? 'mais' : 'menos'}">${x.dv > 0 ? '▲' : '▼'} ${curto(Math.abs(x.dv))}</span>`;
+          return `<li class="dp-barra ${aberto ? 'aberta' : ''}">
+            <button type="button" class="dp-barra-btn" data-pp-linha="${esc(x.k)}" aria-expanded="${aberto}">
+              <span class="dp-barra-nome">${esc(x.l)}<small>${esc(x.g)}</small></span>
+              <span class="dp-barra-valor">${curto(x.v)}<small>${totalAbs ? pct(Math.abs(x.v) / totalAbs) : ''}</small>${varTxt}</span>
+              <span class="dp-barra-trilho" aria-hidden="true"><span class="dp-barra-fill ${x.v < 0 ? 'negativo' : ''}" data-w="${(Math.abs(x.v) / max * 100).toFixed(1)}" data-d="${Math.min(i, 20) * 30}"></span></span>
+            </button>${det}</li>`;
+        }).join('');
+        $$('.dp-barra-fill', lista).forEach((b) => { b.style.setProperty('--w', `${b.dataset.w}%`); b.style.setProperty('--d', `${b.dataset.d}ms`); });
+      }
+
+      /* Ponte: BP = caixa do período "de" → efeito no caixa de cada linha → caixa do período "para";
+         CE = capital empregado "de" → variação de cada grupo → capital empregado "para" */
+      const ponteRaiz = $('#pp-ponte');
+      const pst = { de: (antDe(pp.periodo) || perDe(pp.periodo)).periodo, para: pp.periodo, passos: [] };
+      if (ponteRaiz) { $('[data-pp-ponte-de]', ponteRaiz).value = pst.de; $('[data-pp-ponte-para]', ponteRaiz).value = pst.para; }
+      function ponte() {
+        if (!ponteRaiz) return;
+        const de = perDe(pst.de);
+        const para = perDe(pst.para);
+        const aviso = $('[data-pp-ponte-aviso]', ponteRaiz);
+        aviso.textContent = pst.de === pst.para ? 'Escolha duas competências diferentes.' : '';
+        aviso.hidden = pst.de !== pst.para;
+        const chaves = [...new Set([...Object.keys(de.linhas), ...Object.keys(para.linhas)])];
+        const dif = (k) => (para.linhas[k] || 0) - (de.linhas[k] || 0);
+        let inicio; let fim; let passos;
+        if (ehBp) {
+          const ehCaixa = (k) => (pp.ponte.caixa || []).includes(k);
+          const soma = (l) => Object.entries(l).filter(([k]) => ehCaixa(k)).reduce((s, [, v]) => s + v, 0);
+          inicio = soma(de.linhas); fim = soma(para.linhas);
+          passos = chaves.filter((k) => !ehCaixa(k)).map((k) => { const [s, g, l] = k.split('|'); return { k, secao: s, rot: l, sub: g, v: (s === 'Passivo e PL' ? 1 : -1) * dif(k) }; });
+        } else {
+          inicio = Object.values(de.linhas).reduce((s, v) => s + v, 0); fim = Object.values(para.linhas).reduce((s, v) => s + v, 0);
+          const porGrupo = new Map();
+          chaves.forEach((k) => { const [s, g] = k.split('|'); const id = `${s}|${g}`; const o = porGrupo.get(id) || porGrupo.set(id, { k: id, secao: s, rot: g, sub: s, v: 0 }).get(id); o.v += dif(k); });
+          passos = [...porGrupo.values()];
+        }
+        passos = passos.filter((x) => !zeroV(x.v)).sort((x, y) => Math.abs(y.v) - Math.abs(x.v));
+        const resto = passos.slice(8);
+        passos = passos.slice(0, 8);
+        if (resto.length) passos.push({ k: null, rot: `Demais ${resto.length} itens`, v: resto.reduce((s, x) => s + x.v, 0) });
+        const fecha = fim - inicio - passos.reduce((s, x) => s + x.v, 0);
+        if (Math.abs(fecha) >= 1) passos.push({ k: null, rot: ehBp ? 'Diferença de fechamento' : 'Outros', v: fecha, nota: ehBp ? 'Contas desconsideradas (6 e 9) e, com filtro de obra, lançamentos em outros centros de lucro' : '' });
+        pst.passos = passos;
+        let acc = inicio;
+        const barras = [[0, inicio]];
+        passos.forEach((x) => { barras.push([acc, acc + x.v]); acc += x.v; });
+        barras.push([0, fim]);
+        const nomeTotal = ehBp ? 'Caixa' : 'Capital';
+        const rotulos = [`${nomeTotal} ${de.rotulo}`, ...passos.map((x) => (x.rot.length > 22 ? `${x.rot.slice(0, 21)}…` : x.rot)), `${nomeTotal} ${para.rotulo}`];
+        const bom = (v) => (ehBp ? v >= 0 : v <= 0); // BP: caixa subir é bom; CE: capital empregado cair é bom
+        const cores = barras.map((_, i) => (i === 0 || i === barras.length - 1 ? PALETTE[0] : bom(passos[i - 1].v) ? (cssVar('--ok') || '#009360') : NEG));
+        novoGrafico('chart-pp-ponte', {
+          type: 'bar',
+          data: { labels: rotulos, datasets: [{ data: barras, backgroundColor: cores.map((c) => rgba(c, 0.85)), hoverBackgroundColor: cores, borderRadius: 6, borderSkipped: false, maxBarThickness: 48 }] },
+          options: {
+            animation: entrada(60),
+            onHover: (ev, els) => { ev.native.target.style.cursor = els.length && passos[els[0].index - 1]?.k ? 'pointer' : 'default'; },
+            onClick: (_ev, els) => {
+              const x = els.length ? passos[els[0].index - 1] : null;
+              if (!x || !x.k) return;
+              st.periodo = pst.para; st.foco = null; st.secao = x.secao; st.ordem = 'variacao';
+              st.aberto = ehBp ? x.k : null;
+              atualizar();
+              $('#pp-composicao')?.scrollIntoView({ behavior: reduzMovimento ? 'auto' : 'smooth', block: 'start' });
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => { const i = items[0].dataIndex; return i === 0 || i === barras.length - 1 ? rotulos[i] : `${passos[i - 1].rot}${passos[i - 1].sub ? ` · ${passos[i - 1].sub}` : ''}`; },
+                  label: (c) => { const i = c.dataIndex; if (i === 0 || i === barras.length - 1) return ` ${money(barras[i][1])}`; const v = passos[i - 1].v; return ` ${v > 0 ? '+' : ''}${money(v)} no ${ehBp ? 'caixa' : 'capital empregado'}`; },
+                  footer: (items) => { const i = items[0].dataIndex; return passos[i - 1]?.nota || ''; },
+                },
+              },
+            },
+            scales: { x: { grid: { display: false }, border: { display: false }, ticks: { autoSkip: false, maxRotation: 40 } }, y: { grid, border: { display: false }, ticks: { callback: (v) => curto(v) } } },
+          },
+        });
+      }
+
+      function evolucao() {
+        const realce = (cor) => (ctx) => (pp.periodos[ctx.dataIndex]?.periodo === st.periodo ? 6 : 3);
+        novoGrafico('chart-pp-evolucao', {
+          type: 'line',
+          data: {
+            labels: pp.periodos.map((p) => p.rotulo),
+            datasets: pp.destaques.map((d, i) => {
+              const cor = PALETTE[i % PALETTE.length];
+              return { label: d.rotulo, data: pp.periodos.map((p) => mostra(d, p.destaques[d.chave])), borderColor: cor, backgroundColor: cor, borderWidth: 2.2, tension: 0.3, pointRadius: realce(cor), pointHoverRadius: 7, borderDash: d.tipo === 'passivo' ? [6, 4] : [] };
+            }),
+          },
+          options: {
+            interaction: { mode: 'index', intersect: false },
+            animation: reduzMovimento ? false : { duration: 900, easing: 'easeOutQuart' },
+            onClick: (_ev, els) => { const p = els.length ? pp.periodos[els[0].index] : null; if (p) { st.periodo = p.periodo; st.aberto = null; atualizar(); } },
+            plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${money(c.parsed.y)}` } } },
+            scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid, border: { display: false }, ticks: { callback: (v) => curto(v) } } },
+          },
+        });
+      }
+
+      function prazos() {
+        const box = $('#pp-prazos');
+        if (!box) return;
+        const p = perDe(pp.periodo);
+        $('[data-pp-prazos-mes]', box).textContent = p.rotulo;
+        const grid = $('[data-pp-prazos]', box);
+        if (!pp.dre) { $('[data-pp-prazos-base]', box).textContent = ''; grid.innerHTML = '<p class="note">Sem DRE desta competência para calcular os prazos.</p>'; return; }
+        $('[data-pp-prazos-base]', box).textContent = `Saldos de ${p.rotulo} × DRE (${pp.dre.base}) · 30 dias`;
+        const d = p.destaques;
+        const dias = (saldo, fluxo) => (fluxo > 0 && saldo != null ? (saldo / fluxo) * 30 : null);
+        const pmr = dias(d.receber, pp.dre.receita);
+        const pmp = dias(Math.abs(d.fornecedores || 0), Math.abs(pp.dre.custos));
+        const pme = dias(d.estoque, Math.abs(pp.dre.materiais));
+        const ciclo = pmr != null && pmp != null ? pmr + (pme || 0) - pmp : null;
+        const fmtD = (v) => (v == null ? '—' : `${Math.round(v).toLocaleString('pt-BR')} dias`);
+        const card = (rot, v, formula, extra = '') => `<div class="pp-prazo"><span>${rot}</span><strong>${fmtD(v)}</strong><small>${formula}</small>${extra}</div>`;
+        grid.innerHTML = card('Prazo de recebimento', pmr, 'A receber ÷ receita líquida do mês × 30')
+          + card('Prazo de pagamento', pmp, 'Fornecedores a pagar ÷ custos do mês × 30')
+          + card('Giro do estoque', pme, 'Estoque ÷ materiais aplicados do mês × 30')
+          + card('Ciclo financeiro', ciclo, 'Recebimento + estoque − pagamento', ciclo == null ? '' : `<em class="${ciclo > 0 ? 'neg' : 'pos'}">${ciclo > 0 ? `A obra financia ${Math.round(ciclo)} dias da operação` : 'Fornecedores financiam a operação'}</em>`);
+      }
+
+      function atualizar() {
+        tiles();
+        composicao();
+        if (graf['chart-pp-evolucao']) graf['chart-pp-evolucao'].update('none');
+      }
+
+      raiz.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-pp-destaque]');
+        if (!b) return;
+        st.foco = st.foco === b.dataset.ppDestaque ? null : b.dataset.ppDestaque;
+        st.aberto = null;
+        atualizar();
+        if (st.foco) $('#pp-composicao')?.scrollIntoView({ behavior: reduzMovimento ? 'auto' : 'smooth', block: 'nearest' });
+      });
+      $('[data-pp-mes]', raiz).addEventListener('change', (e) => { st.periodo = e.target.value; st.aberto = null; atualizar(); });
+      $('#pp-composicao')?.addEventListener('click', (e) => {
+        const sec = e.target.closest('[data-pp-secao]');
+        if (sec) { st.secao = sec.dataset.ppSecao; st.foco = null; st.aberto = null; atualizar(); return; }
+        if (e.target.closest('[data-pp-foco-limpar]')) { st.foco = null; atualizar(); return; }
+        const ord = e.target.closest('[data-pp-ordem]');
+        if (ord) { st.ordem = ord.dataset.ppOrdem; composicao(); return; }
+        const lin = e.target.closest('[data-pp-linha]');
+        if (lin) { st.aberto = st.aberto === lin.dataset.ppLinha ? null : lin.dataset.ppLinha; composicao(); }
+      });
+      if (ponteRaiz) {
+        ponteRaiz.addEventListener('change', (e) => {
+          if (e.target.matches('[data-pp-ponte-de]')) pst.de = e.target.value;
+          if (e.target.matches('[data-pp-ponte-para]')) pst.para = e.target.value;
+          ponte();
+        });
+      }
+
+      tiles();
+      composicao();
+      prazos();
+      return { desenharGrafico: () => { ponte(); evolucao(); } };
+    }
+    const painelPatrimonial = data.patrimonial ? criarPainelPatrimonial(data.patrimonial) : null;
+
     function drawCharts() {
     applyChartTheme();
     // Tela de módulo
     (data.charts || []).forEach((c) => render(`chart-${c.id}`, c));
     if (painelDre) painelDre.desenharGrafico();
+    if (painelPatrimonial) painelPatrimonial.desenharGrafico();
 
     // Dashboard
     if (data.trend) {
