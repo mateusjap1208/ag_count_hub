@@ -4,6 +4,9 @@
   <%- include('../partials/empty', { heading: 'Nenhum relatório carregado ainda', text: 'Suba os arquivos .txt exportados do SAP para começar a visualizar os dados.' }) %>
 <% } else { %>
 
+  <%# Introdução: resumo do mês em stories, antes dos números %>
+  <% if (locals.apresentacao) { %><%- include('apresentacao', { ap: apresentacao, cur: apresentacaoMoeda }) %><% } %>
+
   <% if (highlights.length) { %>
   <div class="grid grid-4" data-ordenavel="kpis" aria-label="Indicadores">
     <% highlights.forEach((k, i) => { const idAjuda = `kpi-ajuda-${i}`; %>

@@ -6,6 +6,16 @@
  */
 module.exports = [
   {
+    build: 114,
+    data: "2026-11-21",
+    titulo: "Resumo do mês em stories na Visão Geral",
+    itens: [
+      "A Visão Geral abre com o resumo do mês no formato de stories: resultado, para onde foi o custo, caixa, posição de liquidação e pontos de atenção, um número grande e uma frase por vez.",
+      "Os stories avançam sozinhos. Toque à direita para avançar e à esquerda para voltar, deslize no celular ou use as setas do teclado. Dá para pausar e ocultar; para ver de novo, use \"Ver o resumo\".",
+      "O último story leva a cada tema do painel. Tudo respeita os filtros do topo e as telas liberadas para o seu usuário."
+    ]
+  },
+  {
     build: 113,
     data: "2026-11-21",
     titulo: "Cards na ordem em que foram criados",
