@@ -994,6 +994,73 @@
     raf = requestAnimationFrame(tick);
   }());
 
+  /* ---------- Visão Geral: carrossel de destaques, "ver mais" do feed e busca rápida ---------- */
+  (function visaoGeral() {
+    const trilho = $('[data-vg-trilho]');
+    if (trilho) {
+      const atualizarSetas = () => {
+        const fim = trilho.scrollWidth - trilho.clientWidth - 2;
+        $$('[data-vg-seta]').forEach((b) => { b.disabled = b.dataset.vgSeta === '-1' ? trilho.scrollLeft <= 2 : trilho.scrollLeft >= fim; });
+      };
+      $$('[data-vg-seta]').forEach((b) => b.addEventListener('click', () => {
+        trilho.scrollBy({ left: Number(b.dataset.vgSeta) * trilho.clientWidth * 0.85, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      }));
+      trilho.addEventListener('scroll', atualizarSetas, { passive: true });
+      window.addEventListener('resize', atualizarSetas);
+      atualizarSetas();
+    }
+
+    const mais = $('[data-vg-mais]');
+    if (mais) mais.addEventListener('click', () => { $$('.vg-post.extra').forEach((p) => { p.hidden = false; }); mais.remove(); });
+
+    const campo = $('[data-vg-busca]');
+    const lista = $('[data-vg-busca-lista]');
+    if (!campo || !lista) return;
+    let dados = { telas: [], contas: false };
+    try { dados = JSON.parse(document.getElementById('page-data')?.textContent || '{}').busca || dados; } catch { /* sem dados */ }
+    const norm = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    let timer = null; let pedido = 0; let ativo = -1;
+    const fechar = () => { lista.hidden = true; campo.setAttribute('aria-expanded', 'false'); ativo = -1; };
+    const mostrar = (html) => { lista.innerHTML = html; lista.hidden = !html; campo.setAttribute('aria-expanded', String(!!html)); ativo = -1; };
+    const itemTela = (t) => `<li role="option"><a href="${esc(t.url)}"><span class="vg-busca-tipo">Tema</span><strong>${esc(t.nome)}</strong></a></li>`;
+    const buscar = async () => {
+      const q = campo.value.trim();
+      if (q.length < 2) { fechar(); return; }
+      const termos = norm(q).split(/\s+/);
+      const telas = dados.telas.filter((t) => termos.every((x) => norm(`${t.nome} ${t.palavras}`).includes(x))).slice(0, 5);
+      let html = telas.map(itemTela).join('');
+      mostrar(html || (dados.contas ? '<li class="vg-busca-info">Buscando contas…</li>' : '<li class="vg-busca-info">Nada encontrado.</li>'));
+      if (!dados.contas) return;
+      const n = ++pedido;
+      try {
+        const r = await fetch(`/api/dre/contas?q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' } });
+        const j = r.ok ? await r.json() : { contas: [] };
+        if (n !== pedido) return;
+        html += (j.contas || []).slice(0, 6).map((c) => {
+          const cod = c.conta.split(' - ')[0];
+          return `<li role="option"><a href="/modulos/dre#conta=${encodeURIComponent(cod)}"><span class="vg-busca-tipo">Conta</span><strong>${esc(c.conta)}</strong><em>${esc(moneyFmt('BRL', true).format(c.ano))} no ano</em></a></li>`;
+        }).join('');
+        mostrar(html || '<li class="vg-busca-info">Nada encontrado. Tente outro termo.</li>');
+      } catch { if (n === pedido && !html) mostrar('<li class="vg-busca-info">Não foi possível buscar agora.</li>'); }
+    };
+    campo.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(buscar, 250); });
+    campo.addEventListener('focus', () => { if (campo.value.trim().length >= 2) buscar(); });
+    campo.addEventListener('keydown', (e) => {
+      const links = $$('a', lista);
+      if (e.key === 'Escape') { fechar(); return; }
+      if (!links.length) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        ativo = (ativo + (e.key === 'ArrowDown' ? 1 : -1) + links.length) % links.length;
+        links.forEach((a, k) => a.classList.toggle('ativo', k === ativo));
+        links[ativo].scrollIntoView({ block: 'nearest' });
+      }
+      if (e.key === 'Enter') { e.preventDefault(); (links[ativo] || links[0]).click(); }
+    });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.vg-busca')) fechar(); });
+  }());
+
   /* ---------- Visão Geral: "?" de cada card abre a explicação resumida por cima do próprio card ----------
      Um aberto por vez; fecha clicando de novo, fora do card ou com Esc. */
   const fecharAjuda = (btn, foco = false) => {
@@ -1734,6 +1801,12 @@
 
       atualizar();
       simulador();
+      // Vindo da busca rápida da Visão Geral (/modulos/dre#conta=5321600000): abre a conta no card "Buscar conta"
+      const doHash = decodeURIComponent((location.hash.match(/^#conta=(.+)$/) || [])[1] || '');
+      if (doHash && buscaRaiz) {
+        buscarConta(doHash, true);
+        setTimeout(() => buscaRaiz.scrollIntoView({ behavior: reduzMovimento ? 'auto' : 'smooth', block: 'start' }), 150);
+      }
       return { desenharGrafico: desenharGraficos, aoAtualizar: pareto };
     }
     const painelDre = data.dre ? criarPainelDre(data.dre) : null;

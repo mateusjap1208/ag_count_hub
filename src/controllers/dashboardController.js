@@ -1,7 +1,23 @@
 const Report = require('../models/Report');
-const agg = require('../services/aggregator');
 const Telas = require('../config/telas');
 const apresentacaoSvc = require('../services/apresentacao');
+const novidadesSvc = require('../services/novidades');
+
+/** Palavras-chave de cada tela para a busca rápida da Visão Geral (sem acento) */
+const PALAVRAS = {
+  bp: 'balanco patrimonial ativo passivo caixa liquidez notas explicativas folha tributos impostos fornecedores patrimonio',
+  dre: 'dre demonstracao resultado receita custo despesa lucro margem pareto simulador ponte alertas',
+  'capital-empregado': 'capital empregado capital de giro liquidacao obrigacoes prazos ciclo financeiro',
+  clientes: 'clientes contas a receber aging cobranca',
+  adiantamentos: 'adiantamentos fornecedores funcionarios',
+  estoque: 'estoque material almoxarifado giro obsoleto deposito',
+  'seguros-garantias': 'seguros garantias apolices premio',
+  imobilizado: 'imobilizado bens depreciacao equipamentos veiculos',
+  fornecedores: 'fornecedores contas a pagar aging pedidos compras',
+  'receita-poc': 'receita poc medicao avanco backlog faturamento obra contrato',
+  arrendamento: 'arrendamento ifrs 16 contratos direito de uso aluguel',
+};
+
 
 // Arrendamento Mercantil Curto Prazo + Longo Prazo (saldo do passivo de arrendamento no balancete)
 const CONTAS_ARRENDAMENTO = ['2159000020', '2959000020'];
@@ -51,63 +67,75 @@ exports.index = async (req, res, next) => {
     // Ordem: Ativo, Passivo + PL, Receita líquida, Lucro líquido, Capital empregado, Valor em estoque
     // Cada card tem um "?" com a explicação resumida de como o número é montado (ajuda)
     const highlights = [
-      { module: 'bp', ...kpi(views.bp, 'Ativo total'), ajuda: 'Soma do ativo circulante e não circulante do Balanço Patrimonial, gerado do FGI0 (saldos contábeis) da competência.' },
-      { module: 'bp', ...passivoPl, ajuda: 'Passivo total + patrimônio líquido do Balanço. Deve fechar com o ativo total; o PL já inclui o resultado do exercício.' },
-      { module: 'dre', ...kpi(views.dre, 'Receita líquida'), ajuda: 'Receita bruta menos as deduções (impostos sobre a receita) da DRE, acumulada de janeiro até a competência.' },
-      { module: 'dre', ...kpi(views.dre, 'Lucro líquido'), ajuda: 'Resultado final da DRE de janeiro até a competência: receita líquida − custos − despesas ± resultado financeiro − IR e CSLL.' },
-      { module: 'capital-empregado', ...kpi(views['capital-empregado'], 'Capital empregado'), ajuda: 'Ativos operacionais + passivos operacionais da estrutura gerencial (QV Capital Empregado), com as contas ligadas pelo Mapeamento de Contas.' },
-      { module: 'estoque', ...estoque, label: 'Valor em estoque', ajuda: 'Valor do estoque próprio no relatório ZL0190 da competência. O estoque de terceiros fica de fora, porque não pertence à empresa.' },
+      { module: 'bp', serie: ['Ativo total'], ...kpi(views.bp, 'Ativo total'), ajuda: 'Soma do ativo circulante e não circulante do Balanço Patrimonial, gerado do FGI0 (saldos contábeis) da competência.' },
+      { module: 'bp', serie: ['Passivo total', 'Patrimônio líquido'], ...passivoPl, ajuda: 'Passivo total + patrimônio líquido do Balanço. Deve fechar com o ativo total; o PL já inclui o resultado do exercício.' },
+      { module: 'dre', serie: ['Receita líquida'], ...kpi(views.dre, 'Receita líquida'), ajuda: 'Receita bruta menos as deduções (impostos sobre a receita) da DRE, acumulada de janeiro até a competência.' },
+      { module: 'dre', serie: ['Lucro líquido'], ...kpi(views.dre, 'Lucro líquido'), ajuda: 'Resultado final da DRE de janeiro até a competência: receita líquida − custos − despesas ± resultado financeiro − IR e CSLL.' },
+      { module: 'capital-empregado', serie: ['Capital empregado'], ...kpi(views['capital-empregado'], 'Capital empregado'), ajuda: 'Ativos operacionais + passivos operacionais da estrutura gerencial (QV Capital Empregado), com as contas ligadas pelo Mapeamento de Contas.' },
+      { module: 'estoque', serie: ['Estoque próprio'], ...estoque, label: 'Valor em estoque', ajuda: 'Valor do estoque próprio no relatório ZL0190 da competência. O estoque de terceiros fica de fora, porque não pertence à empresa.' },
       { module: 'arrendamento', ...arrendamento },
-      { module: 'adiantamentos', ...kpi(views.adiantamentos, 'Total de adiantamentos'), ajuda: 'Saldo no Balanço das contas de adiantamento a fornecedores, subempreiteiros e funcionários (classificação N4 do Plano de Contas).' },
-      { module: 'seguros-garantias', ...kpi(views['seguros-garantias'], 'Saldo a apropriar'), label: 'Seguros a apropriar', ajuda: 'Prêmios de seguros e garantias já pagos que ainda vão para o resultado nos próximos meses (despesa antecipada).' },
-      { module: 'imobilizado', ...kpi(views.imobilizado, 'Valor contábil'), label: 'Imobilizado (valor contábil)', ajuda: 'Custo de aquisição dos bens menos a depreciação acumulada, pelo quadro do imobilizado (AR02).' },
+      { module: 'adiantamentos', serie: ['Total de adiantamentos'], ...kpi(views.adiantamentos, 'Total de adiantamentos'), ajuda: 'Saldo no Balanço das contas de adiantamento a fornecedores, subempreiteiros e funcionários (classificação N4 do Plano de Contas).' },
+      { module: 'seguros-garantias', serie: ['Saldo a apropriar'], ...kpi(views['seguros-garantias'], 'Saldo a apropriar'), label: 'Seguros a apropriar', ajuda: 'Prêmios de seguros e garantias já pagos que ainda vão para o resultado nos próximos meses (despesa antecipada).' },
+      { module: 'imobilizado', serie: ['Valor contábil'], ...kpi(views.imobilizado, 'Valor contábil'), label: 'Imobilizado (valor contábil)', ajuda: 'Custo de aquisição dos bens menos a depreciação acumulada, pelo quadro do imobilizado (AR02).' },
     ].filter((h) => h.value !== undefined);
 
-    const dreTrend = pode('dre') ? await Report.trend('dre', scope) : [];
-    const trend = {
-      labels: dreTrend.map((t) => res.locals.fmt.period(t.period)),
-      receita: dreTrend.map((t) => t.kpis.find((k) => k.label === 'Receita líquida')?.value ?? 0),
-      lucro: dreTrend.map((t) => t.kpis.find((k) => k.label === 'Lucro líquido')?.value ?? 0),
-    };
-
-    const withCur = (view, chart) => (chart ? { ...chart, currency: view.currency } : null);
-    // Balanço por grupo: montado direto do agrupamento "grupo" do BP (a tela do BP não mostra mais esse gráfico)
-    let bpChart = null;
-    if (!views.bp.empty) {
-      const defBp = Report.getModule('bp');
-      const b = defBp.breakdowns.find((x) => x.id === 'grupo');
-      const s = await Report.getSummary('bp', scope);
-      if (b && s) bpChart = withCur(views.bp, { id: 'grupo', label: 'Balanço por grupo', type: 'bar', ...agg.breakdownSeries(b, s.breakdowns.grupo, defBp) });
+    // Carrossel de destaques: tendência das últimas competências (Report.trend) e variação contra a anterior.
+    // Passivo de arrendamento pelas contas do BP não tem série própria (fica só com o valor atual).
+    const modulosSerie = [...new Set(highlights.filter((h) => h.serie && pode(h.module)).map((h) => h.module))];
+    const trends = Object.fromEntries(await Promise.all(modulosSerie.map(async (m) => [m, await Report.trend(m, scope, 6).catch(() => [])])));
+    for (const h of highlights) {
+      const t = h.serie ? trends[h.module] || [] : [];
+      const pontos = t.map((x) => {
+        const vs = h.serie.map((lbl) => x.kpis.find((k) => k.label === lbl)?.value);
+        return vs.every((v) => typeof v === 'number') ? vs.reduce((a, v) => a + v, 0) : null;
+      }).filter((v) => v != null);
+      h.pontos = pontos.length > 1 ? pontos : null;
+      h.variacao = pontos.length > 1 ? pontos[pontos.length - 1] - pontos[pontos.length - 2] : null;
+      delete h.serie;
     }
-    const agingReceber = views.clientes.empty ? null : withCur(views.clientes, views.clientes.charts.find((c) => c.id === 'aging'));
-    const agingPagar = views.fornecedores.empty ? null : withCur(views.fornecedores, views.fornecedores.charts.find((c) => c.id === 'aging'));
 
+    // Checklist do fechamento: relatórios da competência carregados (moeda do filtro) e pendências contábeis
     const uploads = scope.period ? await Report.listUploads({ period: scope.period }) : [];
     const ct = String(scope.moeda).split(':')[0];
-    const status = Report.modules.filter((m) => !m.inativo && !m.hideInMenu && pode(m.slug)).map((m) => {
+    const relatorios = Report.modules.filter((m) => !m.inativo && !m.hideInMenu && pode(m.slug)).map((m) => {
       const list = uploads.filter((u) => u.module === m.slug && (m.source !== 'fgi0' || u.currencyType === ct));
-      return { slug: m.slug, title: m.menu, icon: m.icon, companies: list.length, rows: list.reduce((a, u) => a + u.rows, 0) };
+      return { slug: m.slug, nome: m.menu, icon: m.icon, feito: list.length > 0, empresas: list.length };
     });
 
-    // Apresentação do mês em "stories": poucos slides, um número e uma frase cada, com link para a tela
+    // Última carga do FGI0 da competência (para o feed)
+    const fgi0 = uploads.filter((u) => u.source === 'fgi0').sort((x, y) => String(y.uploadedAt).localeCompare(String(x.uploadedAt)))[0];
+    const fmtData = (iso) => (iso ? String(iso).slice(0, 10).split('-').reverse().join('/') : '');
+    const ultimaCarga = fgi0 ? `FGI0 de ${res.locals.fmt.periodFull(scope.period).toLowerCase()} carregado em ${fmtData(fgi0.uploadedAt)}${fgi0.uploadedBy ? ` por ${fgi0.uploadedBy}` : ''}` : null;
+    const novidade = novidadesSvc.historico()[0]?.titulo || null;
+
+    // Apresentação do mês em "stories" + posts do feed (mesmos dados)
     const apresentacao = await apresentacaoSvc.montar({
       scope,
       deps: { getSummary: Report.getSummary, periods: Report.periods, getModule: Report.getModule },
       pode,
       subtitulo: res.locals.companyName || '',
       telas: Telas.MODULOS_MENU.filter((m) => !m.inativo && pode(m.slug)).map((m) => ({ slug: m.slug, nome: m.menu, icon: m.icon })),
+      extras: { ultimaCarga, novidade },
     }).catch(() => null);
+
+    const pendencias = (apresentacao?.alertas || []).map((a) => ({ nome: a.titulo, detalhe: `${a.quantidade} ${a.quantidade === 1 ? 'conta' : 'contas'}`, link: '/modulos/dre' }));
+
+    // Busca rápida: telas liberadas com palavras-chave; as contas contábeis vêm da API da DRE
+    const telasBusca = [
+      ...Telas.MODULOS_MENU.filter((m) => !m.inativo && pode(m.slug)).map((m) => ({ nome: m.menu, url: `/modulos/${m.slug}`, icon: m.icon, palavras: PALAVRAS[m.slug] || '' })),
+      ...(Telas.podeVer(req.user, 'indicadores') ? [{ nome: 'Indicadores', url: '/indicadores', icon: 'gauge', palavras: 'indicadores velocimetro metas' }] : []),
+      ...(Telas.podeVer(req.user, 'relatorios') ? [{ nome: 'Relatórios', url: '/relatorios', icon: 'download', palavras: 'relatorios extrair exportar excel csv detalhamento analitico' }] : []),
+      { nome: 'Novidades', url: '/novidades', icon: 'sparkle', palavras: 'novidades versao atualizacao o que mudou' },
+    ];
 
     res.render('dashboard/index', {
       title: 'Visão Geral',
-      apresentacao,
+      apresentacao: apresentacao?.slides ? apresentacao : null,
+      posts: apresentacao?.posts || [],
       apresentacaoMoeda: views.dre.currency || views.bp.currency || 'BRL',
       highlights,
-      status,
-      totalCompanies: res.locals.companies.length,
-      currency: views.dre.currency || 'BRL',
-      mostra: { dre: pode('dre'), bp: pode('bp'), clientes: pode('clientes'), fornecedores: pode('fornecedores') },
-      chartData: { trend, bp: bpChart, agingReceber, agingPagar, currency: views.dre.currency || 'BRL' },
+      checklist: { relatorios, pendencias, periodo: scope.period },
+      chartData: { busca: { telas: telasBusca, contas: pode('dre') } },
     });
   } catch (e) { next(e); }
 };

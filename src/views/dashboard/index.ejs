@@ -4,75 +4,106 @@
   <%- include('../partials/empty', { heading: 'Nenhum relatório carregado ainda', text: 'Suba os arquivos .txt exportados do SAP para começar a visualizar os dados.' }) %>
 <% } else { %>
 
-  <%# Introdução: resumo do mês em stories, antes dos números %>
+  <%# 1) Introdução: resumo do mês em stories %>
   <% if (locals.apresentacao) { %><%- include('apresentacao', { ap: apresentacao, cur: apresentacaoMoeda }) %><% } %>
 
+  <%# 2) Carrossel de destaques: os números principais numa faixa que se arrasta para o lado %>
   <% if (highlights.length) { %>
-  <div class="grid grid-4" data-ordenavel="kpis" aria-label="Indicadores">
-    <% highlights.forEach((k, i) => { const idAjuda = `kpi-ajuda-${i}`; %>
-      <%# O card inteiro abre a tela (link "esticado" sobre o card); o "?" mostra a explicação sem sair da página %>
-      <div class="card kpi kpi-link-card <%= k.tone || '' %>" data-ordem-chave="<%= k.label %>">
-        <a class="label kpi-link" href="/modulos/<%= k.module %>"><%= k.label %></a>
-        <div class="value" title="<%= fmt.value(k.value, k.format, k.currency) %>"><%= fmt.kpi(k.value, k.format, k.currency) %></div>
-        <div class="meta"><%= fmt.value(k.value, k.format, k.currency) %></div>
-        <% if (k.ajuda) { %>
-          <button type="button" class="kpi-ajuda-btn" data-ajuda="<%= idAjuda %>" aria-expanded="false" aria-controls="<%= idAjuda %>" aria-label="O que é <%= k.label %>?" title="O que é este número?">?</button>
-          <div class="kpi-ajuda" id="<%= idAjuda %>" role="note" hidden>
-            <strong><%= k.label %></strong>
-            <p><%= k.ajuda %></p>
-          </div>
-        <% } %>
+  <section class="vg-carrossel" aria-label="Destaques">
+    <div class="vg-cab">
+      <h2>Destaques</h2>
+      <div class="vg-setas">
+        <button type="button" class="vg-seta" data-vg-seta="-1" aria-label="Destaques anteriores">‹</button>
+        <button type="button" class="vg-seta" data-vg-seta="1" aria-label="Próximos destaques">›</button>
       </div>
-    <% }) %>
-  </div>
-  <% } %>
-
-  <div class="grid mt blocos blocos-dash" data-ordenavel="blocos" aria-label="Gráficos e status">
-    <% if (mostra.dre) { %>
-    <div class="card col-4" data-ordem-chave="tendencia">
-      <div class="card-head"><h2>Receita líquida x Lucro líquido</h2><span class="hint">Últimos 12 períodos (DRE)</span></div>
-      <div class="chart-box"><canvas id="chart-trend" aria-label="Evolução de receita e lucro"></canvas></div>
     </div>
-    <% } %>
-    <% if (mostra.bp) { %>
-    <div class="card col-2" data-ordem-chave="bp">
-      <div class="card-head"><h2>Balanço por grupo</h2><span class="hint">BP</span></div>
-      <div class="chart-box"><canvas id="chart-bp" aria-label="Balanço por grupo"></canvas></div>
-    </div>
-    <% } %>
-    <% if (mostra.clientes) { %>
-    <div class="card col-3" data-ordem-chave="aging-receber">
-      <div class="card-head"><h2>Aging · contas a receber</h2><a class="hint" href="/modulos/clientes">Ver clientes →</a></div>
-      <div class="chart-box"><canvas id="chart-ar" aria-label="Aging contas a receber"></canvas></div>
-    </div>
-    <% } %>
-    <% if (mostra.fornecedores) { %>
-    <div class="card col-3" data-ordem-chave="aging-pagar">
-      <div class="card-head"><h2>Aging · contas a pagar</h2><a class="hint" href="/modulos/fornecedores">Ver fornecedores →</a></div>
-      <div class="chart-box"><canvas id="chart-ap" aria-label="Aging contas a pagar"></canvas></div>
-    </div>
-    <% } %>
-
-  <div class="card col-6" data-ordem-chave="status">
-    <div class="card-head">
-      <h2>Status da carga · <%= fmt.periodFull(filter.periodo) %></h2>
-      <span class="hint"><%= totalCompanies %> empresa(s) cadastrada(s)</span>
-    </div>
-    <div class="status-grid">
-      <% status.forEach(s => { %>
-        <a class="status-item <%= s.companies ? '' : 'off' %>" href="/modulos/<%= s.slug %>">
-          <%- include('../partials/icon', { name: s.icon }) %>
-          <span class="name"><%= s.title %></span>
-          <% if (s.companies) { %>
-            <span class="badge ok" title="<%= fmt.number(s.rows) %> linhas"><%= s.companies %>/<%= totalCompanies %></span>
-          <% } else { %>
-            <span class="badge missing">Pendente</span>
+    <div class="vg-trilho" data-vg-trilho tabindex="0" aria-label="Destaques (role para o lado)">
+      <% highlights.forEach((k, i) => {
+           const idAjuda = `kpi-ajuda-${i}`;
+           const pts = k.pontos;
+           let linha = '';
+           if (pts) {
+             const min = Math.min(...pts), max = Math.max(...pts), amp = (max - min) || 1;
+             linha = pts.map((v, j) => `${(j / (pts.length - 1) * 100).toFixed(1)},${(28 - ((v - min) / amp) * 24 - 2).toFixed(1)}`).join(' ');
+           }
+           const d = k.variacao; %>
+        <div class="card kpi kpi-link-card vg-card <%= k.tone || '' %>">
+          <a class="label kpi-link" href="/modulos/<%= k.module %>"><%= k.label %></a>
+          <div class="value" title="<%= fmt.value(k.value, k.format, k.currency) %>"><%= fmt.kpi(k.value, k.format, k.currency) %></div>
+          <div class="vg-rodape">
+            <% if (d != null && Math.abs(d) >= 0.005) { %>
+              <span class="vg-var <%= d > 0 ? 'sobe' : 'desce' %>"><%= d > 0 ? '▲' : '▼' %> <%= fmt.kpi(Math.abs(d), k.format, k.currency) %></span>
+            <% } else { %><span class="vg-var">vs mês anterior —</span><% } %>
+            <% if (linha) { %><svg class="vg-spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><polyline points="<%= linha %>"/></svg><% } %>
+          </div>
+          <% if (k.ajuda) { %>
+            <button type="button" class="kpi-ajuda-btn" data-ajuda="<%= idAjuda %>" aria-expanded="false" aria-controls="<%= idAjuda %>" aria-label="O que é <%= k.label %>?" title="O que é este número?">?</button>
+            <div class="kpi-ajuda" id="<%= idAjuda %>" role="note" hidden><strong><%= k.label %></strong><p><%= k.ajuda %></p></div>
           <% } %>
-        </a>
+        </div>
       <% }) %>
     </div>
+  </section>
+  <% } %>
+
+  <%# 3) Busca rápida: temas do painel e contas contábeis %>
+  <section class="vg-busca" aria-label="Busca rápida">
+    <label class="sr-only" for="vg-busca">Busque um tema ou uma conta</label>
+    <div class="vg-busca-campo">
+      <%- include('../partials/icon', { name: 'search' }) %>
+      <input type="search" id="vg-busca" class="vg-busca-input" placeholder="Busque um tema ou uma conta: estoque, folha, 5321600000, aluguel…" autocomplete="off" data-vg-busca aria-controls="vg-busca-lista" aria-expanded="false">
+    </div>
+    <ul class="vg-busca-lista" id="vg-busca-lista" data-vg-busca-lista role="listbox" hidden></ul>
+  </section>
+
+  <%# 4) Feed "O que mudou" e checklist do fechamento %>
+  <div class="vg-duas">
+    <section class="card vg-feed" aria-label="O que mudou">
+      <div class="card-head"><h2>O que mudou</h2><span class="hint"><%= fmt.periodFull(checklist.periodo) %></span></div>
+      <% const cur = locals.apresentacaoMoeda || 'BRL';
+         const texto = (t) => String(t || '').replace(/§(-?[\d.e+-]+)§/g, (m, n) => fmt.kpi(Number(n), 'currency', cur)); %>
+      <% if (!posts.length) { %>
+        <p class="note">Sem novidades para esta seleção.</p>
+      <% } else { %>
+        <ol class="vg-posts">
+          <% posts.forEach((p, i) => { %>
+            <li class="vg-post tom-<%= p.tom %> <%= i >= 5 ? 'extra' : '' %>" <%- i >= 5 ? 'hidden' : '' %>>
+              <span class="vg-post-icone" aria-hidden="true"><%- include('../partials/icon', { name: p.icone }) %></span>
+              <% if (p.link) { %><a class="vg-post-texto" href="<%= p.link %>"><%= texto(p.texto) %></a><% } else { %><span class="vg-post-texto"><%= texto(p.texto) %></span><% } %>
+            </li>
+          <% }) %>
+        </ol>
+        <% if (posts.length > 5) { %><button type="button" class="btn btn-ghost vg-mais" data-vg-mais>Ver mais <%= posts.length - 5 %></button><% } %>
+      <% } %>
+    </section>
+
+    <section class="card vg-checklist" aria-label="Checklist do fechamento">
+      <% const rel = checklist.relatorios; const feitos = rel.filter(r => r.feito).length; const pct = rel.length ? feitos / rel.length : 0;
+         const tudo = feitos === rel.length && !checklist.pendencias.length; %>
+      <div class="card-head"><h2>Checklist do fechamento</h2><span class="hint"><%= fmt.periodFull(checklist.periodo) %></span></div>
+      <div class="vg-check-topo">
+        <svg class="vg-anel" viewBox="0 0 44 44" aria-hidden="true">
+          <circle class="trilho" cx="22" cy="22" r="18"/>
+          <circle class="feito <%= tudo ? 'completo' : '' %>" cx="22" cy="22" r="18" stroke-dasharray="<%= (pct * 113.1).toFixed(1) %> 113.1"/>
+        </svg>
+        <div>
+          <strong><%= tudo ? 'Fechamento em dia ✔' : `${feitos} de ${rel.length} relatórios carregados` %></strong>
+          <span class="hint"><%= checklist.pendencias.length ? `${checklist.pendencias.length} ${checklist.pendencias.length === 1 ? 'pendência contábil' : 'pendências contábeis'}` : 'Sem pendências contábeis' %></span>
+        </div>
+      </div>
+      <ul class="vg-check-lista">
+        <% rel.filter(r => !r.feito).forEach(r => { %>
+          <li class="pendente"><span class="vg-check-marca" aria-hidden="true"></span><a href="<%= user.role === 'admin' ? '/upload' : '/modulos/' + r.slug %>"><%= r.nome %></a><span class="hint">carregar</span></li>
+        <% }) %>
+        <% checklist.pendencias.forEach(p => { %>
+          <li class="alerta"><span class="vg-check-marca" aria-hidden="true">!</span><a href="<%= p.link %>"><%= p.nome %></a><span class="hint"><%= p.detalhe %></span></li>
+        <% }) %>
+        <% rel.filter(r => r.feito).forEach(r => { %>
+          <li class="feito"><span class="vg-check-marca" aria-hidden="true">✓</span><a href="/modulos/<%= r.slug %>"><%= r.nome %></a></li>
+        <% }) %>
+      </ul>
+    </section>
   </div>
-  </div><%# fim do grupo reordenável %>
 <% } %>
 
 <%- include('../partials/layout-end') %>
