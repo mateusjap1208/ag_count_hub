@@ -1,4 +1,5 @@
 const Report = require('../models/Report');
+const agg = require('../services/aggregator');
 const Telas = require('../config/telas');
 
 // Arrendamento Mercantil Curto Prazo + Longo Prazo (saldo do passivo de arrendamento no balancete)
@@ -69,7 +70,14 @@ exports.index = async (req, res, next) => {
     };
 
     const withCur = (view, chart) => (chart ? { ...chart, currency: view.currency } : null);
-    const bpChart = views.bp.empty ? null : withCur(views.bp, views.bp.charts[0]);
+    // Balanço por grupo: montado direto do agrupamento "grupo" do BP (a tela do BP não mostra mais esse gráfico)
+    let bpChart = null;
+    if (!views.bp.empty) {
+      const defBp = Report.getModule('bp');
+      const b = defBp.breakdowns.find((x) => x.id === 'grupo');
+      const s = await Report.getSummary('bp', scope);
+      if (b && s) bpChart = withCur(views.bp, { id: 'grupo', label: 'Balanço por grupo', type: 'bar', ...agg.breakdownSeries(b, s.breakdowns.grupo, defBp) });
+    }
     const agingReceber = views.clientes.empty ? null : withCur(views.clientes, views.clientes.charts.find((c) => c.id === 'aging'));
     const agingPagar = views.fornecedores.empty ? null : withCur(views.fornecedores, views.fornecedores.charts.find((c) => c.id === 'aging'));
 
