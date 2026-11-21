@@ -45,6 +45,42 @@
   <% } %>
 </div>
 
+<div class="card bloco-largo dp-alertas" data-ordem-chave="dre-alertas">
+  <div class="card-head">
+    <h2>Alertas contábeis</h2>
+    <span class="hint"><%= fmt.periodFull(dp.periodo) %> · valores em <%= cur %></span>
+  </div>
+  <% if (!dp.alertas.length) { %>
+    <p class="dp-ok"><%- include('icon', { name: 'check' }) %>Nenhum ponto de atenção nesta seleção: sem contas a classificar, sem custos sem área funcional e sem sinal fora do padrão no mês.</p>
+  <% } else { %>
+    <div class="dp-alerta-lista">
+      <% dp.alertas.forEach(a => { %>
+        <details class="dp-alerta nivel-<%= a.nivel %>">
+          <summary>
+            <span class="dp-alerta-titulo"><%= a.titulo %></span>
+            <span class="dp-alerta-qtd"><%= fmt.number(a.quantidade) %> conta<%= a.quantidade > 1 ? 's' : '' %> · <%= fmt.currency(a.total, cur) %></span>
+          </summary>
+          <p class="note"><%= a.texto %></p>
+          <table class="pop-table dp-alerta-tabela">
+            <thead><tr><th>Conta</th><th>Grupo</th><th class="num">Valor</th></tr></thead>
+            <tbody>
+              <% a.contas.forEach(c => { const sep = c.conta.indexOf(' - '); const cod = (sep > 0 ? c.conta.slice(0, sep) : c.conta).replace(/[^0-9A-Za-z]/g, ''); %>
+                <tr<%- a.vincular ? ` data-classificar="${cod}" class="pop-vincular" title="Clique para vincular esta conta"` : '' %>>
+                  <td><span class="pop-cod"><%= sep > 0 ? c.conta.slice(0, sep) : c.conta %></span><%= sep > 0 ? c.conta.slice(sep + 3) : '' %></td>
+                  <td><%= c.grupo %></td>
+                  <td class="num <%= c.valor < 0 ? 'neg' : '' %>"><%= fmt.currency(c.valor, cur) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (a.quantidade > a.contas.length) { %><p class="note">Mostrando as <%= a.contas.length %> maiores de <%= fmt.number(a.quantidade) %>.</p><% } %>
+        </details>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%# Cards criados depois dos alertas: ponte, Pareto, busca e simulador %>
 <% const carregados = dp.meses.filter(m => m.carregado).slice().reverse(); %>
 <div class="card bloco-largo dp-ponte" data-ordem-chave="dre-ponte" id="dp-ponte">
   <div class="card-head dp-head">
@@ -123,39 +159,4 @@
     <div class="dp-sim-alavancas" data-sim-alavancas></div>
     <div class="dp-sim-resultado" data-sim-resultado aria-live="polite"></div>
   </div>
-</div>
-
-<div class="card bloco-largo dp-alertas" data-ordem-chave="dre-alertas">
-  <div class="card-head">
-    <h2>Alertas contábeis</h2>
-    <span class="hint"><%= fmt.periodFull(dp.periodo) %> · valores em <%= cur %></span>
-  </div>
-  <% if (!dp.alertas.length) { %>
-    <p class="dp-ok"><%- include('icon', { name: 'check' }) %>Nenhum ponto de atenção nesta seleção: sem contas a classificar, sem custos sem área funcional e sem sinal fora do padrão no mês.</p>
-  <% } else { %>
-    <div class="dp-alerta-lista">
-      <% dp.alertas.forEach(a => { %>
-        <details class="dp-alerta nivel-<%= a.nivel %>">
-          <summary>
-            <span class="dp-alerta-titulo"><%= a.titulo %></span>
-            <span class="dp-alerta-qtd"><%= fmt.number(a.quantidade) %> conta<%= a.quantidade > 1 ? 's' : '' %> · <%= fmt.currency(a.total, cur) %></span>
-          </summary>
-          <p class="note"><%= a.texto %></p>
-          <table class="pop-table dp-alerta-tabela">
-            <thead><tr><th>Conta</th><th>Grupo</th><th class="num">Valor</th></tr></thead>
-            <tbody>
-              <% a.contas.forEach(c => { const sep = c.conta.indexOf(' - '); const cod = (sep > 0 ? c.conta.slice(0, sep) : c.conta).replace(/[^0-9A-Za-z]/g, ''); %>
-                <tr<%- a.vincular ? ` data-classificar="${cod}" class="pop-vincular" title="Clique para vincular esta conta"` : '' %>>
-                  <td><span class="pop-cod"><%= sep > 0 ? c.conta.slice(0, sep) : c.conta %></span><%= sep > 0 ? c.conta.slice(sep + 3) : '' %></td>
-                  <td><%= c.grupo %></td>
-                  <td class="num <%= c.valor < 0 ? 'neg' : '' %>"><%= fmt.currency(c.valor, cur) %></td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-          <% if (a.quantidade > a.contas.length) { %><p class="note">Mostrando as <%= a.contas.length %> maiores de <%= fmt.number(a.quantidade) %>.</p><% } %>
-        </details>
-      <% }) %>
-    </div>
-  <% } %>
 </div>

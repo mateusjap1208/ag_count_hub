@@ -136,11 +136,18 @@
   $$('[data-ordenavel]').forEach((box) => {
     const itens = () => [...box.children].filter((x) => x.dataset.ordemChave !== undefined);
     box.dataset.ordemPadrao = JSON.stringify(itens().map(chaveDe));
-    // 1) aplica a ordem salva (itens novos que não estão na lista ficam no fim)
+    // 1) aplica a ordem salva. Itens novos (que não estavam na ordem salva, ex.: cards lançados depois)
+    //    entram na posição padrão: antes do primeiro item salvo que vem depois deles na ordem padrão.
     const salva = (prefs.ordem || {})[telaChave(box.dataset.ordenavel)];
     if (Array.isArray(salva) && salva.length) {
-      salva.forEach((k) => { const el = itens().find((x) => chaveDe(x) === k); if (el) box.append(el); });
-      itens().filter((x) => !salva.includes(chaveDe(x))).forEach((x) => box.append(x));
+      const padrao = JSON.parse(box.dataset.ordemPadrao);
+      const ordem = salva.filter((k) => padrao.includes(k));
+      padrao.forEach((k, i) => {
+        if (ordem.includes(k)) return;
+        const proximo = padrao.slice(i + 1).find((x) => ordem.includes(x));
+        if (proximo) ordem.splice(ordem.indexOf(proximo), 0, k); else ordem.push(k);
+      });
+      ordem.forEach((k) => { const el = itens().find((x) => chaveDe(x) === k); if (el) box.append(el); });
       restaurarBtn(box);
     }
     const mudou = () => { salvarOrdem(box, itens().map(chaveDe)); restaurarBtn(box); };

@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 113,
+    data: "2026-11-21",
+    titulo: "Cards na ordem em que foram criados",
+    itens: [
+      "Para quem já tinha reorganizado os cards de uma tela, os cards lançados depois apareciam no fim da página. Agora eles entram na posição padrão (por exemplo, os novos cards do Capital Empregado antes da demonstração), e a ordem que você escolheu para os demais continua a mesma.",
+      "Os cards mais novos passam a ficar depois dos que já existiam: no Capital Empregado, Posição de liquidação e Obrigações da obra vêm depois de capital de giro, composição, ponte, evolução e prazos; na DRE, ponte, Pareto, busca e simulador vêm depois dos Alertas contábeis."
+    ]
+  },
+  {
     build: 111,
     data: "2026-11-21",
     titulo: "Capital Empregado: posição de liquidação da obra",
