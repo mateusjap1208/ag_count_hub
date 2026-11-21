@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 112,
+    data: "2026-11-21",
+    titulo: "Cards novos na posição certa",
+    itens: [
+      "Para quem já tinha reorganizado os cards de uma tela, os cards lançados depois apareciam no fim da página. Agora eles entram na posição padrão (por exemplo, os novos cards do Capital Empregado antes da demonstração), e a ordem que você escolheu para os demais continua a mesma."
+    ]
+  },
+  {
     build: 111,
     data: "2026-11-21",
     titulo: "Capital Empregado: posição de liquidação da obra",
