@@ -1888,7 +1888,7 @@
 
     /* ---- Temas do balanço (services/temasBalanco.js) ----
        BP (contábil): notas explicativas por tema, com contas, comparativo, variação e análise vertical.
-       CE (obra): "quanto custa encerrar a obra hoje" (simulador) e "o que a obra deve" (pessoal, fornecedores, impostos). */
+       CE (obra): "posição de liquidação da obra" (simulador) e "obrigações da obra" (pessoal, fornecedores, tributos). */
     function criarTemas(tb) {
       const code = data.currency || 'BRL';
       const money = (v) => moneyFmt(code).format(v);
@@ -1947,7 +1947,7 @@
         desenharNota();
       }
 
-      /* ---------- CE: o que a obra deve ---------- */
+      /* ---------- CE: obrigações da obra ---------- */
       const deve = $('#tb-deve');
       if (deve) {
         const dst = { aberto: null };
@@ -1987,25 +1987,25 @@
         desenharDeve();
       }
 
-      /* ---------- CE: quanto custa encerrar a obra hoje ---------- */
+      /* ---------- CE: posição de liquidação da obra ---------- */
       const enc = $('#tb-encerrar');
       if (enc && tb.liquidacao) {
         const L = tb.liquidacao;
         const padrao = () => Object.fromEntries(L.recursos.map((r) => [r.id, r.realizacao]));
         const est = { real: padrao(), rescisao: 0 };
         const ajustes = $('[data-enc-ajustes]', enc);
-        ajustes.innerHTML = `<h3 class="tb-enc-tit">Quanto vira dinheiro</h3>${L.recursos.map((r) => `<div class="dp-sim-alavanca${r.fixo ? ' fixo' : ''}">
+        ajustes.innerHTML = `<h3 class="tb-enc-tit">Premissas de realização</h3>${L.recursos.map((r) => `<div class="dp-sim-alavanca${r.fixo ? ' fixo' : ''}">
             <label for="enc-${r.id}"><span>${esc(r.nome)} <small>${curto(r.valor)}</small></span><output data-enc-out="${r.id}">${r.realizacao}%</output></label>
-            ${r.fixo ? '<small>Despesa antecipada: não vira caixa</small>' : `<input type="range" id="enc-${r.id}" min="0" max="100" step="5" value="${r.realizacao}" data-enc-real="${r.id}">`}
+            ${r.fixo ? '<small>Despesa antecipada: sem realização financeira</small>' : `<input type="range" id="enc-${r.id}" min="0" max="100" step="5" value="${r.realizacao}" data-enc-real="${r.id}">`}
           </div>`).join('')}
-          ${L.folhaMensal ? `<h3 class="tb-enc-tit">Custos extras de encerramento</h3><div class="dp-sim-alavanca">
-            <label for="enc-resc"><span>Rescisão adicional <small>além do que já está provisionado</small></span><output data-enc-resc-out>0 mês</output></label>
+          ${L.folhaMensal ? `<h3 class="tb-enc-tit">Custos adicionais de desmobilização</h3><div class="dp-sim-alavanca">
+            <label for="enc-resc"><span>Verbas rescisórias adicionais <small>além das provisionadas</small></span><output data-enc-resc-out>0 mês</output></label>
             <input type="range" id="enc-resc" min="0" max="3" step="0.5" value="0" data-enc-resc>
-            <small>Em meses de folha (folha do mês: ${curto(L.folhaMensal)}), ex.: aviso prévio indenizado</small></div>` : ''}`;
+            <small>Em meses de folha (folha do mês: ${curto(L.folhaMensal)}), por exemplo aviso prévio indenizado</small></div>` : ''}`;
         const calcular = () => {
           const recursos = L.recursos.map((r) => ({ ...r, considerado: r.valor * (r.fixo ? 0 : est.real[r.id] / 100) }));
           const extra = L.folhaMensal ? L.folhaMensal * est.rescisao : 0;
-          const obrigacoes = L.obrigacoes.concat(extra ? [{ id: 'rescisao', nome: 'Rescisão adicional (simulada)', valor: extra }] : []);
+          const obrigacoes = L.obrigacoes.concat(extra ? [{ id: 'rescisao', nome: 'Verbas rescisórias adicionais (simulação)', valor: extra }] : []);
           const totR = recursos.reduce((s, r) => s + r.considerado, 0);
           const totO = obrigacoes.reduce((s, o) => s + o.valor, 0);
           const pos = totR - totO;
@@ -2014,14 +2014,14 @@
           const lista = (itens, campo) => `<ul class="tb-enc-lista">${itens.filter((x) => x[campo] > 0).map((x, i) => `<li><i class="s${i % 6}"></i><span>${esc(x.nome)}</span><b>${curto(x[campo])}</b></li>`).join('')}</ul>`;
           $('[data-enc-resultado]', enc).innerHTML = `
             <div class="tb-enc-posicao ${pos >= 0 ? 'sobra' : 'falta'}">
-              <span>${pos >= 0 ? 'Sobraria' : 'Faltaria'}</span><strong>${money(Math.abs(pos))}</strong>
-              <small>${pos >= 0 ? 'Os recursos cobrem todas as obrigações' : 'O grupo precisaria aportar esse valor para encerrar a obra'}</small>
+              <span>${pos >= 0 ? 'Superávit de liquidação' : 'Déficit de liquidação'}</span><strong>${money(Math.abs(pos))}</strong>
+              <small>${pos >= 0 ? 'Os recursos realizáveis cobrem as obrigações exigíveis' : 'Necessidade de aporte para liquidação das obrigações'}</small>
             </div>
             <div class="tb-enc-comp">
-              <div><h4>Obrigações a pagar <b>${money(totO)}</b></h4>${barra(obrigacoes, 'valor', 'obr')}${lista(obrigacoes, 'valor')}</div>
-              <div><h4>Recursos considerados <b>${money(totR)}</b></h4>${barra(recursos, 'considerado', 'rec')}${lista(recursos, 'considerado')}</div>
+              <div><h4>Obrigações exigíveis <b>${money(totO)}</b></h4>${barra(obrigacoes, 'valor', 'obr')}${lista(obrigacoes, 'valor')}</div>
+              <div><h4>Recursos realizáveis <b>${money(totR)}</b></h4>${barra(recursos, 'considerado', 'rec')}${lista(recursos, 'considerado')}</div>
             </div>
-            ${L.trocas.length ? `<p class="note">Trocaram de lado por causa do sinal: ${L.trocas.map((x) => `${esc(x.linha)} (${money(x.valor)})`).join(', ')}.</p>` : ''}`;
+            ${L.trocas.length ? `<p class="note">Reclassificadas pelo sinal do saldo: ${L.trocas.map((x) => `${esc(x.linha)} (${money(x.valor)})`).join(', ')}.</p>` : ''}`;
           $$('.tb-enc-seg', enc).forEach((s) => s.style.setProperty('--w', `${s.dataset.w}%`));
           L.recursos.forEach((r) => { const o = $(`[data-enc-out="${r.id}"]`, enc); if (o) o.textContent = r.fixo ? '0%' : `${est.real[r.id]}%`; });
           const ro = $('[data-enc-resc-out]', enc);
