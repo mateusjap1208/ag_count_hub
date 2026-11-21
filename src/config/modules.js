@@ -63,7 +63,8 @@ const modules = [
     groupOrder: ['Ativo Circulante', 'Ativo Não Circulante', 'Ativo a classificar', 'Passivo Circulante', 'Passivo Não Circulante',
       'Passivo a classificar', 'Patrimônio Líquido', 'PL a classificar', 'Não classificado'],
     breakdowns: [
-      { id: 'grupo', label: 'Saldo por grupo', field: 'grupo', value: 'saldo', chart: 'bar' },
+      // Sem gráfico na tela (os indicadores usam este agrupamento)
+      { id: 'grupo', field: 'grupo', value: 'saldo', chart: null },
       { id: 'arvore', field: 'arvore', value: 'saldo', chart: null },
       // Contas contábeis de cada linha do BP (abre ao clicar na linha)
       { id: 'contas', spread: (r) => (r.conta ? [[`${r.arvore}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.saldo || 0]] : []), chart: null },

@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 108,
+    data: "2026-11-20",
+    titulo: "Balanço sem o gráfico de saldo por grupo",
+    itens: [
+      "Saiu da tela do Balanço Patrimonial o gráfico \"Saldo por grupo\". Os cards de capital de giro e a composição dos ativos mostram esses saldos com mais detalhe. Na Visão Geral, o gráfico \"Balanço por grupo\" continua."
+    ]
+  },
+  {
     build: 107,
     data: "2026-11-20",
     titulo: "Cards interativos no Balanço e no Capital Empregado",
