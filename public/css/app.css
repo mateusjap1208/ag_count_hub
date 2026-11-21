@@ -3470,3 +3470,68 @@ button.dp-tile:hover { border-color: var(--consag-blue); transform: translateY(-
 .pp-prazo em.pos { color: var(--ok); }
 .pp-prazo em.neg { color: var(--warn-text); }
 @media (max-width: 560px) { .pp-prazos-grid { grid-template-columns: 1fr; } }
+
+/* ---------- BP (contábil): notas explicativas e índices ---------- */
+.tb-nota { font-variant-numeric: tabular-nums; }
+.tb-nota th, .tb-indices th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; }
+.tb-nota td.num, .tb-nota th.num { white-space: nowrap; }
+.tb-nota .tb-subtema td { font-weight: 600; color: var(--heading); background: var(--surface-2); }
+.tb-nota .tb-conta td { font-size: 12.5px; color: var(--text-2); }
+.tb-nota .tb-conta td:first-child { padding-left: 34px; }
+.tb-sub { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-align: left; }
+.tb-sub .caret { display: inline-block; transition: transform .15s ease; font-size: 11px; color: var(--muted); }
+.tb-subtema.collapsed .tb-sub .caret { transform: rotate(-90deg); }
+.tb-sub:focus-visible { outline: 2px solid var(--consag-blue); outline-offset: 2px; border-radius: 4px; }
+.tb-indices td { vertical-align: middle; }
+.tb-indice { font-size: 15px; font-weight: 700; color: var(--heading); font-variant-numeric: tabular-nums; }
+.tb-formula { font-size: 12px; color: var(--muted); }
+.tb-tend { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.tb-tend.pos { color: var(--ok); }
+.tb-tend.neg { color: var(--danger); }
+
+/* ---------- CE (obra): encerrar a obra hoje e o que a obra deve ---------- */
+.tb-enc-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 24px; align-items: start; }
+.tb-enc-ajustes { display: flex; flex-direction: column; gap: 12px; }
+.tb-enc-tit { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; margin: 4px 0 0; }
+.tb-enc-ajustes .dp-sim-alavanca label small { font-weight: 500; color: var(--muted); margin-left: 4px; }
+.tb-enc-ajustes .dp-sim-alavanca.fixo { opacity: .7; }
+.tb-enc-posicao { display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); }
+.tb-enc-posicao span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.tb-enc-posicao strong { font-size: 28px; }
+.tb-enc-posicao small { font-size: 12.5px; color: var(--muted); }
+.tb-enc-posicao.sobra { background: var(--ok-bg); border-color: var(--ok-border); }
+.tb-enc-posicao.sobra span, .tb-enc-posicao.sobra strong { color: var(--ok-text); }
+.tb-enc-posicao.falta { background: var(--err-bg); border-color: var(--err-border); }
+.tb-enc-posicao.falta span, .tb-enc-posicao.falta strong { color: var(--err-text); }
+.tb-enc-comp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 14px; }
+.tb-enc-comp h4 { margin: 0 0 6px; font-size: 13px; color: var(--heading); display: flex; justify-content: space-between; gap: 8px; }
+.tb-enc-comp h4 b { font-variant-numeric: tabular-nums; }
+.tb-enc-barra { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--chart-grid); }
+.tb-enc-seg { display: block; height: 100%; width: var(--w); }
+.tb-enc-lista { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-2); }
+.tb-enc-lista li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.tb-enc-lista i { width: 10px; height: 10px; border-radius: 3px; }
+.tb-enc-lista b { font-variant-numeric: tabular-nums; }
+.s0 { background: var(--consag-blue); } .s1 { background: var(--consag-cyan); } .s2 { background: var(--consag-petrol); }
+.s3 { background: #69A2C2; } .s4 { background: #FDB913; } .s5 { background: #F37021; }
+.tb-enc-barra.obr .s0 { background: #D2232A; } .tb-enc-barra.obr .s1 { background: #F37021; } .tb-enc-barra.obr .s2 { background: #FDB913; }
+.tb-enc-barra.obr .s3 { background: #8E1418; } .tb-enc-barra.obr .s4 { background: #EC8C00; } .tb-enc-barra.obr .s5 { background: #777777; }
+.tb-enc-comp > div:first-child .tb-enc-lista .s0 { background: #D2232A; } .tb-enc-comp > div:first-child .tb-enc-lista .s1 { background: #F37021; }
+.tb-enc-comp > div:first-child .tb-enc-lista .s2 { background: #FDB913; } .tb-enc-comp > div:first-child .tb-enc-lista .s3 { background: #8E1418; }
+.tb-enc-comp > div:first-child .tb-enc-lista .s4 { background: #EC8C00; } .tb-enc-comp > div:first-child .tb-enc-lista .s5 { background: #777777; }
+
+.tb-deve-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; align-items: start; }
+.tb-deve-bloco { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--surface-2); min-width: 0; }
+.tb-deve-bloco header { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.tb-deve-bloco header strong { font-size: 22px; color: var(--heading); }
+.tb-deve-destaque { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; background: var(--warn-bg-soft); border: 1px solid var(--warn-border); font-size: 12.5px; color: var(--warn-text); line-height: 1.45; }
+.tb-deve-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.tb-deve-item { width: 100%; display: flex; justify-content: space-between; gap: 10px; padding: 7px 8px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: 13px; color: var(--text-2); text-align: left; cursor: pointer; }
+.tb-deve-item:hover, .tb-deve-lista li.aberto > .tb-deve-item { background: var(--surface); }
+.tb-deve-item:focus-visible { outline: 2px solid var(--consag-blue); outline-offset: 1px; }
+.tb-deve-item .num { white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tb-deve-item small { margin-left: 6px; font-size: 11px; }
+.tb-deve-item small.neg { color: var(--danger); } .tb-deve-item small.pos { color: var(--ok); }
+
+@media (max-width: 960px) { .tb-enc-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .tb-enc-comp { grid-template-columns: 1fr; } .tb-enc-posicao strong { font-size: 22px; } }

@@ -5,6 +5,7 @@ const imobilizadoMapeamento = require('../services/imobilizadoMapeamento');
 const maioresFornecedores = require('../services/maioresFornecedores');
 const painelDre = require('../services/painelDre');
 const painelPatrimonial = require('../services/painelPatrimonial');
+const temasBalanco = require('../services/temasBalanco');
 const { sessionScope } = require('../middlewares/locals');
 
 /**
@@ -86,7 +87,12 @@ exports.show = async (req, res, next) => {
     if (def.slug === 'dre' && !view.empty) view.painelDre = await painelDre.montar(scope, { getSummary: Report.getSummary, periods: Report.periods }).catch(() => null);
     // BP e Capital Empregado: painel patrimonial (destaques, composição dos ativos, ponte, evolução e prazos)
     if (['bp', 'capital-empregado'].includes(def.slug) && !view.empty) {
-      view.painelPatrimonial = await painelPatrimonial.montar(def.slug, scope, { getSummary: Report.getSummary, periods: Report.periods, getModule: Report.getModule }).catch(() => null);
+      const deps = { getSummary: Report.getSummary, periods: Report.periods, getModule: Report.getModule };
+      [view.painelPatrimonial, view.temasBalanco] = await Promise.all([
+        painelPatrimonial.montar(def.slug, scope, deps).catch(() => null),
+        // BP: notas explicativas e liquidez (visão contábil) · CE: o que a obra deve e encerramento (visão de obra)
+        temasBalanco.montar(def.slug, scope, deps).catch(() => null),
+      ]);
     }
     if (def.slug === 'seguros-garantias' && !view.empty) view.contratosSeguro = segurosTimeline.contratos(await Report.getAllRows(def.slug, scope));
     const columns = [
@@ -101,7 +107,7 @@ exports.show = async (req, res, next) => {
       currency: view.currency,
       showCurrency: view.def.source === 'fgi0',
       comparacao: { disponiveis: disponiveis.filter((p) => p !== scope.period), escolhidas: comparar, max: MAX_COMPARAR },
-      chartData: view.empty ? null : { charts: view.charts, currency: view.currency, dre: view.painelDre || null, patrimonial: view.painelPatrimonial || null },
+      chartData: view.empty ? null : { charts: view.charts, currency: view.currency, dre: view.painelDre || null, patrimonial: view.painelPatrimonial || null, temas: view.temasBalanco || null },
     });
   } catch (e) { next(e); }
 };

@@ -100,17 +100,21 @@ function dreDoMes(dreAtual, dreAnt, periodo) {
   const g = dreAtual.breakdowns.grupo || {};
   const s = dreAtual.breakdowns.composicao || {};
   const pick = (gr, sb) => {
-    const out = { receita: (gr['Receita Bruta'] || 0) + (gr['Deduções da Receita'] || 0), custos: gr.Custos || 0, materiais: 0 };
-    for (const [k, v] of Object.entries(sb)) if (k.startsWith('Custos|') && /^materiais/.test(norm(k.split('|')[1]))) out.materiais += v;
+    const out = { receita: (gr['Receita Bruta'] || 0) + (gr['Deduções da Receita'] || 0), custos: gr.Custos || 0, materiais: 0, salarios: 0 };
+    for (const [k, v] of Object.entries(sb)) {
+      const sub = norm(k.split('|')[1]);
+      if (k.startsWith('Custos|') && /^materiais/.test(sub)) out.materiais += v;
+      if (/^salarios/.test(sub)) out.salarios += v; // folha de custo e de despesa
+    }
     return out;
   };
   const atual = pick(g, s);
   if (mes === 1) return { ...atual, base: 'mês' };
   if (dreAnt) {
     const ant = pick(dreAnt.breakdowns.grupo || {}, dreAnt.breakdowns.composicao || {});
-    return { receita: atual.receita - ant.receita, custos: atual.custos - ant.custos, materiais: atual.materiais - ant.materiais, base: 'mês' };
+    return { receita: atual.receita - ant.receita, custos: atual.custos - ant.custos, materiais: atual.materiais - ant.materiais, salarios: atual.salarios - ant.salarios, base: 'mês' };
   }
-  return { receita: atual.receita / mes, custos: atual.custos / mes, materiais: atual.materiais / mes, base: 'média mensal do ano' };
+  return { receita: atual.receita / mes, custos: atual.custos / mes, materiais: atual.materiais / mes, salarios: atual.salarios / mes, base: 'média mensal do ano' };
 }
 
 /**
@@ -163,4 +167,4 @@ async function montar(slug, scope, { getSummary, periods, getModule }) {
   };
 }
 
-module.exports = { montar, CONFIG };
+module.exports = { montar, CONFIG, dreDoMes, mesAnterior };

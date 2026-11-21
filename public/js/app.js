@@ -1886,6 +1886,163 @@
     }
     const painelPatrimonial = data.patrimonial ? criarPainelPatrimonial(data.patrimonial) : null;
 
+    /* ---- Temas do balanço (services/temasBalanco.js) ----
+       BP (contábil): notas explicativas por tema, com contas, comparativo, variação e análise vertical.
+       CE (obra): "quanto custa encerrar a obra hoje" (simulador) e "o que a obra deve" (pessoal, fornecedores, impostos). */
+    function criarTemas(tb) {
+      const code = data.currency || 'BRL';
+      const money = (v) => moneyFmt(code).format(v);
+      const curto = (v) => moneyFmt(code, true).format(v);
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const zeroV = (v) => Math.abs(v || 0) < 0.005;
+      const pctFmt = (v) => (v == null || !Number.isFinite(v) ? '—' : `${(v * 100).toFixed(1).replace('.', ',')}%`);
+      // Padrão contábil: negativos entre parênteses, sem símbolo de moeda na tabela
+      const numCont = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const cont = (v) => (v == null ? '—' : zeroV(v) ? '–' : v < 0 ? `(${numCont.format(-v)})` : numCont.format(v));
+      const nomeConta = (c) => { const sep = c.indexOf(' - '); return `<span class="pop-cod">${esc(sep > 0 ? c.slice(0, sep) : c)}</span>${esc(sep > 0 ? c.slice(sep + 3) : '')}`; };
+
+      /* ---------- BP: notas explicativas ---------- */
+      const notas = $('#tb-notas');
+      if (notas) {
+        const nst = { tema: tb.temas[0]?.id, abertos: new Set(), tudo: false };
+        const temAnt = !!tb.anterior;
+        const desenharNota = () => {
+          $('[data-tb-abas]', notas).innerHTML = tb.temas.map((t, i) => `<button type="button" class="chip ${t.id === nst.tema ? 'active' : ''}" role="tab" aria-selected="${t.id === nst.tema}" data-tb-tema="${t.id}">Nota ${i + 1} · ${esc(t.rotulo)}</button>`).join('');
+          const t = tb.temas.find((x) => x.id === nst.tema);
+          const tabela = $('[data-tb-tabela]', notas);
+          if (!t) { tabela.innerHTML = '<tbody><tr><td>Sem saldos nos temas desta seleção.</td></tr></tbody>'; return; }
+          const totAbs = t.subtemas.reduce((s, x) => s + Math.abs(x.v), 0);
+          // Análise vertical do total: 100% quando todos os subtemas têm o mesmo sinal; com redutores (ex.: a recuperar), não se aplica
+          const mesmoSinal = t.subtemas.every((x) => x.v >= 0) || t.subtemas.every((x) => x.v <= 0);
+          const linha = (rot, v, va, cls, total = false) => {
+            const d = va == null ? null : v - va;
+            const dp = va == null || zeroV(va) ? null : d / Math.abs(va);
+            const av = total ? (mesmoSinal ? '100,0%' : '—') : totAbs ? pctFmt(Math.abs(v) / totAbs) : '—';
+            return `<tr class="${cls}"><td>${rot}</td><td class="num">${cont(v)}</td>${temAnt ? `<td class="num">${cont(va)}</td><td class="num">${cont(d)}</td><td class="num">${pctFmt(dp)}</td>` : ''}<td class="num">${av}</td></tr>`;
+          };
+          const cab = `<thead><tr><th>${esc(t.rotulo)}</th><th class="num">${esc(tb.rotulo)}</th>${temAnt ? `<th class="num">${esc(tb.rotuloAnterior)}</th><th class="num">Variação</th><th class="num">Var. %</th>` : ''}<th class="num">AV %</th></tr></thead>`;
+          let corpo = '';
+          t.subtemas.forEach((s, i) => {
+            const aberto = nst.tudo || nst.abertos.has(s.nome);
+            corpo += linha(`<button type="button" class="tb-sub" data-tb-sub="${esc(s.nome)}" aria-expanded="${aberto}"><span class="caret">▾</span>${String.fromCharCode(97 + i)}) ${esc(s.nome)}</button>`, s.v, s.va, `tb-subtema ${aberto ? '' : 'collapsed'}`);
+            if (aberto) s.contas.forEach(([c, v, va]) => { corpo += linha(nomeConta(c), v, va, 'tb-conta'); });
+          });
+          corpo += linha(t.id === 'tributos' ? 'Obrigação tributária líquida' : 'Total da nota', t.total, t.totalAnt, 'highlight', true);
+          tabela.innerHTML = `${cab}<tbody>${corpo}</tbody>`;
+          const rod = {
+            folha: 'Subtemas pela descrição da conta. O IRRF retido dos empregados aparece na nota de Tributos.',
+            tributos: 'A recuperar entra com sinal negativo (reduz a obrigação). Diferidos não têm efeito de caixa no curto prazo.',
+            fornecedores: 'Recepção e conferência: material ou serviço recebido ainda sem nota fiscal ou medição. Retenções: valores retidos dos fornecedores como garantia contratual.',
+          }[t.id];
+          $('[data-tb-rodape]', notas).textContent = rod || '';
+          $('[data-tb-expandir]', notas).textContent = nst.tudo ? 'Recolher contas' : 'Expandir contas';
+        };
+        notas.addEventListener('click', (e) => {
+          const ab = e.target.closest('[data-tb-tema]');
+          if (ab) { nst.tema = ab.dataset.tbTema; desenharNota(); return; }
+          const sb = e.target.closest('[data-tb-sub]');
+          if (sb) { const n = sb.dataset.tbSub; if (nst.abertos.has(n)) nst.abertos.delete(n); else nst.abertos.add(n); nst.tudo = false; desenharNota(); return; }
+          if (e.target.closest('[data-tb-expandir]')) { nst.tudo = !nst.tudo; nst.abertos.clear(); desenharNota(); }
+        });
+        desenharNota();
+      }
+
+      /* ---------- CE: o que a obra deve ---------- */
+      const deve = $('#tb-deve');
+      if (deve) {
+        const dst = { aberto: null };
+        const folha = tb.liquidacao?.folhaMensal || Math.abs(tb.dre?.salarios || 0);
+        const custosMes = Math.abs(tb.dre?.custos || 0);
+        const desenharDeve = () => {
+          const ordemObra = ['folha', 'fornecedores', 'tributos']; // linguagem de obra: pessoal, fornecedores, impostos
+          $('[data-deve]', deve).innerHTML = tb.temas.slice().sort((a, b) => ordemObra.indexOf(a.id) - ordemObra.indexOf(b.id)).map((t) => {
+            const d = t.totalAnt == null ? null : t.total - t.totalAnt;
+            let destaque = '';
+            if (t.id === 'folha' && folha) destaque = `Equivale a <strong>${(t.total / folha).toFixed(1).replace('.', ',')} meses</strong> de folha (folha do mês: ${curto(folha)})`;
+            if (t.id === 'fornecedores') {
+              const rc = t.subtemas.find((s) => /recep/i.test(s.nome));
+              destaque = rc && !zeroV(rc.v) ? `<strong>${curto(rc.v)}</strong> recebidos sem nota ou medição: cobrar notas e medições dos fornecedores` : '';
+              if (custosMes) destaque += `${destaque ? '<br>' : ''}Equivale a <strong>${Math.round((t.total / custosMes) * 30)} dias</strong> de custo da obra`;
+            }
+            if (t.id === 'tributos') {
+              const ret = t.subtemas.find((s) => /retid/i.test(s.nome));
+              destaque = ret && !zeroV(ret.v) ? `<strong>${curto(ret.v)}</strong> retidos de terceiros e empregados: repassar ao fisco no vencimento` : '';
+            }
+            const itens = t.subtemas.map((s) => {
+              const k = `${t.id}|${s.nome}`;
+              const aberto = dst.aberto === k;
+              const ds = s.va == null ? null : s.v - s.va;
+              return `<li class="${aberto ? 'aberto' : ''}"><button type="button" class="tb-deve-item" data-deve-item="${esc(k)}" aria-expanded="${aberto}">
+                  <span>${esc(s.obra)}</span><span class="num">${curto(s.v)}${ds == null || zeroV(ds) ? '' : `<small class="${ds > 0 ? 'neg' : 'pos'}">${ds > 0 ? '▲' : '▼'} ${curto(Math.abs(ds))}</small>`}</span></button>
+                  ${aberto ? `<ul class="dp-contas">${s.contas.map(([c, v]) => `<li><span class="dp-conta-nome">${nomeConta(c)}</span><span class="num">${money(v)}</span></li>`).join('')}</ul>` : ''}</li>`;
+            }).join('');
+            return `<section class="tb-deve-bloco">
+                <header><span class="dp-tile-label">${esc(t.obra)}</span><strong>${curto(t.total)}</strong>
+                ${d == null || zeroV(d) ? '' : `<span class="dp-tile-var ${d > 0 ? 'down' : 'up'}">${d > 0 ? '▲ subiu' : '▼ caiu'} ${curto(Math.abs(d))} vs ${esc(tb.rotuloAnterior)}</span>`}</header>
+                ${destaque ? `<p class="tb-deve-destaque">${destaque}</p>` : ''}
+                <ul class="tb-deve-lista">${itens}</ul></section>`;
+          }).join('') || '<p class="note">Sem obrigações de pessoal, fornecedores ou impostos nesta seleção.</p>';
+        };
+        deve.addEventListener('click', (e) => { const b = e.target.closest('[data-deve-item]'); if (b) { dst.aberto = dst.aberto === b.dataset.deveItem ? null : b.dataset.deveItem; desenharDeve(); } });
+        desenharDeve();
+      }
+
+      /* ---------- CE: quanto custa encerrar a obra hoje ---------- */
+      const enc = $('#tb-encerrar');
+      if (enc && tb.liquidacao) {
+        const L = tb.liquidacao;
+        const padrao = () => Object.fromEntries(L.recursos.map((r) => [r.id, r.realizacao]));
+        const est = { real: padrao(), rescisao: 0 };
+        const ajustes = $('[data-enc-ajustes]', enc);
+        ajustes.innerHTML = `<h3 class="tb-enc-tit">Quanto vira dinheiro</h3>${L.recursos.map((r) => `<div class="dp-sim-alavanca${r.fixo ? ' fixo' : ''}">
+            <label for="enc-${r.id}"><span>${esc(r.nome)} <small>${curto(r.valor)}</small></span><output data-enc-out="${r.id}">${r.realizacao}%</output></label>
+            ${r.fixo ? '<small>Despesa antecipada: não vira caixa</small>' : `<input type="range" id="enc-${r.id}" min="0" max="100" step="5" value="${r.realizacao}" data-enc-real="${r.id}">`}
+          </div>`).join('')}
+          ${L.folhaMensal ? `<h3 class="tb-enc-tit">Custos extras de encerramento</h3><div class="dp-sim-alavanca">
+            <label for="enc-resc"><span>Rescisão adicional <small>além do que já está provisionado</small></span><output data-enc-resc-out>0 mês</output></label>
+            <input type="range" id="enc-resc" min="0" max="3" step="0.5" value="0" data-enc-resc>
+            <small>Em meses de folha (folha do mês: ${curto(L.folhaMensal)}), ex.: aviso prévio indenizado</small></div>` : ''}`;
+        const calcular = () => {
+          const recursos = L.recursos.map((r) => ({ ...r, considerado: r.valor * (r.fixo ? 0 : est.real[r.id] / 100) }));
+          const extra = L.folhaMensal ? L.folhaMensal * est.rescisao : 0;
+          const obrigacoes = L.obrigacoes.concat(extra ? [{ id: 'rescisao', nome: 'Rescisão adicional (simulada)', valor: extra }] : []);
+          const totR = recursos.reduce((s, r) => s + r.considerado, 0);
+          const totO = obrigacoes.reduce((s, o) => s + o.valor, 0);
+          const pos = totR - totO;
+          const max = Math.max(totR, totO, 1);
+          const barra = (itens, campo, cls) => `<div class="tb-enc-barra ${cls}">${itens.filter((x) => x[campo] > 0).map((x, i) => `<span class="tb-enc-seg s${i % 6}" data-w="${(x[campo] / max * 100).toFixed(2)}" title="${esc(x.nome)}: ${esc(money(x[campo]))}"></span>`).join('')}</div>`;
+          const lista = (itens, campo) => `<ul class="tb-enc-lista">${itens.filter((x) => x[campo] > 0).map((x, i) => `<li><i class="s${i % 6}"></i><span>${esc(x.nome)}</span><b>${curto(x[campo])}</b></li>`).join('')}</ul>`;
+          $('[data-enc-resultado]', enc).innerHTML = `
+            <div class="tb-enc-posicao ${pos >= 0 ? 'sobra' : 'falta'}">
+              <span>${pos >= 0 ? 'Sobraria' : 'Faltaria'}</span><strong>${money(Math.abs(pos))}</strong>
+              <small>${pos >= 0 ? 'Os recursos cobrem todas as obrigações' : 'O grupo precisaria aportar esse valor para encerrar a obra'}</small>
+            </div>
+            <div class="tb-enc-comp">
+              <div><h4>Obrigações a pagar <b>${money(totO)}</b></h4>${barra(obrigacoes, 'valor', 'obr')}${lista(obrigacoes, 'valor')}</div>
+              <div><h4>Recursos considerados <b>${money(totR)}</b></h4>${barra(recursos, 'considerado', 'rec')}${lista(recursos, 'considerado')}</div>
+            </div>
+            ${L.trocas.length ? `<p class="note">Trocaram de lado por causa do sinal: ${L.trocas.map((x) => `${esc(x.linha)} (${money(x.valor)})`).join(', ')}.</p>` : ''}`;
+          $$('.tb-enc-seg', enc).forEach((s) => s.style.setProperty('--w', `${s.dataset.w}%`));
+          L.recursos.forEach((r) => { const o = $(`[data-enc-out="${r.id}"]`, enc); if (o) o.textContent = r.fixo ? '0%' : `${est.real[r.id]}%`; });
+          const ro = $('[data-enc-resc-out]', enc);
+          if (ro) ro.textContent = `${String(est.rescisao).replace('.', ',')} ${est.rescisao === 1 ? 'mês' : 'meses'}`;
+        };
+        enc.addEventListener('input', (e) => {
+          const r = e.target.closest('[data-enc-real]');
+          if (r) { est.real[r.dataset.encReal] = Number(r.value); calcular(); return; }
+          if (e.target.matches('[data-enc-resc]')) { est.rescisao = Number(e.target.value); calcular(); }
+        });
+        $('[data-enc-zerar]', enc).addEventListener('click', () => {
+          est.real = padrao(); est.rescisao = 0;
+          $$('[data-enc-real]', enc).forEach((i) => { i.value = est.real[i.dataset.encReal]; });
+          const rs = $('[data-enc-resc]', enc); if (rs) rs.value = 0;
+          calcular();
+        });
+        calcular();
+      }
+    }
+    if (data.temas) criarTemas(data.temas);
+
     function drawCharts() {
     applyChartTheme();
     // Tela de módulo

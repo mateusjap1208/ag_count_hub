@@ -1,0 +1,49 @@
+<%# Balanço · visão contábil (services/temasBalanco.js): notas explicativas por tema e índices. Preenchido por public/js/app.js. %>
+<% const tb = locals.tb; const cur = locals.cur || 'BRL'; %>
+<div class="card bloco-largo tb-notas" data-ordem-chave="bp-notas" id="tb-notas">
+  <div class="card-head dp-head">
+    <div>
+      <h2>Notas explicativas</h2>
+      <span class="hint">Composição dos saldos por natureza · <%= tb.rotulo %><%= tb.rotuloAnterior ? ` × ${tb.rotuloAnterior}` : '' %> · valores em <%= cur %> · negativos entre parênteses</span>
+    </div>
+    <div class="dp-controles">
+      <button type="button" class="btn btn-ghost" data-tb-expandir>Expandir contas</button>
+    </div>
+  </div>
+  <div class="dp-partes" data-tb-abas role="tablist" aria-label="Nota"></div>
+  <div class="table-wrap"><table class="statement tb-nota" data-tb-tabela></table></div>
+  <p class="note dp-nota" data-tb-rodape></p>
+</div>
+
+<% if (tb.liquidez) { %>
+<div class="card bloco-largo tb-liquidez" data-ordem-chave="bp-liquidez">
+  <div class="card-head">
+    <h2>Índices de liquidez e endividamento</h2>
+    <span class="hint"><%= tb.rotulo %><%= tb.rotuloAnterior ? ` × ${tb.rotuloAnterior}` : '' %></span>
+  </div>
+  <div class="table-wrap">
+    <table class="statement tb-indices">
+      <thead><tr><th>Índice</th><th class="num"><%= tb.rotulo %></th><% if (tb.rotuloAnterior) { %><th class="num"><%= tb.rotuloAnterior %></th><th class="num">Tendência</th><% } %><th>Fórmula</th></tr></thead>
+      <tbody>
+        <% tb.liquidez.forEach(i => {
+             const f = (v) => v == null ? '—' : i.pct ? (v * 100).toFixed(1).replace('.', ',') + '%' : v.toFixed(2).replace('.', ',');
+             const d = i.valor != null && i.anterior != null ? i.valor - i.anterior : null;
+             const melhor = d == null || Math.abs(d) < 0.005 ? null : (i.bom === 'maior') === (d > 0); %>
+          <tr>
+            <td><strong><%= i.nome %></strong></td>
+            <td class="num tb-indice"><%= f(i.valor) %></td>
+            <% if (tb.rotuloAnterior) { %>
+              <td class="num"><%= f(i.anterior) %></td>
+              <td class="num"><% if (melhor == null) { %>=<% } else { %><span class="tb-tend <%= melhor ? 'pos' : 'neg' %>"><%= d > 0 ? '▲' : '▼' %> <%= melhor ? 'melhorou' : 'piorou' %></span><% } %></td>
+            <% } %>
+            <td class="tb-formula"><%= i.formula %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% const b = tb.liquidezBase; if (b) { %>
+    <p class="note dp-nota">Base: ativo circulante <%= fmt.currency(b.ac, cur) %> · passivo circulante <%= fmt.currency(b.pc, cur) %> · caixa <%= fmt.currency(b.caixa, cur) %> · estoques <%= fmt.currency(b.estoques, cur) %> · realizável a longo prazo <%= fmt.currency(b.rlp, cur) %> (não circulante sem imobilizado, intangível, investimentos e direito de uso) · passivo exigível <%= fmt.currency(b.passivo, cur) %>.</p>
+  <% } %>
+</div>
+<% } %>
