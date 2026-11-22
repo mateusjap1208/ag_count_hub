@@ -1,0 +1,64 @@
+<%# Clientes · visão de obra (services/clientesObra.js): cliente da obra e faturas em aberto. Recebe: co, cur, fmt %>
+<% const data = (d) => d ? d.split('-').reverse().join('/') : '—'; %>
+<% if (co.obra && co.clientes) { %>
+<div class="card bloco-largo cli-obra" data-ordem-chave="cliente-da-obra">
+  <div class="card-head">
+    <h2>Cliente da obra · <%= co.obra %></h2>
+    <span class="hint">FAGLL03 de clientes<%= co.clientesContrato.length ? ' + ZS0003' : '' %> · valores em <%= cur %></span>
+  </div>
+  <% if (co.clientesContrato.length) { %>
+    <p class="conta-arr-resumo">Cliente no contrato (ZS0003): <strong><%= co.clientesContrato.join(' · ') %></strong></p>
+  <% } %>
+  <div class="cli-obra-lista">
+    <% co.clientes.forEach(c => { %>
+      <div class="cli-obra-item">
+        <div class="cli-obra-nome"><%= c.nome %></div>
+        <div class="cli-obra-nums">
+          <div><span>Faturado e não recebido</span><strong class="<%= c.valor < 0 ? 'neg' : '' %>"><%= fmt.currency(c.valor, cur) %></strong></div>
+          <div><span>Vencido</span><strong class="<%= c.vencido > 0 ? 'neg' : '' %>"><%= fmt.currency(c.vencido, cur) %></strong></div>
+          <div><span>Títulos em aberto</span><strong><%= fmt.number(c.titulos) %></strong></div>
+          <div><span>Maior atraso</span><strong><%= c.maiorAtraso ? fmt.number(c.maiorAtraso) + ' dias' : 'Em dia' %></strong></div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<div class="card bloco-largo cli-faturas" data-ordem-chave="faturas-em-aberto">
+  <div class="card-head">
+    <h2>Faturas em aberto</h2>
+    <span class="hint">Títulos faturados e não recebidos, do maior atraso para o menor · valores em <%= cur %></span>
+  </div>
+  <% if (!co.titulos.length) { %>
+    <p class="hint">Nenhuma fatura de cliente em aberto nesta seleção.</p>
+  <% } else { %>
+    <p class="conta-arr-resumo">Em aberto: <strong><%= fmt.currency(co.total, cur) %></strong> · vencido: <strong class="<%= co.vencido > 0 ? 'neg' : '' %>"><%= fmt.currency(co.vencido, cur) %></strong> · <%= fmt.number(co.totalTitulos) %> títulos<% if (co.maiorAtraso) { %> · maior atraso: <strong><%= fmt.number(co.maiorAtraso) %> dias</strong><% } %><% if (co.totalTitulos > co.titulos.length) { %> · mostrando os <%= fmt.number(co.titulos.length) %> primeiros<% } %></p>
+    <div class="tl-picker"><input class="input" type="search" placeholder="Buscar documento, cliente ou texto" data-filtro-tabela="#tab-faturas" aria-label="Buscar documento, cliente ou texto"></div>
+    <div class="table-wrap conta-arr-wrap">
+      <table id="tab-faturas">
+        <thead><tr>
+          <th>Documento</th>
+          <% if (!co.obra) { %><th>Centro de lucro</th><% } %>
+          <th>Cliente</th><th>Lançamento</th><th>Vencimento</th><th>Situação</th><th class="num">Dias em atraso</th><th class="num">Valor em aberto</th><th>Texto</th>
+        </tr></thead>
+        <tbody>
+          <% co.titulos.forEach(t => { %>
+            <tr>
+              <td><%= t.documento %><% if (t.tipoDoc) { %> <span class="cli-tipodoc"><%= t.tipoDoc %></span><% } %></td>
+              <% if (!co.obra) { %><td><%= t.centroLucro || '—' %></td><% } %>
+              <td><%= t.cliente %></td>
+              <td><%= data(t.lancamento) %></td>
+              <td><%= data(t.vencimento) %></td>
+              <td><span class="cli-sit" data-sit="<%= t.dias > 90 ? 'critico' : t.dias > 30 ? 'alto' : t.dias > 0 ? 'atencao' : 'ok' %>"><%= t.situacao %></span></td>
+              <td class="num"><%= t.dias ? fmt.number(t.dias) : '—' %></td>
+              <td class="num <%= t.valor < 0 ? 'neg' : '' %>"><%= fmt.currency(t.valor, cur) %></td>
+              <td class="cli-texto"><%= t.texto || '—' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+        <tfoot><tr><td colspan="<%= co.obra ? 6 : 7 %>">Total em aberto</td><td class="num"><%= fmt.currency(co.total, cur) %></td><td></td></tr></tfoot>
+      </table>
+    </div>
+  <% } %>
+</div>

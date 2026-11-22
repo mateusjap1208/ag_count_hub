@@ -118,11 +118,15 @@ function fagll03(tipo) {
       { key: 'texto', label: 'Texto', type: 'string' },
     ],
     breakdowns: [
-      { id: 'aging', label: `${cli ? 'Clientes faturados' : 'Fornecedores'} por vencimento (aging)`, aging: { dateField: 'vencAging', scheme: 'overdue' }, value: 'aberto', chart: 'bar' },
+      { id: 'aging', label: `${cli ? 'Faturado e não recebido' : 'Fornecedores'} por vencimento (aging)`, aging: { dateField: 'vencAging', scheme: 'overdue' }, value: 'aberto', chart: 'bar' },
+      // Clientes: numa obra só, a tela troca este gráfico pelo card "Cliente da obra" (services/clientesObra.js)
       { id: 'top', label: cli ? 'Maiores saldos a receber por cliente' : 'Maiores saldos a pagar por fornecedor', field: 'parceiroNome', value: 'aberto', chart: 'hbar', top: 10 },
-      { id: 'centro', label: `${cli ? 'A receber' : 'A pagar'} por centro de lucro`, field: 'centroLucro', value: 'aberto', chart: 'hbar', top: 10 },
+      // Clientes: sem gráfico por centro de lucro (não compara obras); mostra o que compõe o saldo
+      cli
+        ? { id: 'classe', label: 'Saldo das contas de clientes por classificação', field: 'classe', value: 'valor', chart: 'hbar', top: 10 }
+        : { id: 'centro', label: 'A pagar por centro de lucro', field: 'centroLucro', value: 'aberto', chart: 'hbar', top: 10 },
       { id: 'nivel', field: 'nivel', value: 'valor', chart: null },
-      { id: 'classe', field: 'classe', value: 'valor', chart: null },
+      ...(cli ? [] : [{ id: 'classe', field: 'classe', value: 'valor', chart: null }]),
       { id: 'parceiros', field: parceiro, value: '_count', chart: null },
     ],
     statementFn: (s) => composicao(s, cli ? 'Saldo líquido das contas de clientes' : 'Saldo das contas de fornecedores'),
@@ -135,12 +139,15 @@ function fagll03(tipo) {
       if (cli) {
         const cl = g(s, 'classe');
         return [
-          { label: 'Clientes faturados', value: aberto, format: 'currency', hint: 'Contas a receber' },
-          { label: '% vencido', value: ratio(vencido, aberto), format: 'percent' },
-          { label: 'SAR · Ativo de contrato (CPC 47)', value: sumKeys(cl, (k) => k.includes('ativos de contratos')), format: 'currency', hint: 'Serviços a faturar' },
+          // Linguagem de obra no rótulo (medido → faturado → recebido); o nome contábil (CPC 47) fica na dica.
+          // Medição = receita da obra; faturamento = contas com registro de faturas emitidas.
+          // SAR = medição acumulada − faturamento acumulado (mesma definição da aba Medição da Receita)
+          { label: 'Faturado e não recebido', value: aberto, format: 'currency', hint: 'Faturas emitidas ainda não recebidas · clientes faturados' },
+          { label: '% vencido do faturado', value: ratio(vencido, aberto), format: 'percent' },
+          { label: 'Medido e não faturado', value: sumKeys(cl, (k) => k.includes('ativos de contratos')), format: 'currency', hint: 'Receita medida ainda sem fatura · SAR, ativo de contrato (CPC 47)' },
           { label: 'PPI de clientes', value: sumKeys(cl, (k) => k.includes('ppi')), format: 'currency' },
-          { label: 'Adiantamentos de clientes', value: Math.abs(sumKeys(cl, (k) => k.includes('adiantamento'))), format: 'currency' },
-          { label: 'SAD · Passivo de contrato (CPC 47)', value: Math.abs(sumKeys(cl, (k) => k.includes('ainda nao prestados'))), format: 'currency', hint: 'Faturado antecipado' },
+          { label: 'Adiantamento do cliente a amortizar', value: Math.abs(sumKeys(cl, (k) => k.includes('adiantamento'))), format: 'currency', hint: 'Adiantamentos de clientes' },
+          { label: 'Faturado antecipado', value: Math.abs(sumKeys(cl, (k) => k.includes('ainda nao prestados'))), format: 'currency', hint: 'Faturas emitidas acima da receita medida · SAD, passivo de contrato (CPC 47)' },
           { label: 'Clientes', value: parceiros, format: 'number' },
         ];
       }
