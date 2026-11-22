@@ -3671,3 +3671,18 @@ a.vg-post-texto:hover, a.vg-post-texto:focus-visible { color: var(--consag-blue)
 .cli-sit[data-sit="alto"], .cli-sit[data-sit="critico"] { background: var(--err-bg); color: var(--err-text); }
 .cli-sit[data-sit="critico"] { font-weight: 700; }
 .cli-texto { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Clientes · retenções contratuais (conta 1214000000) */
+.cli-ret-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.cli-ret-resumo > div { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; background: var(--surface); }
+.cli-ret-resumo span { display: block; font-size: 12px; color: var(--muted); }
+.cli-ret-resumo strong { display: block; font-size: 16px; color: var(--heading); font-variant-numeric: tabular-nums; }
+.cli-ret-resumo em { display: block; font-style: normal; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cli-ret-resumo .cli-ret-alerta { background: var(--err-bg); border-color: var(--err-border); }
+.cli-ret-resumo .cli-ret-alerta em { color: var(--err-text); font-weight: 600; }
+.cli-ret-idade { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.cli-ret-faixa span:first-child { display: block; font-size: 12px; color: var(--muted); }
+.cli-ret-faixa strong { display: block; font-size: 14px; color: var(--heading); font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+.cli-ret-barra { display: block; height: 6px; border-radius: 999px; background: var(--section-bg); overflow: hidden; }
+.cli-ret-barra > span { display: block; height: 100%; background: var(--consag-petrol); border-radius: 999px; }
+.cli-ret-faixa[data-faixa="Mais de 24 meses"] .cli-ret-barra > span { background: var(--warn); }

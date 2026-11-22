@@ -1,4 +1,4 @@
-<%# Clientes · visão de obra (services/clientesObra.js): cliente da obra e faturas em aberto. Recebe: co, cur, fmt %>
+<%# Clientes · visão de obra (services/clientesObra.js): cliente da obra, faturas em aberto e retenções contratuais. Recebe: co, cur, fmt %>
 <% const data = (d) => d ? d.split('-').reverse().join('/') : '—'; %>
 <% if (co.obra && co.clientes) { %>
 <div class="card bloco-largo cli-obra" data-ordem-chave="cliente-da-obra">
@@ -18,6 +18,7 @@
           <div><span>Vencido</span><strong class="<%= c.vencido > 0 ? 'neg' : '' %>"><%= fmt.currency(c.vencido, cur) %></strong></div>
           <div><span>Títulos em aberto</span><strong><%= fmt.number(c.titulos) %></strong></div>
           <div><span>Maior atraso</span><strong><%= c.maiorAtraso ? fmt.number(c.maiorAtraso) + ' dias' : 'Em dia' %></strong></div>
+          <% if (c.retido) { %><div><span>Retido em garantia</span><strong><%= fmt.currency(c.retido, cur) %></strong></div><% } %>
         </div>
       </div>
     <% }) %>
@@ -62,3 +63,50 @@
     </div>
   <% } %>
 </div>
+
+<%# Card novo no fim: conta de retenções contratuais à parte das faturas em aberto %>
+<% if (co.retencoes.length) { const rc = co.retencaoContrato; %>
+<div class="card bloco-largo cli-retencao" data-ordem-chave="retencoes-contratuais">
+  <div class="card-head">
+    <h2>Retenções contratuais</h2>
+    <span class="hint">Conta 1214000000 · garantia retida pelo cliente, devolvida no término ou aceite da obra · valores em <%= cur %></span>
+  </div>
+  <div class="cli-ret-resumo">
+    <div><span>Saldo retido</span><strong><%= fmt.currency(co.retido, cur) %></strong></div>
+    <% if (rc && rc.pct != null) { %><div><span>% do faturamento acumulado</span><strong><%= (rc.pct * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) %>%</strong><em>sobre <%= fmt.currency(rc.faturamentoAcumulado, cur) %> faturados (ZS0003)</em></div><% } %>
+    <% if (rc) { %><div class="<%= rc.tom === 'alerta' ? 'cli-ret-alerta' : '' %>"><span>Liberação</span><strong><%= rc.fim ? 'Término ' + data(rc.fim) : '—' %></strong><em><%= rc.situacao %></em></div><% } %>
+    <div><span>Retenções</span><strong><%= fmt.number(co.totalRetencoes) %></strong><em>documentos com saldo</em></div>
+  </div>
+  <% if (co.retencaoIdade.length) { %>
+    <div class="cli-ret-idade" aria-label="Idade das retenções pela data de lançamento">
+      <% co.retencaoIdade.forEach(x => { %>
+        <div class="cli-ret-faixa" data-faixa="<%= x.faixa %>"><span><%= x.faixa %></span><strong><%= fmt.currency(x.valor, cur) %></strong><span class="cli-ret-barra" aria-hidden="true"><span data-pct="<%= co.retido ? Math.max(2, Math.min(100, x.valor / co.retido * 100)).toFixed(1) : 0 %>"></span></span></div>
+      <% }) %>
+    </div>
+  <% } %>
+  <div class="tl-picker"><input class="input" type="search" placeholder="Buscar documento, cliente ou texto" data-filtro-tabela="#tab-retencoes" aria-label="Buscar documento, cliente ou texto"></div>
+  <div class="table-wrap conta-arr-wrap">
+    <table id="tab-retencoes">
+      <thead><tr>
+        <th>Documento</th>
+        <% if (!co.obra) { %><th>Centro de lucro</th><% } %>
+        <th>Cliente</th><th>Lançamento</th><th>Idade</th><th class="num">Valor retido</th><th>Texto</th>
+      </tr></thead>
+      <tbody>
+        <% co.retencoes.forEach(t => { %>
+          <tr>
+            <td><%= t.documento %><% if (t.tipoDoc) { %> <span class="cli-tipodoc"><%= t.tipoDoc %></span><% } %></td>
+            <% if (!co.obra) { %><td><%= t.centroLucro || '—' %></td><% } %>
+            <td><%= t.cliente %></td>
+            <td><%= data(t.lancamento) %></td>
+            <td><%= t.meses == null ? '—' : t.meses < 1 ? 'Menos de 1 mês' : fmt.number(t.meses) + (t.meses === 1 ? ' mês' : ' meses') %></td>
+            <td class="num <%= t.valor < 0 ? 'neg' : '' %>"><%= fmt.currency(t.valor, cur) %></td>
+            <td class="cli-texto"><%= t.texto || '—' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+      <tfoot><tr><td colspan="<%= co.obra ? 4 : 5 %>">Total retido</td><td class="num"><%= fmt.currency(co.retido, cur) %></td><td></td></tr></tfoot>
+    </table>
+  </div>
+</div>
+<% } %>

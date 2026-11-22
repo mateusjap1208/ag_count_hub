@@ -28,6 +28,10 @@ const FIELDS = {
   atribuicao: { names: ['atribuicao'] },
 };
 
+/** Clientes: conta de retenções contratuais (garantia retida pelo cliente) — fica fora das faturas em aberto */
+const CONTA_RETENCAO = '1214000000';
+const ehRetencao = (conta) => String(conta || '').trim().replace(/^0+(?=\d)/, '') === CONTA_RETENCAO;
+
 /** Último dia da competência (ms UTC) */
 const fimCompetencia = (period) => { const [y, m] = period.split('-').map(Number); return Date.UTC(y, m, 0); };
 
@@ -57,7 +61,8 @@ function composicao(s, totalLabel) {
 }
 
 /**
- * tipo 'clientes':     parceiro = cliente (KNA1); saldo aberto = clientes faturados (N4);
+ * tipo 'clientes':     parceiro = cliente (KNA1); saldo aberto = clientes faturados (N4), sem a conta de
+ *                      retenções contratuais (1214000000), que vai para "retencao" e tem card próprio;
  *                      composição por grupo (N3) e classificação (N4) do Plano de Contas.
  * tipo 'fornecedores': parceiro = fornecedor (LFA1); saldo a pagar = −montante das contas de fornecedores (N4);
  *                      composição por classificação (N4) e conta.
@@ -86,7 +91,8 @@ function fagll03(tipo) {
         const { n3, n4 } = ctx.contaNivel(r.conta);
         const classe = n4 || 'A classificar';
         const descricao = ctx.contaDescricao(r.conta) || `Conta ${r.conta}`;
-        const aberto = cli ? (classe === 'Clientes faturados' ? r.valor : 0) : (classe === 'Fornecedores' ? -r.valor : 0);
+        const retencao = cli && ehRetencao(r.conta) ? r.valor : 0;
+        const aberto = cli ? (classe === 'Clientes faturados' && !retencao ? r.valor : 0) : (classe === 'Fornecedores' ? -r.valor : 0);
         const atraso = aberto && r.vencimento && ctx.period
           ? Math.round((fimCompetencia(ctx.period) - Date.parse(`${r.vencimento}T00:00:00Z`)) / 864e5) : 0;
         const codigo = r[parceiro];
@@ -96,13 +102,14 @@ function fagll03(tipo) {
           contaDescricao: descricao,
           parceiroNome: codigo ? (nome ? `${codigo} - ${nome}` : codigo) : 'Sem parceiro (lançamento contábil)',
           aberto,
+          ...(cli ? { retencao } : {}),
           vencAging: aberto ? r.vencimento : null,
           diasAtraso: atraso > 0 ? atraso : 0,
           nivel: cli ? `${n3 || 'A classificar'}||${classe}` : `${classe}||${r.conta} - ${descricao}`,
         };
       },
     },
-    sumFields: ['aberto'],
+    sumFields: cli ? ['aberto', 'retencao'] : ['aberto'],
     columns: [
       { key: 'parceiroNome', label: cli ? 'Cliente' : 'Fornecedor', type: 'string' },
       { key: 'centroLucro', label: 'Centro de lucro', type: 'string' },
@@ -149,6 +156,8 @@ function fagll03(tipo) {
           { label: 'Adiantamento do cliente a amortizar', value: Math.abs(sumKeys(cl, (k) => k.includes('adiantamento'))), format: 'currency', hint: 'Adiantamentos de clientes' },
           { label: 'Faturado antecipado', value: Math.abs(sumKeys(cl, (k) => k.includes('ainda nao prestados'))), format: 'currency', hint: 'Faturas emitidas acima da receita medida · SAD, passivo de contrato (CPC 47)' },
           { label: 'Clientes', value: parceiros, format: 'number' },
+          // Card novo no fim: retenção contratual não entra no faturado em aberto
+          { label: 'Retenções contratuais', value: s.totals?.retencao?.sum ?? 0, format: 'currency', hint: `Conta ${CONTA_RETENCAO} · fora das faturas em aberto` },
         ];
       }
       return [
@@ -162,4 +171,4 @@ function fagll03(tipo) {
   };
 }
 
-module.exports = { fagll03 };
+module.exports = { fagll03, CONTA_RETENCAO };
