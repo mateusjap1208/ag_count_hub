@@ -3654,3 +3654,20 @@ a.vg-post-texto:hover, a.vg-post-texto:focus-visible { color: var(--consag-blue)
 
 @media (max-width: 960px) { .vg-duas { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .vg-trilho { grid-auto-columns: 78%; } .vg-setas { display: none; } }
+
+/* Clientes · visão de obra: cliente da obra e medições em aberto */
+.cli-obra-lista { display: grid; gap: 12px; }
+.cli-obra-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--surface); }
+.cli-obra-nome { font-weight: 700; color: var(--heading); margin-bottom: 10px; }
+.cli-obra-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.cli-obra-nums span { display: block; font-size: 12px; color: var(--muted); }
+.cli-obra-nums strong { font-size: 16px; color: var(--heading); font-variant-numeric: tabular-nums; }
+.cli-obra-nums strong.neg { color: var(--danger); }
+@media (max-width: 720px) { .cli-obra-nums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cli-tipodoc { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 700; background: var(--blue-soft); color: var(--consag-blue); }
+.cli-sit { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.cli-sit[data-sit="ok"] { background: var(--ok-bg); color: var(--ok-text); }
+.cli-sit[data-sit="atencao"] { background: var(--warn-bg); color: var(--warn-text); }
+.cli-sit[data-sit="alto"], .cli-sit[data-sit="critico"] { background: var(--err-bg); color: var(--err-text); }
+.cli-sit[data-sit="critico"] { font-weight: 700; }
+.cli-texto { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

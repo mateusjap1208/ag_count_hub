@@ -6,6 +6,7 @@ const maioresFornecedores = require('../services/maioresFornecedores');
 const painelDre = require('../services/painelDre');
 const painelPatrimonial = require('../services/painelPatrimonial');
 const temasBalanco = require('../services/temasBalanco');
+const clientesObra = require('../services/clientesObra');
 const { sessionScope } = require('../middlewares/locals');
 
 /**
@@ -80,6 +81,20 @@ exports.show = async (req, res, next) => {
         const { scope: s } = await withModuleCurrency('fornecedores', scope);
         const r = await maioresFornecedores.ranking(await Report.getAllRows('fornecedores', s), { tipo: 'adiantamento' });
         return { ...r, moeda: s.moedaContrato || 'BRL' };
+      })().catch(() => null);
+    }
+    // Clientes: visão de obra (cliente da obra quando a seleção é uma obra só e medições em aberto)
+    if (def.slug === 'clientes' && !view.empty) {
+      view.clientesObra = await (async () => {
+        const linhas = await Report.getAllRows(def.slug, scope);
+        const base = clientesObra.montar(linhas);
+        if (!base.obra) return base;
+        // Cliente do contrato no ZS0003 (Receita POC), se carregado na competência
+        const contrato = await (async () => {
+          const { scope: s } = await withModuleCurrency('receita-poc', scope);
+          return (await Report.getAllRows('receita-poc', s)).filter((r) => r.centroLucro === base.obra).map((r) => r.cliente);
+        })().catch(() => []);
+        return clientesObra.montar(linhas, { clientesContrato: contrato });
       })().catch(() => null);
     }
     if (def.slug === 'imobilizado' && !view.empty) view.imobMapeamento = await imobilizadoMapeamento.classificar(await Report.getAllRows(def.slug, scope)).catch(() => null);

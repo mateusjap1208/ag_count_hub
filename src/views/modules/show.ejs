@@ -243,7 +243,8 @@
     </div>
   <% } %>
 
-  <% const charts = view.fluxo ? view.charts.filter(c => c.id !== 'fluxo') : view.charts; %>
+  <%# Clientes numa obra só: o card "Cliente da obra" substitui o ranking de clientes %>
+  <% const charts = view.charts.filter(c => !(view.fluxo && c.id === 'fluxo') && !(view.clientesObra && view.clientesObra.obra && c.id === 'top')); %>
   <% if (view.fluxo) { const fx = view.fluxo; %>
     <div class="card bloco-largo fluxo-tl" data-ordem-chave="fluxo-timeline">
       <div class="card-head">
@@ -271,6 +272,8 @@
       </div>
     </div>
   <% } %>
+    <%# Cards novos: depois dos existentes, antes da demonstração %>
+    <% if (view.clientesObra) { %><%- include('../partials/clientes-obra', { co: view.clientesObra, cur, fmt }) %><% } %>
     <% if (view.statement && !view.fluxo) { %>
       <div class="card" data-ordem-chave="quadro">
         <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : view.def.slug === 'imobilizado' ? 'Movimentação do ano' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
