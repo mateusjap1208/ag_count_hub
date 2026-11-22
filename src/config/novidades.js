@@ -6,7 +6,7 @@
  */
 module.exports = [
   {
-    build: 117,
+    build: 119,
     data: "2026-11-22",
     titulo: "Clientes com visão de obra",
     itens: [
