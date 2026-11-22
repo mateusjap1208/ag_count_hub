@@ -3655,7 +3655,7 @@ a.vg-post-texto:hover, a.vg-post-texto:focus-visible { color: var(--consag-blue)
 @media (max-width: 960px) { .vg-duas { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .vg-trilho { grid-auto-columns: 78%; } .vg-setas { display: none; } }
 
-/* Clientes · visão de obra: cliente da obra e medições em aberto */
+/* Clientes · visão de obra: cliente da obra e faturas em aberto */
 .cli-obra-lista { display: grid; gap: 12px; }
 .cli-obra-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--surface); }
 .cli-obra-nome { font-weight: 700; color: var(--heading); margin-bottom: 10px; }
