@@ -6,14 +6,15 @@
  */
 module.exports = [
   {
-    build: 119,
+    build: 120,
     data: "2026-11-22",
     titulo: "Clientes com visão de obra",
     itens: [
       "Cards em linguagem de obra, separando medição (a receita da obra) de faturamento (as faturas emitidas): Faturado e não recebido, Medido e não faturado (SAR), Faturado antecipado (SAD) e Adiantamento do cliente a amortizar. O nome contábil continua na dica de cada card.",
       "Saiu o gráfico \"A receber por centro de lucro\". No lugar, o saldo das contas de clientes por classificação.",
       "Quando o filtro cai numa obra só, o card \"Cliente da obra\" substitui o ranking de clientes, com o faturado e não recebido, o vencido, os títulos em aberto e o maior atraso (e o cliente do contrato no ZS0003, se carregado).",
-      "Novo card \"Faturas em aberto\": cada título faturado e não recebido, com vencimento, situação, dias em atraso e texto, do maior atraso para o menor."
+      "Novo card \"Faturas em aberto\": cada título faturado e não recebido, com vencimento, situação, dias em atraso e texto, do maior atraso para o menor.",
+      "Retenções contratuais (conta 1214000000) à parte: saem das faturas em aberto, do aging e do faturado e não recebido, e ganham card próprio com o saldo retido, a idade das retenções e a lista por documento. Numa obra só, com o ZS0003 carregado, mostra o % retido sobre o faturamento acumulado e a liberação esperada pelo término do contrato (contrato terminado com saldo retido aparece como retenção a cobrar)."
     ]
   },
   {

@@ -87,14 +87,20 @@ exports.show = async (req, res, next) => {
     if (def.slug === 'clientes' && !view.empty) {
       view.clientesObra = await (async () => {
         const linhas = await Report.getAllRows(def.slug, scope);
-        const base = clientesObra.montar(linhas);
+        const base = clientesObra.montar(linhas, { periodo: scope.period });
         if (!base.obra) return base;
-        // Cliente do contrato no ZS0003 (Receita POC), se carregado na competência
+        // Dados do contrato no ZS0003 (Receita POC), se carregado na competência: cliente, faturamento acumulado e término
         const contrato = await (async () => {
           const { scope: s } = await withModuleCurrency('receita-poc', scope);
-          return (await Report.getAllRows('receita-poc', s)).filter((r) => r.centroLucro === base.obra).map((r) => r.cliente);
-        })().catch(() => []);
-        return clientesObra.montar(linhas, { clientesContrato: contrato });
+          const doc = (await Report.getAllRows('receita-poc', s)).filter((r) => r.centroLucro === base.obra);
+          if (!doc.length) return null;
+          return {
+            clientes: doc.map((r) => r.cliente),
+            faturamentoAcumulado: doc.reduce((a, r) => a + (r.faturamentoAcumulado || 0), 0),
+            fim: doc.map((r) => r.fim).filter(Boolean).sort().pop() || null,
+          };
+        })().catch(() => null);
+        return clientesObra.montar(linhas, { periodo: scope.period, contrato });
       })().catch(() => null);
     }
     if (def.slug === 'imobilizado' && !view.empty) view.imobMapeamento = await imobilizadoMapeamento.classificar(await Report.getAllRows(def.slug, scope)).catch(() => null);
