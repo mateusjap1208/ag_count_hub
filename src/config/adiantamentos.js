@@ -58,12 +58,12 @@ module.exports = {
     { key: 'saldo', label: 'Saldo', type: 'number', format: 'currency' },
   ],
   breakdowns: [
-    { id: 'tipo', label: 'Saldo por tipo', field: 'tipo', value: 'saldo', chart: 'doughnut' },
+    // Sem gráfico: o aging dos adiantamentos (FAGLL03, moduleController) ocupa o lugar da rosca por tipo
+    { id: 'tipo', field: 'tipo', value: 'saldo', chart: null },
     { id: 'centro', label: 'Maiores saldos por centro de lucro', field: 'centroLucro', value: 'saldo', chart: 'hbar', top: 10 },
     { id: 'prazo', field: 'prazo', value: 'saldo', chart: null },
     { id: 'arvore', field: 'arvore', value: 'saldo', chart: null },
     { id: 'contas', spread: (r) => (r.conta ? [[`${r.arvore}|${r.conta}${r.descricao ? ` - ${r.descricao}` : ''}`, r.saldo || 0]] : []), chart: null },
-    { id: 'contasDistintas', field: 'conta', value: '_count', chart: null },
     { id: 'centros', field: 'centroLucro', value: 'saldo', chart: null }, // relação empresa × centro de lucro (filtros)
   ],
   groupOrder: Object.values(PRAZO),
@@ -87,7 +87,7 @@ module.exports = {
       { label: 'A fornecedores e subempreiteiros', value: t[FORNECEDORES] || 0, format: 'currency', hint: 'Inclui antecipações' },
       { label: 'A funcionários', value: t[FUNCIONARIOS] || 0, format: 'currency' },
       { label: 'Longo prazo', value: lp, format: 'currency', hint: `${total ? ((ratio(lp, total) || 0) * 100).toFixed(1).replace('.', ',') : '0,0'}% do total` },
-      { label: 'Contas contábeis', value: Object.keys(g(s, 'contasDistintas')).length, format: 'number' },
+      // + "Adiantamentos com mais de 90 dias" (FAGLL03 de fornecedores), acrescentado no moduleController
     ];
   },
 };

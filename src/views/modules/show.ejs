@@ -274,6 +274,7 @@
   <% } %>
     <%# Cards novos: depois dos existentes, antes da demonstração %>
     <% if (view.clientesObra) { %><%- include('../partials/clientes-obra', { co: view.clientesObra, cur, fmt }) %><% } %>
+    <% if (view.adiantamentosAbertos) { %><%- include('../partials/adiantamentos-abertos', { aa: view.adiantamentosAbertos, fmt }) %><% } %>
     <% if (view.statement && !view.fluxo) { %>
       <div class="card" data-ordem-chave="quadro">
         <div class="card-head"><h2><%= view.def.source === 'arrendamento' ? 'Movimentação do mês' : view.def.slug === 'imobilizado' ? 'Movimentação do ano' : 'Demonstração estruturada' %></h2><span class="hint">Valores em <%= cur %></span></div>
