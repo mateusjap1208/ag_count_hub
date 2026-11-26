@@ -6,6 +6,15 @@
  */
 module.exports = [
   {
+    build: 122,
+    data: "2026-11-26",
+    titulo: "Valores corretos nas dicas dos gráficos",
+    itens: [
+      "Gráficos de barras horizontais (maiores saldos, centros de lucro, classificações…): a dica ao passar o mouse mostrava R$ 0,00, R$ 1,00… e agora mostra o valor da barra.",
+      "Gráficos de rosca: a dica mostra o valor com o sinal real (negativo quando for o caso)."
+    ]
+  },
+  {
     build: 121,
     data: "2026-11-26",
     titulo: "Indicadores Contábeis",
