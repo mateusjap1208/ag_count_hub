@@ -216,7 +216,7 @@ router.get('/indicadores', requireTela('indicadores'), async (req, res, next) =>
     const { scope } = res.locals;
     const ind = scope.period ? await indicadores.calcular(scope) : null;
     const cur = await Report.displayCurrency(Report.getModule('bp'), scope);
-    res.render('indicadores/index', { title: 'Indicadores', ind, cur });
+    res.render('indicadores/index', { title: 'Indicadores Contábeis', ind, cur });
   } catch (e) { next(e); }
 });
 // Visualizar a página de erro do servidor (500) com a animação da obra (administradores)
