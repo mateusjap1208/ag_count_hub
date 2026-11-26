@@ -14,12 +14,11 @@ const posMenu = (m) => { const i = ORDEM_MENU.indexOf(m.slug); return i < 0 ? OR
 const MODULOS_MENU = modules.filter((m) => !m.hideInMenu).map((m, i) => ({ m, i }))
   .sort((a, b) => posMenu(a.m) - posMenu(b.m) || a.i - b.i).map((x) => x.m);
 
-/** Lista de telas para o formulário: Visão Geral, módulos do menu, Indicadores (após a DRE) e Relatórios (após o Arrendamento) */
+/** Lista de telas para o formulário: Visão Geral, módulos do menu, Indicadores Contábeis e Relatórios (após o Arrendamento) */
 const TELAS = [{ id: 'visao-geral', label: 'Visão Geral', path: '/' }];
 for (const m of MODULOS_MENU) {
   TELAS.push({ id: m.slug, label: m.menu, path: `/modulos/${m.slug}` });
-  if (m.slug === 'dre') TELAS.push({ id: 'indicadores', label: 'Indicadores', path: '/indicadores' });
-  if (m.slug === 'arrendamento') TELAS.push({ id: 'relatorios', label: 'Relatórios', path: '/relatorios' });
+  if (m.slug === 'arrendamento') TELAS.push({ id: 'indicadores', label: 'Indicadores Contábeis', path: '/indicadores' }, { id: 'relatorios', label: 'Relatórios', path: '/relatorios' });
 }
 const IDS = new Set(TELAS.map((t) => t.id));
 

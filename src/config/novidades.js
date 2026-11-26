@@ -6,6 +6,14 @@
  */
 module.exports = [
   {
+    build: 121,
+    data: "2026-11-26",
+    titulo: "Indicadores Contábeis",
+    itens: [
+      "O menu Indicadores passa a se chamar Indicadores Contábeis e fica logo depois de Arrendamento (antes de Relatórios)."
+    ]
+  },
+  {
     build: 120,
     data: "2026-11-22",
     titulo: "Clientes com visão de obra",

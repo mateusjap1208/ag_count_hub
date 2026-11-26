@@ -13,7 +13,7 @@
      const escalaTxt = (i, v) => i.fmt === '%' ? (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '%' : v.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
      const b = ind.base; %>
 
-  <div class="grid mt ind-grupos" data-ordenavel="indicadores" aria-label="Indicadores">
+  <div class="grid mt ind-grupos" data-ordenavel="indicadores" aria-label="Indicadores Contábeis">
     <% ind.grupos.forEach((g, gi) => { %>
       <section class="card bloco-largo ind-grupo" data-ordem-chave="grupo-<%= gi %>">
         <div class="card-head"><h2><%= g.titulo %></h2><span class="hint">Competência <%= fmt.periodFull(filter.periodo) %> · <%= cur %></span></div>

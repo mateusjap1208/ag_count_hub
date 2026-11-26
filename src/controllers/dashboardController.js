@@ -121,7 +121,7 @@ exports.index = async (req, res, next) => {
     // Busca rápida: telas liberadas com palavras-chave; as contas contábeis vêm da API da DRE
     const telasBusca = [
       ...Telas.MODULOS_MENU.filter((m) => !m.inativo && pode(m.slug)).map((m) => ({ nome: m.menu, url: `/modulos/${m.slug}`, icon: m.icon, palavras: PALAVRAS[m.slug] || '' })),
-      ...(Telas.podeVer(req.user, 'indicadores') ? [{ nome: 'Indicadores', url: '/indicadores', icon: 'gauge', palavras: 'indicadores velocimetro metas' }] : []),
+      ...(Telas.podeVer(req.user, 'indicadores') ? [{ nome: 'Indicadores Contábeis', url: '/indicadores', icon: 'gauge', palavras: 'indicadores contabeis velocimetro metas liquidez rentabilidade' }] : []),
       ...(Telas.podeVer(req.user, 'relatorios') ? [{ nome: 'Relatórios', url: '/relatorios', icon: 'download', palavras: 'relatorios extrair exportar excel csv detalhamento analitico' }] : []),
       { nome: 'Novidades', url: '/novidades', icon: 'sparkle', palavras: 'novidades versao atualizacao o que mudou' },
     ];
