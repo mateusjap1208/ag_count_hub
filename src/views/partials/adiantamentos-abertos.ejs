@@ -1,0 +1,39 @@
+<%# Adiantamentos · visão de obra (services/adiantamentosAbertos.js): cada adiantamento a fornecedor com saldo, do mais antigo para o mais novo. Recebe: aa, fmt %>
+<% const data = (d) => d ? d.split('-').reverse().join('/') : '—'; const moeda = aa.moeda; %>
+<div class="card bloco-largo cli-faturas adiant-abertos" data-ordem-chave="adiantamentos-em-aberto">
+  <div class="card-head">
+    <h2>Adiantamentos em aberto</h2>
+    <span class="hint">Pagos ao fornecedor antes da entrega ou medição e ainda não amortizados · dias contados do lançamento até o fim da competência · FAGLL03 de fornecedores · valores em <%= moeda %></span>
+  </div>
+  <% if (aa.vazio) { %>
+    <p class="hint">Nenhum adiantamento a fornecedor em aberto nesta seleção (ou o FAGLL03 de fornecedores da competência não foi carregado).</p>
+  <% } else { %>
+    <p class="conta-arr-resumo">Em aberto: <strong><%= fmt.currency(aa.total, moeda) %></strong> · com mais de 90 dias: <strong class="<%= aa.acima90 > 0 ? 'neg' : '' %>"><%= fmt.currency(aa.acima90, moeda) %></strong> · <%= fmt.number(aa.totalDocumentos) %> documentos de <%= fmt.number(aa.fornecedores) %> fornecedores<% if (aa.maisAntigo) { %> · mais antigo: <strong><%= fmt.number(aa.maisAntigo) %> dias</strong><% } %><% if (aa.totalDocumentos > aa.documentos.length) { %> · mostrando os <%= fmt.number(aa.documentos.length) %> primeiros<% } %></p>
+    <div class="tl-picker"><input class="input" type="search" placeholder="Buscar documento, fornecedor, pedido ou texto" data-filtro-tabela="#tab-adiantamentos" aria-label="Buscar documento, fornecedor, pedido ou texto"></div>
+    <div class="table-wrap conta-arr-wrap">
+      <table id="tab-adiantamentos">
+        <thead><tr>
+          <th>Documento</th>
+          <% if (!aa.obra) { %><th>Centro de lucro</th><% } %>
+          <th>Fornecedor</th><th>Pedido</th><th>Lançamento</th><th>Situação</th><th class="num">Dias em aberto</th><th class="num">Valor em aberto</th><th>Texto</th>
+        </tr></thead>
+        <tbody>
+          <% aa.documentos.forEach(d => { %>
+            <tr>
+              <td><%= d.documento %><% if (d.tipoDoc) { %> <span class="cli-tipodoc"><%= d.tipoDoc %></span><% } %></td>
+              <% if (!aa.obra) { %><td><%= d.centroLucro || '—' %></td><% } %>
+              <td><%= d.fornecedor %></td>
+              <td><%= d.pedido || '—' %></td>
+              <td><%= data(d.lancamento) %></td>
+              <td><span class="cli-sit" data-sit="<%= d.tom %>"><%= d.situacao %></span></td>
+              <td class="num"><%= d.dias == null ? '—' : fmt.number(d.dias) %></td>
+              <td class="num <%= d.valor < 0 ? 'neg' : '' %>"><%= fmt.currency(d.valor, moeda) %></td>
+              <td class="cli-texto"><%= d.texto || '—' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+        <tfoot><tr><td colspan="<%= aa.obra ? 6 : 7 %>">Total em aberto</td><td class="num"><%= fmt.currency(aa.total, moeda) %></td><td></td></tr></tfoot>
+      </table>
+    </div>
+  <% } %>
+</div>

@@ -6,6 +6,16 @@
  */
 module.exports = [
   {
+    build: 123,
+    data: "2026-11-26",
+    titulo: "Adiantamentos com visão de obra",
+    itens: [
+      "Novo card \"Adiantamentos em aberto\": cada adiantamento a fornecedor ou subempreiteiro ainda não amortizado, com fornecedor, pedido, data de lançamento, dias em aberto e situação, do mais antigo para o mais novo (FAGLL03 de fornecedores).",
+      "O gráfico de saldo por tipo deu lugar ao aging dos adiantamentos a fornecedores (0-30, 31-90, 91-180, 181-365 e mais de 365 dias).",
+      "O card \"Contas contábeis\" deu lugar a \"Adiantamentos com mais de 90 dias\", com o % sobre o total adiantado a fornecedores."
+    ]
+  },
+  {
     build: 122,
     data: "2026-11-26",
     titulo: "Valores corretos nas dicas dos gráficos",

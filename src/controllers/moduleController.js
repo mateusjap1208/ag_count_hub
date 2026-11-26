@@ -7,6 +7,7 @@ const painelDre = require('../services/painelDre');
 const painelPatrimonial = require('../services/painelPatrimonial');
 const temasBalanco = require('../services/temasBalanco');
 const clientesObra = require('../services/clientesObra');
+const adiantamentosAbertos = require('../services/adiantamentosAbertos');
 const { sessionScope } = require('../middlewares/locals');
 
 /**
@@ -75,13 +76,26 @@ exports.show = async (req, res, next) => {
       view.pedidosRecepcao = await pedidosRecepcao.porPedido(linhas).catch(() => null);
       view.maioresFornecedores = await maioresFornecedores.ranking(linhas, { tipo: 'fornecedor' }).then((r) => ({ ...r, moeda: scope.moedaContrato || 'BRL' })).catch(() => null);
     }
-    // Adiantamentos (FGI0, por conta): ranking por fornecedor vem do FAGLL03 de fornecedores
+    // Adiantamentos (FGI0, por conta): do FAGLL03 de fornecedores vêm o ranking por fornecedor e a visão de obra
+    // (adiantamentos em aberto por documento, aging e card com o saldo de mais de 90 dias)
     if (def.slug === 'adiantamentos' && !view.empty) {
-      view.maioresFornecedores = await (async () => {
+      const forn = await (async () => {
         const { scope: s } = await withModuleCurrency('fornecedores', scope);
-        const r = await maioresFornecedores.ranking(await Report.getAllRows('fornecedores', s), { tipo: 'adiantamento' });
-        return { ...r, moeda: s.moedaContrato || 'BRL' };
+        return { linhas: await Report.getAllRows('fornecedores', s), moeda: s.moedaContrato || 'BRL' };
       })().catch(() => null);
+      view.maioresFornecedores = forn
+        ? await maioresFornecedores.ranking(forn.linhas, { tipo: 'adiantamento' }).then((r) => ({ ...r, moeda: forn.moeda })).catch(() => null)
+        : null;
+      const aa = forn ? { ...adiantamentosAbertos.montar(forn.linhas, { periodo: scope.period }), moeda: forn.moeda } : null;
+      view.adiantamentosAbertos = aa;
+      const mesmaMoeda = aa && aa.moeda === (view.currency || 'BRL');
+      const pct = aa && aa.pctAcima90 != null ? `${(aa.pctAcima90 * 100).toFixed(1).replace('.', ',')}% do adiantado a fornecedores` : 'FAGLL03 de fornecedores';
+      const card = !aa
+        ? { label: 'Adiantamentos com mais de 90 dias', value: null, format: 'number', hint: 'Carregue o FAGLL03 de fornecedores da competência' }
+        : { label: 'Adiantamentos com mais de 90 dias', value: aa.acima90, format: mesmaMoeda ? 'currency' : 'number', hint: mesmaMoeda ? pct : `em ${aa.moeda} · ${pct}`, tone: aa.acima90 > 0 ? 'warn' : '' };
+      view.kpis.push(card);
+      // Aging como primeiro gráfico (onde ficava a rosca por tipo)
+      view.charts.unshift({ id: 'aging', label: 'Adiantamentos a fornecedores por idade (aging)', type: 'bar', isCount: false, currency: aa ? aa.moeda : undefined, labels: aa && !aa.vazio ? aa.aging.labels : [], values: aa && !aa.vazio ? aa.aging.values : [] });
     }
     // Clientes: visão de obra (cliente da obra quando a seleção é uma obra só e medições em aberto)
     if (def.slug === 'clientes' && !view.empty) {
