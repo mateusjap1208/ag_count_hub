@@ -1115,8 +1115,10 @@
     Chart.defaults.plugins.legend.labels.boxHeight = 10;
     Chart.defaults.maintainAspectRatio = false;
 
-    const tooltipMoneyIn = (code) => ({ callbacks: { label: (c) => ` ${c.dataset.label ? c.dataset.label + ': ' : ''}${moneyFmt(code).format(c.parsed.y ?? c.parsed.x ?? c.parsed)}` } });
-    const tooltipCount = { callbacks: { label: (c) => ` ${num.format(c.parsed.y ?? c.parsed.x ?? c.parsed)}` } };
+    // Valor do ponto no tooltip: nas barras horizontais (indexAxis 'y') o valor está em x; parsed.y é só a posição da categoria
+    const valorDo = (c) => (typeof c.parsed === 'number' ? c.parsed : c.chart.options.indexAxis === 'y' ? c.parsed.x : c.parsed.y);
+    const tooltipMoneyIn = (code) => ({ callbacks: { label: (c) => ` ${c.dataset.label ? c.dataset.label + ': ' : ''}${moneyFmt(code).format(valorDo(c))}` } });
+    const tooltipCount = { callbacks: { label: (c) => ` ${num.format(valorDo(c))}` } };
     let grid = {};
 
     // Cores dependentes do tema; os gráficos são redesenhados ao trocar o tema
@@ -1223,7 +1225,8 @@
             layout: { padding: 8 },
             plugins: {
               legend: { position: 'right' },
-              tooltip: { callbacks: { label: (x) => ` ${x.label}: ${isCount ? num.format(x.parsed) : money(x.parsed)} (${total ? ((x.parsed / total) * 100).toFixed(1).replace('.', ',') : '0'}%)` } },
+              // Fatias usam o valor absoluto; o tooltip mostra o valor real, com sinal
+              tooltip: { callbacks: { label: (x) => ` ${x.label}: ${isCount ? num.format(c.values[x.dataIndex]) : money(c.values[x.dataIndex])} (${total ? ((x.parsed / total) * 100).toFixed(1).replace('.', ',') : '0'}%)` } },
               centroRosca: { texto: curto(total) },
             },
           },
